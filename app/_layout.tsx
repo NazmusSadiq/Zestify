@@ -1,29 +1,54 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { Stack } from "expo-router";
+import { Platform, StatusBar, View } from "react-native";
+import "./globals.css";
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
-
-  if (!loaded) {
-    // Async font loading only occurs in development.
-    return null;
-  }
-
+  // Uncomment the following block before building the app to set the navigation bar color properly on Android
+  
+  /*if (Platform.OS === 'android') {
+    NavigationBar.setBackgroundColorAsync('black');
+    NavigationBar.setButtonStyleAsync('light'); // Optional: make the nav buttons light to be visible on black
+  }*/
+  
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
+    <>
+      {Platform.OS === "android" && (
+        <View
+          style={{
+            height: StatusBar.currentHeight,
+            backgroundColor: "black",
+          }}
+        />
+      )}
+
+      <Stack
+        screenOptions={{
+          contentStyle: { backgroundColor: "black" },
+        }}
+      >
+        <Stack.Screen
+          name="(tabs)"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="movie/[id]"
+          options={{
+            headerShown: false,
+          }}
+        />
       </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+      {/*Comment the following block before building the app to set the navigation bar color properly on Android*/}
+  
+      {Platform.OS === "android" && (
+        <View
+          style={{
+            height: 44,
+            backgroundColor: "black", // This is the height of the navigation bar on Android)",
+          }}
+        />
+      )}
+    </>
   );
 }
