@@ -45,7 +45,7 @@ export default function RootLayout() {
         <View
           style={{
             height: 44,
-            backgroundColor: "black", // This is the height of the navigation bar on Android)",
+            backgroundColor: "black", 
           }}
         />
       )}
