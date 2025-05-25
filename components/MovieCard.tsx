@@ -1,50 +1,67 @@
-import { Link } from "expo-router";
-import { Image, Text, TouchableOpacity, View } from "react-native";
+import React from 'react';
+import { Image, StyleSheet, Text, View } from 'react-native';
 
-import { icons } from "@/constants/icons";
+interface MovieCardProps {
+  title: string;
+  posterUrl?: string;
+}
 
-const MovieCard = ({
-  id,
-  poster_path,
-  title,
-  vote_average,
-  release_date,
-}: Movie) => {
+const MovieCard: React.FC<MovieCardProps> = ({ title, posterUrl }) => {
   return (
-    <Link href={`/movie/${id}`} asChild>
-      <TouchableOpacity className="w-[30%]">
-        <Image
-          source={{
-            uri: poster_path
-              ? `https://image.tmdb.org/t/p/w500${poster_path}`
-              : "https://placehold.co/600x400/1a1a1a/FFFFFF.png",
-          }}
-          className="w-full h-52 rounded-lg"
-          resizeMode="cover"
-        />
-
-        <Text className="text-sm font-bold text-white mt-2" numberOfLines={1}>
-          {title}
-        </Text>
-
-        <View className="flex-row items-center justify-start gap-x-1">
-          <Image source={icons.star} className="size-4" />
-          <Text className="text-xs text-white font-bold uppercase">
-            {Math.round(vote_average / 2)}
-          </Text>
-        </View>
-
-        <View className="flex-row items-center justify-between">
-          <Text className="text-xs text-light-300 font-medium mt-1">
-            {release_date?.split("-")[0]}
-          </Text>
-          <Text className="text-xs font-medium text-light-300 uppercase">
-            Movie
-          </Text>
-        </View>
-      </TouchableOpacity>
-    </Link>
+    <View style={styles.container}>
+      <View style={styles.imageContainer}>
+        {posterUrl ? (
+          <Image source={{ uri: posterUrl }} style={styles.poster} />
+        ) : (
+          <View style={styles.noPoster}>
+            <Text style={styles.noPosterText}>No Image</Text>
+          </View>
+        )}
+      </View>
+      <Text style={styles.title} numberOfLines={2}>{title}</Text>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    width: '100%',
+    marginBottom: 0,
+  },
+  imageContainer: {
+    aspectRatio: 2 / 3,
+    height: 140,
+    borderRadius: 4,
+    overflow: 'hidden',
+    backgroundColor: '#34495e',
+  },
+  poster: {
+    width: '100%',
+    height: '100%',
+  },
+  noPoster: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#2c3e50',
+  },
+  noPosterText: {
+    color: '#ccc',
+    fontSize: 10,
+  },
+  titleContainer: {
+    height: 36, // approximate height for 2 lines of text at fontSize 12 + marginTop
+    justifyContent: 'center', // or 'flex-start' if you want top align
+  },
+  title: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 4,
+    maxWidth: '100%',
+  },
+});
+
+
 
 export default MovieCard;
