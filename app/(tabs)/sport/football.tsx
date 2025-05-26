@@ -1,9 +1,9 @@
 import { StyleSheet, Text, View } from "react-native";
 
-export default function Profile() {
+export default function Football() {
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Pro File!</Text>
+      <Text style={styles.title}>Football!</Text>
     </View>
   );
 }
@@ -13,11 +13,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#1B2631",
   },
-  heading: {
-    fontSize: 40, 
+  title: {
+    fontSize: 40,        
+    color: "#3B82F6",    
     fontWeight: "bold",
-    color: "white",
   },
 });
