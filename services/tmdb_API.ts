@@ -29,27 +29,69 @@ export const fetchMovies = async ({
   return data.results;
 };
 
+export const fetchLatestMovies = async (): Promise<Movie[]> => {
+  const endpoint = `${TMDB_CONFIG.BASE_URL}/movie/now_playing?language=en-US&page=1`;
+
+  const response = await fetch(endpoint, {
+    method: "GET",
+    headers: TMDB_CONFIG.headers,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch latest movies: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data.results;
+};
+
+export const fetchUpcomingMovies = async (): Promise<Movie[]> => {
+  const endpoint = `${TMDB_CONFIG.BASE_URL}/movie/upcoming?language=en-US&page=1`;
+
+  const response = await fetch(endpoint, {
+    method: "GET",
+    headers: TMDB_CONFIG.headers,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch upcoming movies: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data.results;
+};
+
+export const fetchTopRatedMovies = async (): Promise<Movie[]> => {
+  const endpoint = `${TMDB_CONFIG.BASE_URL}/movie/top_rated?language=en-US&page=1`;
+
+  const response = await fetch(endpoint, {
+    method: "GET",
+    headers: TMDB_CONFIG.headers,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch top rated movies: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data.results;
+};
+
 export const fetchMovieDetails = async (
   movieId: string
 ): Promise<MovieDetails> => {
-  try {
-    const response = await fetch(
-      `${TMDB_CONFIG.BASE_URL}/movie/${movieId}?api_key=${TMDB_CONFIG.API_KEY}`,
-      {
-        method: "GET",
-        headers: TMDB_CONFIG.headers,
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch movie details: ${response.statusText}`);
+  const response = await fetch(
+    `${TMDB_CONFIG.BASE_URL}/movie/${movieId}?api_key=${TMDB_CONFIG.API_KEY}`,
+    {
+      method: "GET",
+      headers: TMDB_CONFIG.headers,
     }
+  );
 
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error("Error fetching movie details:", error);
-    throw error;
+  if (!response.ok) {
+    throw new Error(`Failed to fetch movie details: ${response.statusText}`);
   }
-};
 
+  const data = await response.json();
+  return data;
+};

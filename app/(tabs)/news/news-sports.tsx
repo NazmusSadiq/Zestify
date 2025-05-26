@@ -1,9 +1,22 @@
-import { Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
-export default function News_Sports() {
+export default function news_Sports() {
   return (
-    <View className="flex-1 justify-center items-center">
-      <Text className="text-5xl text-primary font-bold">News_Sports!</Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>News_Sports!</Text>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  title: {
+    fontSize: 40,        // roughly equivalent to text-5xl
+    color: "#3B82F6",    // assuming "text-primary" means a blue color; adjust as needed
+    fontWeight: "bold",
+  },
+});

@@ -1,6 +1,5 @@
 import { Stack } from "expo-router";
 import { Platform, StatusBar, View } from "react-native";
-import "./globals.css";
 
 export default function RootLayout() {
   // Uncomment the following block before building the app to set the navigation bar color properly on Android

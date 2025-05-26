@@ -1,7 +1,10 @@
 import MovieCard from "@/components/MovieCard";
-import { fetchMovies } from "@/services/tmdb_API";
-import useFetch from "@/services/usefetch";
-import React, { useEffect, useRef } from "react";
+import {
+  fetchLatestMovies,
+  fetchTopRatedMovies,
+  fetchUpcomingMovies,
+} from "@/services/tmdb_API";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
@@ -9,7 +12,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  View
+  View,
 } from "react-native";
 
 const { height, width } = Dimensions.get("window");
@@ -22,71 +25,142 @@ interface MovieItem {
 }
 
 export default function Movie() {
-  const { data, loading, error } = useFetch<MovieItem[]>(() =>
-    fetchMovies({ query: "" })
-  );
+  const [latest, setLatest] = useState<MovieItem[]>([]);
+  const [upcoming, setUpcoming] = useState<MovieItem[]>([]);
+  const [topRated, setTopRated] = useState<MovieItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    const loadAll = async () => {
+      try {
+        const [l, u, t] = await Promise.all([
+          fetchLatestMovies(),
+          fetchUpcomingMovies(),
+          fetchTopRatedMovies(),
+        ]);
+        setLatest(l);
+        setUpcoming(u);
+        setTopRated(t);
+      } catch (err: any) {
+        setError(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadAll();
+  }, []);
 
   const getPosterUrl = (path: string | null) =>
     path ? `https://image.tmdb.org/t/p/w500${path}` : undefined;
 
-  // Scroll refs & indices for auto-scroll (same as before)
-  const scrollRefs = {
-    Latest: useRef<ScrollView>(null),
-    Upcoming: useRef<ScrollView>(null),
-    Trending: useRef<ScrollView>(null),
-  };
+  const sectionKeys = ["Latest", "Upcoming", "TopRated"] as const;
 
-  const scrollIndices = {
-    Latest: useRef(0),
-    Upcoming: useRef(0),
-    Trending: useRef(0),
-  };
+  const scrollRefs = Object.fromEntries(
+    sectionKeys.map((key) => [key, useRef<ScrollView>(null)])
+  ) as Record<string, React.RefObject<ScrollView>>;
+
+  const scrollIndices = Object.fromEntries(
+    sectionKeys.map((key) => [key, useRef(0)])
+  ) as Record<string, React.MutableRefObject<number>>;
+
+  const isManualScrolling = Object.fromEntries(
+    sectionKeys.map((key) => [key, useRef(false)])
+  ) as Record<string, React.MutableRefObject<boolean>>;
+
+  const manualScrollTimeouts = Object.fromEntries(
+    sectionKeys.map((key) => [key, useRef<ReturnType<typeof setTimeout> | null>(null)])
+  ) as Record<string, React.MutableRefObject<ReturnType<typeof setTimeout> | null>>;
+
+  const scrollXValues = Object.fromEntries(
+    sectionKeys.map((key) => [key, useRef(new Animated.Value(0)).current])
+  ) as Record<string, Animated.Value>;
 
   const cardMargin = 8;
   const cardsPerRow = 3;
   const totalMargin = cardMargin * (cardsPerRow - 1);
-  const cardWidth = (width - totalMargin - 16) / cardsPerRow; // same width you had
+  const cardWidth = (width - totalMargin - 16) / cardsPerRow;
   const cardWidthWithMargin = cardWidth + cardMargin;
 
-  // Store scrollX for each section to track scroll position and calculate focused card
-  const scrollXValues = {
-    Latest: useRef(new Animated.Value(0)).current,
-    Upcoming: useRef(new Animated.Value(0)).current,
-    Trending: useRef(new Animated.Value(0)).current,
-  };
+  useEffect(() => {
+    const movieGroups = { Latest: latest, Upcoming: upcoming, TopRated: topRated };
 
-  // UseEffect for auto-scrolling (same as before, but now use Animated.event for better integration)
+    Object.entries(movieGroups).forEach(([section, data]) => {
+      if (scrollRefs[section].current && data.length > 0) {
+        const offset = data.length * cardWidthWithMargin;
+        scrollRefs[section].current?.scrollTo({ x: offset, animated: false });
+        scrollIndices[section].current = data.length;
+      }
+    });
+  }, [latest, upcoming, topRated]);
+
   useEffect(() => {
     const interval = setInterval(() => {
-      Object.entries(scrollRefs).forEach(([section, ref]) => {
-        const moviesCount = data?.length || 0;
+      sectionKeys.forEach((section) => {
+        const movies = getSectionData(section);
+        if (!movies.length || isManualScrolling[section].current) return;
 
-        if (ref.current && data?.length) {
-          const indexRef = scrollIndices[section as keyof typeof scrollIndices];
-          indexRef.current += 1;
+        const indexRef = scrollIndices[section];
+        indexRef.current++;
 
-          if (indexRef.current >= moviesCount + 1) {
-            indexRef.current = 1;
-            ref.current.scrollTo({ x: 0, animated: false }); // snap back silently
-          }
-
-          ref.current.scrollTo({
-            x: indexRef.current * cardWidthWithMargin,
-            animated: true,
+        if (indexRef.current >= movies.length * 2) {
+          indexRef.current = movies.length;
+          scrollRefs[section].current?.scrollTo({
+            x: movies.length * cardWidthWithMargin,
+            animated: false,
           });
         }
+
+        scrollRefs[section].current?.scrollTo({
+          x: indexRef.current * cardWidthWithMargin,
+          animated: true,
+        });
       });
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [data]);
+  }, [latest, upcoming, topRated]);
 
-  // Helper function to render each section with scaling effect on cards
+  const onScrollBeginDrag = (section: string) => {
+    isManualScrolling[section].current = true;
+    if (manualScrollTimeouts[section].current) {
+      clearTimeout(manualScrollTimeouts[section].current!);
+      manualScrollTimeouts[section].current = null;
+    }
+  };
+
+  const onScrollEndDrag = (event: any, section: string) => {
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const currentIndex = Math.round(offsetX / cardWidthWithMargin);
+    scrollIndices[section].current = currentIndex;
+
+    manualScrollTimeouts[section].current = setTimeout(() => {
+      isManualScrolling[section].current = false;
+    }, 2000);
+  };
+
+  const getSectionData = (section: string) => {
+    switch (section) {
+      case "Latest":
+        return latest;
+      case "Upcoming":
+        return upcoming;
+      case "TopRated":
+        return topRated;
+      default:
+        return [];
+    }
+  };
+
   const renderSection = (title: string, movies: MovieItem[]) => {
-    const doubledMovies = [...movies, ...movies]; // duplicate for infinite looping
-    const sectionKey = title.split(" ")[0] as keyof typeof scrollRefs;
+    const tripledMovies = [...movies, ...movies, ...movies];
 
-    // scrollX Animated value for this section
+    let sectionKey: string;
+    if (title.startsWith("Latest")) sectionKey = "Latest";
+    else if (title.startsWith("Upcoming")) sectionKey = "Upcoming";
+    else if (title.startsWith("Top")) sectionKey = "TopRated";
+    else sectionKey = "";
+
     const scrollX = scrollXValues[sectionKey];
 
     return (
@@ -98,23 +172,17 @@ export default function Movie() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.horizontalScroll}
           scrollEventThrottle={16}
-          // Connect scrollX animated value to scroll position
           onScroll={Animated.event(
             [{ nativeEvent: { contentOffset: { x: scrollX } } }],
             { useNativeDriver: false }
           )}
-          // Disable auto-scroll while user scrolls manually
-          onTouchStart={() => {
-            Object.values(scrollIndices).forEach((ref) => (ref.current = 0));
-          }}
+          onScrollBeginDrag={() => onScrollBeginDrag(sectionKey)}
+          onScrollEndDrag={(e) => onScrollEndDrag(e, sectionKey)}
         >
-          {doubledMovies.map((movie, index) => {
+          {tripledMovies.map((movie, index) => {
             const cardCenter = index * cardWidthWithMargin + cardWidth / 2;
-
-            // shift scrollX by half screen width so that interpolation is based on center
             const scrollXWithOffset = Animated.add(scrollX, width / 2);
 
-            // input range around the card center (left, center, right)
             const inputRange = [
               cardCenter - cardWidthWithMargin * 2,
               cardCenter - cardWidthWithMargin,
@@ -147,7 +215,6 @@ export default function Movie() {
               </Animated.View>
             );
           })}
-
         </Animated.ScrollView>
       </View>
     );
@@ -169,19 +236,11 @@ export default function Movie() {
     );
   }
 
-  if (!data || data.length === 0) {
-    return (
-      <View style={styles.centered}>
-        <Text style={styles.noResultsText}>No movies found.</Text>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
-      {renderSection("Latest Movies", data)}
-      {renderSection("Upcoming Movies", data)}
-      {renderSection("Trending Movies", data)}
+      <>{renderSection("Latest Movies", latest)}</>
+      <>{renderSection("Upcoming Movies", upcoming)}</>
+      <>{renderSection("Top Rated Movies", topRated)}</>
     </View>
   );
 }
@@ -220,10 +279,6 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: "red",
-    fontSize: 14,
-  },
-  noResultsText: {
-    color: "#fff",
     fontSize: 14,
   },
 });
