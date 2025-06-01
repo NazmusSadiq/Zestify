@@ -21,7 +21,7 @@ const InitialLayout = () => {
     console.log('User changed: ', isSignedIn);
 
     if (isSignedIn && !inTabsGroup) {
-      router.replace('/profile');
+      router.replace('/(tabs)');
     } else if (!isSignedIn) {
       router.replace('/login');
     }
