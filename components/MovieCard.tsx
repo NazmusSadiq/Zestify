@@ -1,14 +1,15 @@
 import React from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface MovieCardProps {
   title: string;
   posterUrl?: string;
+  onPress?: () => void;
 }
 
-const MovieCard: React.FC<MovieCardProps> = ({ title, posterUrl }) => {
+const MovieCard: React.FC<MovieCardProps> = ({ title, posterUrl, onPress }) => {
   return (
-    <View style={styles.container}>
+    <TouchableOpacity style={styles.container} onPress={onPress}>
       <View style={styles.imageContainer}>
         {posterUrl ? (
           <Image source={{ uri: posterUrl }} style={styles.poster} />
@@ -19,7 +20,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ title, posterUrl }) => {
         )}
       </View>
       <Text style={styles.title} numberOfLines={2}>{title}</Text>
-    </View>
+    </TouchableOpacity>
   );
 };
 
@@ -50,8 +51,8 @@ const styles = StyleSheet.create({
     fontSize: 10,
   },
   titleContainer: {
-    height: 36, // approximate height for 2 lines of text at fontSize 12 + marginTop
-    justifyContent: 'center', // or 'flex-start' if you want top align
+    height: 36,
+    justifyContent: 'center',
   },
   title: {
     color: '#fff',
@@ -61,7 +62,5 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
   },
 });
-
-
 
 export default MovieCard;

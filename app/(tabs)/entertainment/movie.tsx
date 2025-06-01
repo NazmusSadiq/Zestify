@@ -1,14 +1,18 @@
+import DetailsViewer from "@/components/DetailsViewer";
 import MovieCard from "@/components/MovieCard";
 import {
   fetchLatestMovies,
+  fetchMovieDetails,
   fetchTopRatedMovies,
   fetchUpcomingMovies,
 } from "@/services/tmdb_API";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
   Dimensions,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   ScrollView,
   StyleSheet,
   Text,
@@ -22,6 +26,7 @@ interface MovieItem {
   title: string;
   poster_path: string | null;
   release_date: string;
+  [key: string]: any;
 }
 
 export default function Movie() {
@@ -30,9 +35,11 @@ export default function Movie() {
   const [topRated, setTopRated] = useState<MovieItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [selectedMovie, setSelectedMovie] = useState<MovieItem | null>(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
 
   useEffect(() => {
-    const loadAll = async () => {
+    (async () => {
       try {
         const [l, u, t] = await Promise.all([
           fetchLatestMovies(),
@@ -47,8 +54,7 @@ export default function Movie() {
       } finally {
         setLoading(false);
       }
-    };
-    loadAll();
+    })();
   }, []);
 
   const getPosterUrl = (path: string | null) =>
@@ -56,25 +62,35 @@ export default function Movie() {
 
   const sectionKeys = ["Latest", "Upcoming", "TopRated"] as const;
 
-  const scrollRefs = Object.fromEntries(
-    sectionKeys.map((key) => [key, useRef<ScrollView>(null)])
-  ) as Record<string, React.RefObject<ScrollView>>;
+  const scrollRefs = React.useMemo(() => {
+    return Object.fromEntries(
+      sectionKeys.map((key) => [key, React.createRef<ScrollView>()])
+    ) as Record<string, React.RefObject<ScrollView>>;
+  }, []);
 
-  const scrollIndices = Object.fromEntries(
-    sectionKeys.map((key) => [key, useRef(0)])
-  ) as Record<string, React.MutableRefObject<number>>;
+  const scrollIndices = React.useRef<Record<string, number>>({
+    Latest: 0,
+    Upcoming: 0,
+    TopRated: 0,
+  });
 
-  const isManualScrolling = Object.fromEntries(
-    sectionKeys.map((key) => [key, useRef(false)])
-  ) as Record<string, React.MutableRefObject<boolean>>;
+  const isManualScrolling = React.useRef<Record<string, boolean>>({
+    Latest: false,
+    Upcoming: false,
+    TopRated: false,
+  });
 
-  const manualScrollTimeouts = Object.fromEntries(
-    sectionKeys.map((key) => [key, useRef<ReturnType<typeof setTimeout> | null>(null)])
-  ) as Record<string, React.MutableRefObject<ReturnType<typeof setTimeout> | null>>;
+  const manualScrollTimeouts = React.useRef<Record<string, ReturnType<typeof setTimeout> | null>>({
+    Latest: null,
+    Upcoming: null,
+    TopRated: null,
+  });
 
-  const scrollXValues = Object.fromEntries(
-    sectionKeys.map((key) => [key, useRef(new Animated.Value(0)).current])
-  ) as Record<string, Animated.Value>;
+  const scrollXValues = React.useMemo(() => {
+    return Object.fromEntries(
+      sectionKeys.map((key) => [key, new Animated.Value(0)])
+    ) as Record<string, Animated.Value>;
+  }, []);
 
   const cardMargin = 8;
   const cardsPerRow = 3;
@@ -86,33 +102,33 @@ export default function Movie() {
     const movieGroups = { Latest: latest, Upcoming: upcoming, TopRated: topRated };
 
     Object.entries(movieGroups).forEach(([section, data]) => {
-      if (scrollRefs[section].current && data.length > 0) {
+      const scrollRef = scrollRefs[section];
+      if (scrollRef?.current && data.length > 0) {
         const offset = data.length * cardWidthWithMargin;
-        scrollRefs[section].current?.scrollTo({ x: offset, animated: false });
-        scrollIndices[section].current = data.length;
+        scrollRef.current.scrollTo({ x: offset, animated: false });
+        scrollIndices.current[section] = data.length;
       }
     });
-  }, [latest, upcoming, topRated]);
+  }, [latest, upcoming, topRated, scrollRefs]);
 
   useEffect(() => {
     const interval = setInterval(() => {
       sectionKeys.forEach((section) => {
         const movies = getSectionData(section);
-        if (!movies.length || isManualScrolling[section].current) return;
+        if (!movies.length || isManualScrolling.current[section]) return;
 
-        const indexRef = scrollIndices[section];
-        indexRef.current++;
+        scrollIndices.current[section]++;
 
-        if (indexRef.current >= movies.length * 2) {
-          indexRef.current = movies.length;
-          scrollRefs[section].current?.scrollTo({
+        if (scrollIndices.current[section] >= movies.length * 2) {
+          scrollIndices.current[section] = movies.length;
+          scrollRefs[section]?.current?.scrollTo({
             x: movies.length * cardWidthWithMargin,
             animated: false,
           });
         }
 
-        scrollRefs[section].current?.scrollTo({
-          x: indexRef.current * cardWidthWithMargin,
+        scrollRefs[section]?.current?.scrollTo({
+          x: scrollIndices.current[section] * cardWidthWithMargin,
           animated: true,
         });
       });
@@ -122,20 +138,23 @@ export default function Movie() {
   }, [latest, upcoming, topRated]);
 
   const onScrollBeginDrag = (section: string) => {
-    isManualScrolling[section].current = true;
-    if (manualScrollTimeouts[section].current) {
-      clearTimeout(manualScrollTimeouts[section].current!);
-      manualScrollTimeouts[section].current = null;
+    isManualScrolling.current[section] = true;
+    if (manualScrollTimeouts.current[section]) {
+      clearTimeout(manualScrollTimeouts.current[section]!);
+      manualScrollTimeouts.current[section] = null;
     }
   };
 
-  const onScrollEndDrag = (event: any, section: string) => {
+  const onScrollEndDrag = (
+    event: NativeSyntheticEvent<NativeScrollEvent>,
+    section: string
+  ) => {
     const offsetX = event.nativeEvent.contentOffset.x;
     const currentIndex = Math.round(offsetX / cardWidthWithMargin);
-    scrollIndices[section].current = currentIndex;
+    scrollIndices.current[section] = currentIndex;
 
-    manualScrollTimeouts[section].current = setTimeout(() => {
-      isManualScrolling[section].current = false;
+    manualScrollTimeouts.current[section] = setTimeout(() => {
+      isManualScrolling.current[section] = false;
     }, 2000);
   };
 
@@ -149,6 +168,19 @@ export default function Movie() {
         return topRated;
       default:
         return [];
+    }
+  };
+
+  const handleMoviePress = async (movie: MovieItem) => {
+    setDetailsLoading(true);
+    try {
+      const details = await fetchMovieDetails(movie.id.toString());
+      setSelectedMovie({ ...movie, ...details });
+    } catch (err) {
+      console.error("Failed to fetch movie details:", err);
+      setSelectedMovie(movie);
+    } finally {
+      setDetailsLoading(false);
     }
   };
 
@@ -172,10 +204,12 @@ export default function Movie() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.horizontalScroll}
           scrollEventThrottle={16}
-          onScroll={Animated.event(
-            [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-            { useNativeDriver: false }
-          )}
+          onScroll={({ nativeEvent }) => {
+            Animated.event(
+              [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+              { useNativeDriver: false }
+            )({ nativeEvent });
+          }}
           onScrollBeginDrag={() => onScrollBeginDrag(sectionKey)}
           onScrollEndDrag={(e) => onScrollEndDrag(e, sectionKey)}
         >
@@ -211,6 +245,7 @@ export default function Movie() {
                 <MovieCard
                   title={movie.title}
                   posterUrl={getPosterUrl(movie.poster_path)}
+                  onPress={() => handleMoviePress(movie)}
                 />
               </Animated.View>
             );
@@ -238,9 +273,17 @@ export default function Movie() {
 
   return (
     <View style={styles.container}>
-      <>{renderSection("Latest Movies", latest)}</>
-      <>{renderSection("Upcoming Movies", upcoming)}</>
-      <>{renderSection("Top Rated Movies", topRated)}</>
+      {renderSection("Latest Movies", latest)}
+      {renderSection("Upcoming Movies", upcoming)}
+      {renderSection("Top Rated Movies", topRated)}
+      
+      <DetailsViewer
+        data={selectedMovie}
+        visible={!!selectedMovie}
+        onClose={() => setSelectedMovie(null)}
+        titleKey="title"
+        imageKey="poster_path"
+      />
     </View>
   );
 }
