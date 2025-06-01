@@ -1,7 +1,9 @@
-import { View, StyleSheet, TextInput, Button } from 'react-native';
-import React, { useState } from 'react';
-import { Stack } from 'expo-router';
 import { useSignIn } from '@clerk/clerk-expo';
+import { Link, Stack } from 'expo-router';
+import { useState } from 'react';
+import { Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+
+const appIcon = require("../../assets/icons/logo.png");
 
 const PwReset = () => {
   const [emailAddress, setEmailAddress] = useState('');
@@ -45,23 +47,66 @@ const PwReset = () => {
     <View style={styles.container}>
       <Stack.Screen options={{ headerBackVisible: !successfulCreation }} />
 
-      {!successfulCreation && (
-        <>
-          <TextInput autoCapitalize="none" placeholder="simon@galaxies.dev" value={emailAddress} onChangeText={setEmailAddress} style={styles.inputField} />
+      <View style={styles.headerContainer}>
+        <Image source={appIcon} style={styles.icon} resizeMode="contain" />
+        <Text style={styles.brandText}>Zestify</Text>
+      </View>
 
-          <Button onPress={onRequestReset} title="Send Reset Email" color={'#6c47ff'}></Button>
-        </>
-      )}
+      <View style={styles.formContainer}>
+        {!successfulCreation ? (
+          <>
+            <Text style={styles.title}>Reset Password</Text>
+            <Text style={styles.subtitle}>Enter your email to receive a reset code</Text>
 
-      {successfulCreation && (
-        <>
-          <View>
-            <TextInput value={code} placeholder="Code..." style={styles.inputField} onChangeText={setCode} />
-            <TextInput placeholder="New password" value={password} onChangeText={setPassword} secureTextEntry style={styles.inputField} />
-          </View>
-          <Button onPress={onReset} title="Set new Password" color={'#6c47ff'}></Button>
-        </>
-      )}
+            <TextInput 
+              autoCapitalize="none" 
+              placeholder="Email" 
+              placeholderTextColor="#666"
+              value={emailAddress} 
+              onChangeText={setEmailAddress} 
+              style={styles.inputField} 
+            />
+
+            <Pressable style={styles.resetButton} onPress={onRequestReset}>
+              <Text style={styles.resetButtonText}>Send Reset Code</Text>
+            </Pressable>
+
+            <View style={styles.loginContainer}>
+              <Text style={styles.loginText}>Remember your password? </Text>
+              <Link href="/login" asChild>
+                <Pressable>
+                  <Text style={styles.loginLink}>Sign In</Text>
+                </Pressable>
+              </Link>
+            </View>
+          </>
+        ) : (
+          <>
+            <Text style={styles.title}>Set New Password</Text>
+            <Text style={styles.subtitle}>Enter the code and your new password</Text>
+
+            <TextInput 
+              value={code} 
+              placeholder="Enter reset code" 
+              placeholderTextColor="#666"
+              style={styles.inputField} 
+              onChangeText={setCode} 
+            />
+            <TextInput 
+              placeholder="New password" 
+              placeholderTextColor="#666"
+              value={password} 
+              onChangeText={setPassword} 
+              secureTextEntry 
+              style={styles.inputField} 
+            />
+
+            <Pressable style={styles.resetButton} onPress={onReset}>
+              <Text style={styles.resetButtonText}>Reset Password</Text>
+            </Pressable>
+          </>
+        )}
+      </View>
     </View>
   );
 };
@@ -69,21 +114,78 @@ const PwReset = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    backgroundColor: 'black',
     padding: 20,
   },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 60,
+    marginBottom: 40,
+  },
+  icon: {
+    width: 40,
+    height: 40,
+  },
+  brandText: {
+    color: '#FF0000',
+    fontSize: 24,
+    marginLeft: 8,
+    fontFamily: 'sans-serif-light',
+    fontWeight: '300',
+  },
+  formContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  title: {
+    color: '#FFF',
+    fontSize: 32,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  subtitle: {
+    color: '#666',
+    fontSize: 16,
+    marginBottom: 32,
+  },
   inputField: {
-    marginVertical: 4,
+    marginVertical: 8,
     height: 50,
     borderWidth: 1,
-    borderColor: '#6c47ff',
-    borderRadius: 4,
-    padding: 10,
-    backgroundColor: '#fff',
+    borderColor: '#333',
+    borderRadius: 8,
+    padding: 12,
+    backgroundColor: '#111',
+    color: '#FFF',
+    fontSize: 16,
   },
-  button: {
-    margin: 8,
+  resetButton: {
+    backgroundColor: '#FF0000',
+    height: 50,
+    borderRadius: 8,
+    justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 16,
+  },
+  resetButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  loginContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 24,
+  },
+  loginText: {
+    color: '#666',
+    fontSize: 14,
+  },
+  loginLink: {
+    color: '#FF0000',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
 

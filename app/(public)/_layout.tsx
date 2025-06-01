@@ -15,16 +15,19 @@ const PublicLayout = () => {
         name="login"
         options={{
           headerTitle: 'Clerk Auth App',
+          headerShown:false,
         }}></Stack.Screen>
       <Stack.Screen
         name="register"
         options={{
           headerTitle: 'Create Account',
+          headerShown:false,
         }}></Stack.Screen>
       <Stack.Screen
         name="reset"
         options={{
           headerTitle: 'Reset Password',
+          headerShown:false,
         }}></Stack.Screen>
     </Stack>
   );
