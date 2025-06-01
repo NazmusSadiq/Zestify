@@ -1,3 +1,4 @@
+import Dropdown from '@/components/Dropdown';
 import SearchBar from '@/components/SearchBar';
 import React, { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -32,6 +33,7 @@ export default function EntertainmentLayout() {
 
       <View style={styles.content}>
         <View style={styles.searchContainer}>
+          <Dropdown activeTab={activeTab} />
           <SearchBar activeTab={activeTab} />
         </View>
 
@@ -91,7 +93,10 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingLeft: 10,
+    paddingRight: 10,
     marginBottom: 0,
     marginTop: -5,
   },
