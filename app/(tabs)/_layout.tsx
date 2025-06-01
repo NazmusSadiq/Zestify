@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 
-// Load your uploaded image
 const appIcon = require("../../assets/icons/logo.png");
 
 function TabIcon({ focused, icon, title }: any) {
@@ -120,7 +119,7 @@ export default function TabsLayout() {
 const styles = StyleSheet.create({
     headerContainer: {
         position: "absolute",
-        top: 0,
+        top: 30,
         left: -10,
         right: 0,
         paddingHorizontal: 20,

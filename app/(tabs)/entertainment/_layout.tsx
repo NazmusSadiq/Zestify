@@ -11,22 +11,10 @@ const tabs = ['Movie', 'TV Series', 'Music', 'Game', 'Book'];
 
 export default function EntertainmentLayout() {
   const [activeTab, setActiveTab] = useState('Movie');
-  const [searchText, setSearchText] = useState('');  
 
   const handleTabPress = (tab: string) => {
     setActiveTab(tab);
-    setSearchText(''); 
   };
-
-  const handleSearchChange = (text: string) => {
-    setSearchText(text);
-  };
-
-  const handleSearchIconPress = () => {
-    setSearchText('');
-  };
-
-  const getPlaceholder = (tab: string) => `Search for a ${tab}`;
 
   return (
     <View style={styles.container}>
@@ -44,13 +32,9 @@ export default function EntertainmentLayout() {
 
       <View style={styles.content}>
         <View style={styles.searchContainer}>
-          <SearchBar
-            placeholder={getPlaceholder(activeTab)}
-            value={searchText}
-            onChangeText={handleSearchChange}
-            onIconPress={handleSearchIconPress}
-          />
+          <SearchBar activeTab={activeTab} />
         </View>
+
         {activeTab === 'Movie' && <Movie />}
         {activeTab === 'TV Series' && <TV_Series />}
         {activeTab === 'Music' && <Music />}
