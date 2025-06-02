@@ -1,13 +1,13 @@
 import React from "react";
 import {
-    Image,
-    Modal,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Image,
+  Modal,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 interface DetailsViewerProps {
@@ -33,6 +33,8 @@ const DetailsViewer = ({
     "imdb_id",
     "genre_ids",
     "vote_count",
+    "popularity",
+    "homepage",
     "tagline",
     "poster_path",
   ];
@@ -46,6 +48,16 @@ const DetailsViewer = ({
       )
         return null;
 
+      const label = (
+        <View style={styles.labelWithIcon}>
+          <Text style={styles.fieldKey}>{formatKey(key)}</Text>
+          <Image
+            source={require("../assets/icons/arrow.png")} 
+            style={styles.icon}
+          />
+        </View>
+      );
+
       if (typeof value === "string" || typeof value === "number") {
         return (
           <View key={key} style={styles.fieldContainer}>
@@ -58,7 +70,7 @@ const DetailsViewer = ({
       if (Array.isArray(value)) {
         return (
           <View key={key} style={styles.fieldContainer}>
-            <Text style={styles.fieldKey}>{formatKey(key)}:</Text>
+            {label}
             <Text style={styles.fieldValue}>
               {value
                 .map((item) =>
@@ -73,7 +85,7 @@ const DetailsViewer = ({
       if (typeof value === "object" && value !== null) {
         return (
           <View key={key} style={styles.fieldContainer}>
-            <Text style={styles.fieldKey}>{formatKey(key)}:</Text>
+            {label}
             <Text style={styles.fieldValue}>
               {value.name || value.title || JSON.stringify(value)}
             </Text>
@@ -92,7 +104,7 @@ const DetailsViewer = ({
       visible={visible}
       animationType="slide"
       transparent={false}
-      onRequestClose={onClose} // Android back button support
+      onRequestClose={onClose}
     >
       <SafeAreaView style={styles.fullscreenContainer}>
         <TouchableOpacity onPress={onClose} style={styles.closeButton}>
@@ -167,9 +179,22 @@ const styles = StyleSheet.create({
   fieldKey: {
     color: "#bbb",
     fontWeight: "600",
+    fontSize: 16,
   },
   fieldValue: {
     color: "#eee",
+    fontSize: 15,
+  },
+  labelWithIcon: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  icon: {
+    width: 14,
+    height: 14,
+    marginLeft: 6,
+    tintColor: "#ccc",
   },
 });
 

@@ -68,7 +68,6 @@ const SearchBar = ({ activeTab }: Props) => {
           searchMovie(text);
           break;
         case "TV Series":
-          // Add other handlers here as needed
           break;
         default:
           break;
