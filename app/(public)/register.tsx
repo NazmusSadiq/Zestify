@@ -1,8 +1,10 @@
 import { useSignUp } from '@clerk/clerk-expo';
 import { Link, Stack } from 'expo-router';
+import { doc, setDoc } from 'firebase/firestore';
 import { useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import Spinner from 'react-native-loading-spinner-overlay';
+import { db } from '../../firebase';
 
 const appIcon = require("../../assets/icons/logo.png");
 
@@ -51,6 +53,12 @@ const Register = () => {
     try {
       const completeSignUp = await signUp.attemptEmailAddressVerification({
         code,
+      });
+
+      // Create user document in Firebase
+      await setDoc(doc(db, 'users', emailAddress), {
+        email: emailAddress,
+        createdAt: new Date().toISOString(),
       });
 
       await setActive({ session: completeSignUp.createdSessionId });
