@@ -7,20 +7,25 @@ import {
 } from "@/services/tmdb_API";
 import React, { useEffect, useRef, useState } from "react";
 import {
+  Animated,
   BackHandler,
   FlatList,
   Image,
   Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import DetailsViewer from "./DetailsViewer";
 
 interface Props {
-  activeTab: string; // "Movie", "TV Series", etc.
+  activeTab: string;
 }
 
 interface MediaItem {
@@ -34,6 +39,7 @@ interface MediaItem {
 }
 
 const POSTER_BASE_URL = "https://image.tmdb.org/t/p/w92";
+const DROPDOWN_WIDTH = 220; // dropdown width used for animation
 
 const SearchBar = ({ activeTab }: Props) => {
   const [searchText, setSearchText] = useState("");
@@ -41,28 +47,29 @@ const SearchBar = ({ activeTab }: Props) => {
   const [loading, setLoading] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalMounted, setModalMounted] = useState(false); // control mounting for animation
 
   const debounceTimeout = useRef<number | null>(null);
+
+  // Animated value for horizontal slide
+  const slideAnim = useRef(new Animated.Value(DROPDOWN_WIDTH)).current; // start off shifted right by dropdown width
 
   const searchHandlers: { [key: string]: (query: string) => Promise<MediaItem[]> } = {
     Movie: (query: string) => fetchMovies({ query }),
     "TV Series": (query: string) => fetchTVSeries({ query }),
-    // "Game": fetchGames, // Future support
-    // "Book": fetchBooks,
-    // "Music": fetchMusic,
   };
 
   const detailsHandlers: { [key: string]: (id: string) => Promise<any> } = {
     Movie: fetchMovieDetails,
     "TV Series": fetchTVSeriesDetails,
-    // "Game": fetchGameDetails,
-    // etc.
   };
 
   const searchMedia = async (query: string) => {
     try {
       if (!query.trim()) {
         setSearchResults([]);
+        animateModalOut();
         return;
       }
       const searchFn = searchHandlers[activeTab];
@@ -72,8 +79,15 @@ const SearchBar = ({ activeTab }: Props) => {
       const results = await searchFn(query);
       setSearchResults(results ?? []);
       setLoading(false);
+
+      if ((results ?? []).length > 0) {
+        animateModalIn();
+      } else {
+        animateModalOut();
+      }
     } catch (error) {
       setLoading(false);
+      animateModalOut();
       console.error(`Error searching ${activeTab}:`, error);
     }
   };
@@ -95,6 +109,7 @@ const SearchBar = ({ activeTab }: Props) => {
       setSearchText("");
       Keyboard.dismiss();
       setSearchResults([]);
+      animateModalOut();
       console.log("Search cleared");
     }
   };
@@ -107,12 +122,14 @@ const SearchBar = ({ activeTab }: Props) => {
       setSelectedItem({ ...item, ...details });
       setSearchText("");
       setSearchResults([]);
+      animateModalOut();
       Keyboard.dismiss();
     } catch (err) {
       console.error(`Failed to fetch ${activeTab} details:`, err);
       setSelectedItem(item);
       setSearchText("");
       setSearchResults([]);
+      animateModalOut();
       Keyboard.dismiss();
     } finally {
       setDetailsLoading(false);
@@ -134,6 +151,29 @@ const SearchBar = ({ activeTab }: Props) => {
 
     return () => backHandler.remove();
   }, [searchText, searchResults, selectedItem]);
+
+  // Animate modal sliding in from right (slideAnim from DROPDOWN_WIDTH -> 0)
+  const animateModalIn = () => {
+    setModalMounted(true);
+    setModalVisible(true);
+    Animated.timing(slideAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  // Animate modal sliding out to right (slideAnim from 0 -> DROPDOWN_WIDTH)
+  const animateModalOut = () => {
+    Animated.timing(slideAnim, {
+      toValue: DROPDOWN_WIDTH,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      setModalMounted(false);
+      setModalVisible(false);
+    });
+  };
 
   const getPlaceholder = () => `Search for a ${activeTab}`;
 
@@ -182,19 +222,45 @@ const SearchBar = ({ activeTab }: Props) => {
           autoCorrect={false}
           autoCapitalize="none"
           returnKeyType="search"
+          onSubmitEditing={() => searchMedia(searchText)}
         />
       </View>
 
-      {searchResults.length > 0 && (
-        <FlatList
-          data={searchResults}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={renderItem}
-          style={styles.resultsList}
-          keyboardShouldPersistTaps="handled"
-          nestedScrollEnabled={true}
-        />
-      )}
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="none" // no default animation, we handle it ourselves
+        onRequestClose={() => animateModalOut()}
+      >
+        <TouchableWithoutFeedback onPress={() => animateModalOut()}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            style={styles.modalOverlay}
+          >
+            <TouchableWithoutFeedback>
+              {modalMounted && (
+                <Animated.View
+                  style={[
+                    styles.modalDropdown,
+                    {
+                      transform: [{ translateX: slideAnim }],
+                    },
+                  ]}
+                >
+                  <FlatList
+                    data={searchResults}
+                    keyExtractor={(item) => item.id.toString()}
+                    renderItem={renderItem}
+                    keyboardShouldPersistTaps="always"
+                    nestedScrollEnabled={true}
+                    showsVerticalScrollIndicator={false}
+                  />
+                </Animated.View>
+              )}
+            </TouchableWithoutFeedback>
+          </KeyboardAvoidingView>
+        </TouchableWithoutFeedback>
+      </Modal>
 
       {loading && <Text style={styles.loadingText}>Loading...</Text>}
 
@@ -239,16 +305,29 @@ const styles = StyleSheet.create({
     height: "100%",
     textAlignVertical: "center",
   },
-  resultsList: {
-    position: "absolute",
-    top: 45,
-    left: 0,
-    width: 220,
-    maxHeight: 200,
+  loadingText: {
+    color: "#fff",
+    marginTop: 8,
+    textAlign: "center",
+  },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.15)",
+    justifyContent: "flex-start",
+    paddingTop: 110,
+    paddingLeft: 147,
+  },
+
+  modalDropdown: {
     backgroundColor: "#34495e",
     borderRadius: 8,
-    zIndex: 1002,
+    maxHeight: 200,
+    width: DROPDOWN_WIDTH,
+    elevation: 10,
+    // Keep position relative inside modalOverlay; no position absolute here so it stays where it is
   },
+
   resultItem: {
     flexDirection: "row",
     alignItems: "center",
@@ -282,10 +361,5 @@ const styles = StyleSheet.create({
   resultDate: {
     color: "#bbb",
     fontSize: 12,
-  },
-  loadingText: {
-    color: "#fff",
-    marginTop: 8,
-    textAlign: "center",
   },
 });

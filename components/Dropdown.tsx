@@ -85,21 +85,33 @@ export default function Dropdown({ activeTab }: DropdownProps) {
             if (activeTab === 'Movie') {
                 if (filterType === 'Latest') {
                     results = await fetchLatestMovies(10);
+                    // Sort descending by release_date (latest first)
+                    results.sort((a, b) => new Date(b.release_date).getTime() - new Date(a.release_date).getTime());
                 } else if (filterType === 'Upcoming') {
                     results = await fetchUpcomingMovies(10);
+                    // Sort ascending by release_date (soonest first)
+                    results.sort((a, b) => new Date(a.release_date).getTime() - new Date(b.release_date).getTime());
                 } else if (filterType === 'Top Rated') {
                     results = await fetchTopRatedMovies(10);
+                    // Sort descending by vote_average (highest rated first)
+                    results.sort((a, b) => b.vote_average - a.vote_average);
                 }
             } else if (activeTab === 'TV Series') {
                 if (filterType === 'Latest') {
                     results = await fetchLatestTVSeries(10);
+                    // Sort descending by first_air_date
+                    results.sort((a, b) => new Date(b.first_air_date).getTime() - new Date(a.first_air_date).getTime());
                 } else if (filterType === 'Upcoming') {
                     results = await fetchUpcomingTVSeries(10);
+                    // Sort ascending by first_air_date
+                    results.sort((a, b) => new Date(a.first_air_date).getTime() - new Date(b.first_air_date).getTime());
                 } else if (filterType === 'Top Rated') {
                     results = await fetchTopRatedTVSeries(10);
+                    // Sort descending by vote_average
+                    results.sort((a, b) => b.vote_average - a.vote_average);
                 }
             }
-
+            results = Array.from(new Map(results.map(item => [item.id, item])).values());
             setFilteredData(results);
             setShowFilteredViewer(true);
             closeDrawer();
@@ -120,6 +132,7 @@ export default function Dropdown({ activeTab }: DropdownProps) {
 
         fetchFunction(filterType, filterValue)
             .then(results => {
+                results = Array.from(new Map(results.map(item => [item.id, item])).values());
                 setFilteredData(results);
                 setShowFilteredViewer(true);
                 closeDrawer();

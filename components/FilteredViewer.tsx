@@ -29,6 +29,14 @@ const determineSortOptions = (
   activeTab?: string,
   caseType?: string
 ): { option: string; key: string }[] => {
+  if (activeTab === "TV Series") {
+    return [
+      { option: "Title", key: "name" },
+      { option: "Popularity", key: "vote_average" },
+      { option: "Release Date", key: "first_air_date" },
+    ];
+  }
+
   if (
     activeTab === "Movie" &&
     (caseType === "genre" || caseType === "rating_above" || caseType === "language")
@@ -39,6 +47,7 @@ const determineSortOptions = (
       { option: "Release Date", key: "release_date" },
     ];
   }
+
   if (activeTab === "Movie" && caseType === "release_year") {
     return [
       { option: "Title", key: "title" },
@@ -57,14 +66,14 @@ const FilteredViewer = ({
   data,
   visible,
   onClose,
-  titleKey = "title",
+  titleKey,
   sortOptions,
   activeTab,
   caseType,
 }: FilteredViewerProps) => {
   const defaultSortOptions = sortOptions ?? determineSortOptions(activeTab, caseType);
-  const [currentSortOptions, setCurrentSortOptions] = useState<{ option: string; key: string }[]>(defaultSortOptions);
-  const [sortBy, setSortBy] = useState<{ option: string; key: string }>(defaultSortOptions[0]);
+  const [currentSortOptions, setCurrentSortOptions] = useState(defaultSortOptions);
+  const [sortBy, setSortBy] = useState(defaultSortOptions[0]);
   const [sortedData, setSortedData] = useState<Record<string, any>[]>([]);
   const [selectedMovie, setSelectedMovie] = useState<Record<string, any> | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
@@ -117,30 +126,20 @@ const FilteredViewer = ({
           mediaType = "tv";
         } else if (item.release_date || item.title) {
           mediaType = "movie";
-        } else if (item.game_platform || item.genre) {
-          mediaType = "game";
-        } else if (item.artist_name || item.album) {
-          mediaType = "music";
-        } else if (item.author || item.publisher) {
-          mediaType = "book";
         } else {
           mediaType = "";
         }
       }
+
       const fetchFunctionMap: Record<string, (id: string) => Promise<any>> = {
         movie: fetchMovieDetails,
         tv: fetchTVSeriesDetails,
-        //game: fetchGameDetails,     
-        //music: fetchMusicDetails,  
-        //book: fetchBookDetails,    
       };
 
       if (mediaType && fetchFunctionMap[mediaType]) {
-        console.log(`Fetching details for media type: ${mediaType}`);
         const details = await fetchFunctionMap[mediaType](item.id.toString());
         setSelectedMovie({ ...item, ...details });
       } else {
-        console.warn(`Unknown media type or no fetch function for "${mediaType}", using item data only.`);
         setSelectedMovie(item);
       }
     } catch (err) {
@@ -151,9 +150,13 @@ const FilteredViewer = ({
     }
   };
 
-
   const renderItem = ({ item }: { item: Record<string, any> }) => {
-    const title = item[titleKey] || item["title"] || item["name"] || "Unknown Title";
+    const title =
+      item[titleKey || ""] ||
+      item["title"] ||
+      item["name"] ||
+      "Unknown Title";
+
     const posterPath = item.poster_path || item.posterUrl || item.poster;
     const posterUrl = posterPath ? `${IMAGE_BASE_URL}${posterPath}` : undefined;
     const averageScore = item.vote_average ?? item.average_score ?? null;
@@ -236,7 +239,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#1e272e",
     paddingTop: 10,
   },
-
   sortSection: {
     backgroundColor: "#000",
     paddingBottom: 10,
@@ -245,7 +247,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#485460",
   },
-
   sortHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -253,7 +254,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginTop: -10,
   },
-
   closeButton: {
     paddingVertical: 6,
     paddingHorizontal: 10,
@@ -291,7 +291,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderColor: "#ffffff",
   },
-
   dropdownItemTextSelected: {
     color: "#000000",
     fontWeight: "700",
