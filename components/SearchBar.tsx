@@ -1,5 +1,10 @@
 import { icons } from "@/constants/icons";
-import { fetchMovieDetails, fetchMovies } from "@/services/tmdb_API";
+import {
+  fetchMovieDetails,
+  fetchMovies,
+  fetchTVSeries,
+  fetchTVSeriesDetails,
+} from "@/services/tmdb_API";
 import React, { useEffect, useRef, useState } from "react";
 import {
   BackHandler,
@@ -15,13 +20,15 @@ import {
 import DetailsViewer from "./DetailsViewer";
 
 interface Props {
-  activeTab: string;
+  activeTab: string; // "Movie", "TV Series", etc.
 }
 
-interface Movie {
+interface MediaItem {
   id: number;
-  title: string;
+  title?: string;
+  name?: string;
   release_date?: string;
+  first_air_date?: string;
   poster_path?: string | null;
   [key: string]: any;
 }
@@ -30,48 +37,56 @@ const POSTER_BASE_URL = "https://image.tmdb.org/t/p/w92";
 
 const SearchBar = ({ activeTab }: Props) => {
   const [searchText, setSearchText] = useState("");
-  const [searchResults, setSearchResults] = useState<Movie[]>([]);
+  const [searchResults, setSearchResults] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+  const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
 
-  // FIXED: use number instead of NodeJS.Timeout for React Native environment
   const debounceTimeout = useRef<number | null>(null);
 
-  const searchMovie = async (query: string) => {
+  const searchHandlers: { [key: string]: (query: string) => Promise<MediaItem[]> } = {
+    Movie: (query: string) => fetchMovies({ query }),
+    "TV Series": (query: string) => fetchTVSeries({ query }),
+    // "Game": fetchGames, // Future support
+    // "Book": fetchBooks,
+    // "Music": fetchMusic,
+  };
+
+  const detailsHandlers: { [key: string]: (id: string) => Promise<any> } = {
+    Movie: fetchMovieDetails,
+    "TV Series": fetchTVSeriesDetails,
+    // "Game": fetchGameDetails,
+    // etc.
+  };
+
+  const searchMedia = async (query: string) => {
     try {
       if (!query.trim()) {
         setSearchResults([]);
         return;
       }
+      const searchFn = searchHandlers[activeTab];
+      if (!searchFn) return;
+
       setLoading(true);
-      const results = await fetchMovies({ query });
+      const results = await searchFn(query);
       setSearchResults(results ?? []);
       setLoading(false);
     } catch (error) {
       setLoading(false);
-      console.error("Error searching movies:", error);
+      console.error(`Error searching ${activeTab}:`, error);
     }
   };
 
   const onChangeText = (text: string) => {
     setSearchText(text);
 
-    // debounce search for better UX and less API calls
     if (debounceTimeout.current) {
       clearTimeout(debounceTimeout.current);
     }
 
     debounceTimeout.current = setTimeout(() => {
-      switch (activeTab) {
-        case "Movie":
-          searchMovie(text);
-          break;
-        case "TV Series":
-          break;
-        default:
-          break;
-      }
+      searchMedia(text);
     }, 400);
   };
 
@@ -84,17 +99,18 @@ const SearchBar = ({ activeTab }: Props) => {
     }
   };
 
-  const handleMoviePress = async (movie: Movie) => {
+  const handleItemPress = async (item: MediaItem) => {
     setDetailsLoading(true);
     try {
-      const details = await fetchMovieDetails(movie.id.toString());
-      setSelectedMovie({ ...movie, ...details });
+      const detailsFn = detailsHandlers[activeTab];
+      const details = detailsFn ? await detailsFn(item.id.toString()) : {};
+      setSelectedItem({ ...item, ...details });
       setSearchText("");
       setSearchResults([]);
       Keyboard.dismiss();
     } catch (err) {
-      console.error("Failed to fetch movie details:", err);
-      setSelectedMovie(movie);
+      console.error(`Failed to fetch ${activeTab} details:`, err);
+      setSelectedItem(item);
       setSearchText("");
       setSearchResults([]);
       Keyboard.dismiss();
@@ -105,8 +121,8 @@ const SearchBar = ({ activeTab }: Props) => {
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener("hardwareBackPress", () => {
-      if (selectedMovie) {
-        setSelectedMovie(null);
+      if (selectedItem) {
+        setSelectedItem(null);
         return true;
       }
       if (searchText.length > 0 || searchResults.length > 0) {
@@ -117,33 +133,38 @@ const SearchBar = ({ activeTab }: Props) => {
     });
 
     return () => backHandler.remove();
-  }, [searchText, searchResults, selectedMovie]);
+  }, [searchText, searchResults, selectedItem]);
 
   const getPlaceholder = () => `Search for a ${activeTab}`;
 
-  const renderMovieItem = ({ item }: { item: Movie }) => (
-    <TouchableOpacity onPress={() => handleMoviePress(item)} activeOpacity={0.7}>
-      <View style={styles.resultItem}>
-        {item.poster_path ? (
-          <Image
-            source={{ uri: POSTER_BASE_URL + item.poster_path }}
-            style={styles.poster}
-            resizeMode="cover"
-          />
-        ) : (
-          <View style={[styles.poster, styles.posterPlaceholder]}>
-            <Text style={styles.posterPlaceholderText}>N/A</Text>
+  const renderItem = ({ item }: { item: MediaItem }) => {
+    const title = item.title || item.name || "Untitled";
+    const date = item.release_date || item.first_air_date || "";
+
+    return (
+      <TouchableOpacity onPress={() => handleItemPress(item)} activeOpacity={0.7}>
+        <View style={styles.resultItem}>
+          {item.poster_path ? (
+            <Image
+              source={{ uri: POSTER_BASE_URL + item.poster_path }}
+              style={styles.poster}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={[styles.poster, styles.posterPlaceholder]}>
+              <Text style={styles.posterPlaceholderText}>N/A</Text>
+            </View>
+          )}
+          <View style={styles.movieInfo}>
+            <Text style={styles.resultTitle} numberOfLines={1}>
+              {title}
+            </Text>
+            {date ? <Text style={styles.resultDate}>{date}</Text> : null}
           </View>
-        )}
-        <View style={styles.movieInfo}>
-          <Text style={styles.resultTitle} numberOfLines={1}>
-            {item.title}
-          </Text>
-          {item.release_date ? <Text style={styles.resultDate}>{item.release_date}</Text> : null}
         </View>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.searchContainer}>
@@ -164,24 +185,24 @@ const SearchBar = ({ activeTab }: Props) => {
         />
       </View>
 
-      {activeTab === "Movie" && searchResults.length > 0 && (
+      {searchResults.length > 0 && (
         <FlatList
           data={searchResults}
           keyExtractor={(item) => item.id.toString()}
-          renderItem={renderMovieItem}
+          renderItem={renderItem}
           style={styles.resultsList}
           keyboardShouldPersistTaps="handled"
           nestedScrollEnabled={true}
         />
       )}
 
-      {activeTab === "Movie" && loading && <Text style={styles.loadingText}>Loading...</Text>}
+      {loading && <Text style={styles.loadingText}>Loading...</Text>}
 
       <DetailsViewer
-        data={selectedMovie}
-        visible={!!selectedMovie}
-        onClose={() => setSelectedMovie(null)}
-        titleKey="title"
+        data={selectedItem}
+        visible={!!selectedItem}
+        onClose={() => setSelectedItem(null)}
+        titleKey={activeTab === "Movie" ? "title" : "name"}
         imageKey="poster_path"
       />
     </View>

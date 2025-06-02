@@ -1,4 +1,4 @@
-import { fetchMovieDetails } from "@/services/tmdb_API"; // Adjust import if needed
+import { fetchMovieDetails, fetchTVSeriesDetails } from "@/services/tmdb_API";
 import React, { useEffect, useState } from "react";
 import {
   FlatList,
@@ -9,8 +9,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import DetailsViewer from "./DetailsViewer"; // Make sure this path is correct
-import MovieCard from "./MovieCard"; // Adjust path if needed
+import DetailsViewer from "./DetailsViewer";
+import MovieCard from "./MovieCard";
 
 interface FilteredViewerProps {
   data: Record<string, any>[] | null;
@@ -29,8 +29,10 @@ const determineSortOptions = (
   activeTab?: string,
   caseType?: string
 ): { option: string; key: string }[] => {
-
-  if (activeTab === "Movie" && (caseType === "genre" || caseType === "rating_above")) {
+  if (
+    activeTab === "Movie" &&
+    (caseType === "genre" || caseType === "rating_above" || caseType === "language")
+  ) {
     return [
       { option: "Title", key: "title" },
       { option: "Popularity", key: "vote_average" },
@@ -44,7 +46,6 @@ const determineSortOptions = (
     ];
   }
 
-  // fallback default:
   return [
     { option: "Title", key: "title" },
     { option: "Popularity", key: "vote_average" },
@@ -57,12 +58,10 @@ const FilteredViewer = ({
   visible,
   onClose,
   titleKey = "title",
-  filterKeys,
   sortOptions,
   activeTab,
   caseType,
 }: FilteredViewerProps) => {
-  // Default to first option of provided sortOptions or determineSortOptions
   const defaultSortOptions = sortOptions ?? determineSortOptions(activeTab, caseType);
   const [currentSortOptions, setCurrentSortOptions] = useState<{ option: string; key: string }[]>(defaultSortOptions);
   const [sortBy, setSortBy] = useState<{ option: string; key: string }>(defaultSortOptions[0]);
@@ -108,18 +107,50 @@ const FilteredViewer = ({
     setSortedData(sorted);
   }, [data, sortBy]);
 
-  const handleMoviePress = async (movie: Record<string, any>) => {
+  const handleItemPress = async (item: Record<string, any>) => {
     setDetailsLoading(true);
+
     try {
-      const details = await fetchMovieDetails(movie.id.toString());
-      setSelectedMovie({ ...movie, ...details });
+      let mediaType = item.media_type?.toLowerCase() || "";
+      if (!mediaType) {
+        if (item.first_air_date || item.name) {
+          mediaType = "tv";
+        } else if (item.release_date || item.title) {
+          mediaType = "movie";
+        } else if (item.game_platform || item.genre) {
+          mediaType = "game";
+        } else if (item.artist_name || item.album) {
+          mediaType = "music";
+        } else if (item.author || item.publisher) {
+          mediaType = "book";
+        } else {
+          mediaType = "";
+        }
+      }
+      const fetchFunctionMap: Record<string, (id: string) => Promise<any>> = {
+        movie: fetchMovieDetails,
+        tv: fetchTVSeriesDetails,
+        //game: fetchGameDetails,     
+        //music: fetchMusicDetails,  
+        //book: fetchBookDetails,    
+      };
+
+      if (mediaType && fetchFunctionMap[mediaType]) {
+        console.log(`Fetching details for media type: ${mediaType}`);
+        const details = await fetchFunctionMap[mediaType](item.id.toString());
+        setSelectedMovie({ ...item, ...details });
+      } else {
+        console.warn(`Unknown media type or no fetch function for "${mediaType}", using item data only.`);
+        setSelectedMovie(item);
+      }
     } catch (err) {
-      console.error("Failed to fetch movie details:", err);
-      setSelectedMovie(movie);
+      console.error("Failed to fetch details:", err);
+      setSelectedMovie(item);
     } finally {
       setDetailsLoading(false);
     }
   };
+
 
   const renderItem = ({ item }: { item: Record<string, any> }) => {
     const title = item[titleKey] || item["title"] || item["name"] || "Unknown Title";
@@ -130,11 +161,7 @@ const FilteredViewer = ({
 
     return (
       <View style={styles.cardWrapper}>
-        <MovieCard
-          title={title}
-          posterUrl={posterUrl}
-          onPress={() => handleMoviePress(item)}
-        />
+        <MovieCard title={title} posterUrl={posterUrl} onPress={() => handleItemPress(item)} />
         <View style={styles.infoContainer}>
           {averageScore !== null && (
             <Text style={styles.infoText}>⭐ {averageScore.toFixed(1)}</Text>
@@ -152,12 +179,14 @@ const FilteredViewer = ({
   return (
     <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
       <SafeAreaView style={styles.fullscreenContainer}>
-        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-          <Text style={styles.closeButtonText}>Close ✕</Text>
-        </TouchableOpacity>
+        <View style={styles.sortSection}>
+          <View style={styles.sortHeader}>
+            <Text style={styles.sortLabel}>Sort By:</Text>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <Text style={styles.closeButtonText}>Close ✕</Text>
+            </TouchableOpacity>
+          </View>
 
-        <View style={styles.sortContainer}>
-          <Text style={styles.sortLabel}>Sort By:</Text>
           <View style={styles.dropdown}>
             {currentSortOptions.map(({ option, key }) => (
               <TouchableOpacity
@@ -204,68 +233,93 @@ const FilteredViewer = ({
 const styles = StyleSheet.create({
   fullscreenContainer: {
     flex: 1,
-    backgroundColor: "#2c3e50",
+    backgroundColor: "#1e272e",
+    paddingTop: 10,
   },
+
+  sortSection: {
+    backgroundColor: "#000",
+    paddingBottom: 10,
+    paddingTop: 12,
+    marginTop: -10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#485460",
+  },
+
+  sortHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    marginTop: -10,
+  },
+
   closeButton: {
-    alignSelf: "flex-end",
-    padding: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    backgroundColor: "#FF0000",
+    borderRadius: 16,
   },
   closeButtonText: {
-    color: "#fff",
-    fontSize: 16,
-  },
-  sortContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 10,
+    color: "#f1f2f6",
+    fontSize: 12,
+    fontWeight: "600",
   },
   sortLabel: {
-    color: "#fff",
-    fontWeight: "700",
+    color: "#f1f2f6",
+    fontWeight: "bold",
     fontSize: 16,
-    marginBottom: 6,
-  },
-  infoContainer: {
-    marginTop: 4,
-  },
-  infoText: {
-    color: "#ddd",
-    fontSize: 10,
   },
   dropdown: {
     flexDirection: "row",
     flexWrap: "wrap",
+    paddingHorizontal: 16,
+    marginTop: 6,
+    marginBottom: -10,
   },
   dropdownItem: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 20,
+    paddingVertical: 4,
+    paddingHorizontal: 14,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#888",
-    marginRight: 8,
-    marginBottom: 6,
+    borderColor: "#f1f2f6",
+    marginRight: 10,
+    marginBottom: 8,
+    backgroundColor: "#2f3640",
   },
   dropdownItemSelected: {
-    backgroundColor: "#3498db",
-    borderColor: "#3498db",
+    backgroundColor: "#ffffff",
+    borderColor: "#ffffff",
   },
-  dropdownItemText: {
-    color: "#fff",
-    fontSize: 14,
-  },
+
   dropdownItemTextSelected: {
+    color: "#000000",
     fontWeight: "700",
   },
+  dropdownItemText: {
+    color: "#f1f2f6",
+  },
   listContent: {
-    paddingHorizontal: 8,
-    paddingBottom: 40,
+    paddingHorizontal: 4,
+    paddingBottom: 10,
   },
   row: {
     justifyContent: "space-between",
-    marginBottom: 12,
   },
   cardWrapper: {
     flex: 1 / 3,
-    marginHorizontal: 4,
+    marginVertical: 8,
+    marginHorizontal: 14,
+  },
+  infoContainer: {
+    marginTop: 6,
+    flexDirection: "column",
+    justifyContent: "space-between",
+  },
+  infoText: {
+    color: "#d2dae2",
+    fontWeight: "bold",
+    fontSize: 12,
   },
 });
 

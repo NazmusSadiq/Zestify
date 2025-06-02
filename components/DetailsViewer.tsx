@@ -52,11 +52,39 @@ const DetailsViewer = ({
         <View style={styles.labelWithIcon}>
           <Text style={styles.fieldKey}>{formatKey(key)}</Text>
           <Image
-            source={require("../assets/icons/arrow.png")} 
+            source={require("../assets/icons/arrow.png")}
             style={styles.icon}
           />
         </View>
       );
+
+      if (key === "seasons" && Array.isArray(value)) {
+        return (
+          <View key={key} style={styles.fieldContainer}>
+            {label}
+            {value.map((season: any) => (
+              <View key={season.id || season.season_number} style={{ marginBottom: 12 }}>
+                <Text style={[styles.fieldValue, { fontWeight: "700" }]}>
+                  Season {season.season_number}:
+                </Text>
+                {season.episodes && season.episodes.length > 0 ? (
+                  <View style={{ paddingLeft: 12, marginTop: 4 }}>
+                    {season.episodes.map((ep: any) => (
+                      <Text key={ep.id} style={styles.fieldValue}>
+                        Ep {ep.episode_number}: {ep.name}{" "}
+                        {ep.vote_average ? `★ ${ep.vote_average.toFixed(1)}` : ""}
+                      </Text>
+                    ))}
+                  </View>
+                ) : (
+                  <Text style={styles.fieldValue}>No episodes data</Text>
+                )}
+              </View>
+            ))}
+          </View>
+        );
+      }
+
 
       if (typeof value === "string" || typeof value === "number") {
         return (
@@ -107,9 +135,11 @@ const DetailsViewer = ({
       onRequestClose={onClose}
     >
       <SafeAreaView style={styles.fullscreenContainer}>
-        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-          <Text style={styles.closeButtonText}>Close ✕</Text>
-        </TouchableOpacity>
+        <View style={styles.closeButtonContainer}>
+          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <Text style={styles.closeButtonText}>Close ✕</Text>
+          </TouchableOpacity>
+        </View>
 
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {data[titleKey] && <Text style={styles.title}>{data[titleKey]}</Text>}
@@ -136,19 +166,29 @@ const DetailsViewer = ({
 const styles = StyleSheet.create({
   fullscreenContainer: {
     flex: 1,
-    backgroundColor: "#2c3e50",
+    backgroundColor: "#000", // same as container background
   },
   scrollContent: {
     padding: 16,
     paddingBottom: 40,
   },
-  closeButton: {
-    alignSelf: "flex-end",
+  closeButtonContainer: {
+    alignItems: "flex-end",
     padding: 10,
+    backgroundColor: "#1B2631", // match dark tab background
+  },
+  closeButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#fff",
   },
   closeButtonText: {
-    color: "#fff",
+    color: "#000",
     fontSize: 16,
+    fontWeight: "700",
   },
   title: {
     fontSize: 24,
@@ -172,6 +212,9 @@ const styles = StyleSheet.create({
   },
   detailsContainer: {
     marginTop: 8,
+    backgroundColor: "#1B2631",
+    padding: 12,
+    borderRadius: 8,
   },
   fieldContainer: {
     marginBottom: 10,

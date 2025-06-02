@@ -1,45 +1,51 @@
-import { fetchFilteredMovies } from '@/services/tmdb_API';
+import {
+    fetchFilteredMovies,
+    fetchFilteredTVSeries,
+    fetchLatestMovies,
+    fetchLatestTVSeries,
+    fetchTopRatedMovies,
+    fetchTopRatedTVSeries,
+    fetchUpcomingMovies,
+    fetchUpcomingTVSeries
+} from '@/services/tmdb_API';
 import React, { useState } from 'react';
 import {
+    ActivityIndicator,
     Animated,
     Dimensions,
     Modal,
     StyleSheet,
     Text,
-    TextInput,
     TouchableOpacity,
     TouchableWithoutFeedback,
     View
 } from 'react-native';
+import FilterControls from './FilterControls';
 import FilteredViewer from './FilteredViewer';
+
+const screenWidth = Dimensions.get('window').width;
+
+const filterOptions: Record<string, string[]> = {
+    Movie: ['Latest', 'Upcoming', 'Top Rated', 'Genre', 'Language', 'Release Year', 'Rating Above'],
+    'TV Series': ['Latest', 'Upcoming', 'Top Rated', 'Genre', 'Network', 'Language', 'Release Year'],
+    Music: ['Genre', 'Artist', 'Year'],
+    Game: ['Genre', 'Platform', 'Publisher'],
+    Book: ['Genre', 'Author', 'Year'],
+};
 
 interface DropdownProps {
     activeTab: string;
     onFilterSelect?: (filterType: string, filterValue: string) => void;
 }
 
-const screenWidth = Dimensions.get('window').width;
-
-const filterOptions: Record<string, string[]> = {
-    Movie: ['Genre', 'Release Year', 'Rating Above'],
-    'TV Series': ['Genre', 'Network', 'Year'],
-    Music: ['Genre', 'Artist', 'Year'],
-    Game: ['Genre', 'Platform', 'Publisher'],
-    Book: ['Genre', 'Author', 'Year'],
-};
-
-const genres = ['Action', 'Comedy', 'Drama', 'Horror', 'Romance', 'Sci-Fi'];
-
-export default function Dropdown({ activeTab, onFilterSelect }: DropdownProps) {
+export default function Dropdown({ activeTab }: DropdownProps) {
     const [visible, setVisible] = useState(false);
     const [slideAnim] = useState(new Animated.Value(-screenWidth));
-    const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
-    const [releaseYear, setReleaseYear] = useState('');
-    const [rating, setRating] = useState('');
     const [expandedFilter, setExpandedFilter] = useState<string | null>(null);
     const [filteredData, setFilteredData] = useState<any[] | null>(null);
     const [showFilteredViewer, setShowFilteredViewer] = useState(false);
-    const [caseType, setCaseType] = useState<string>(''); // 🆕 dynamic caseType
+    const [caseType, setCaseType] = useState<string>('');
+    const [isLoading, setIsLoading] = useState(false);
 
     const openDrawer = () => {
         setVisible(true);
@@ -58,105 +64,68 @@ export default function Dropdown({ activeTab, onFilterSelect }: DropdownProps) {
         }).start(() => setVisible(false));
     };
 
-    const toggleFilter = (option: string) => {
-        setExpandedFilter(prev => (prev === option ? null : option));
+    const toggleFilter = async (option: string) => {
+        const directFetchOptions = ['Latest', 'Upcoming', 'Top Rated'];
+
+        if (directFetchOptions.includes(option)) {
+            await handlePredefinedFetch(option);
+        } else {
+            setExpandedFilter(prev => (prev === option ? null : option));
+        }
     };
 
-    const handleFetchFilteredMovies = (filterType: string, filterValue: string) => {
-        const internalCaseType = filterType.toLowerCase().replace(/\s/g, '_'); // 🆕 e.g. "Release Year" => "release_year"
-        setCaseType(internalCaseType); // 🆕 set dynamically
-        fetchFilteredMovies(filterType, filterValue)
+    const handlePredefinedFetch = async (filterType: string) => {
+        setIsLoading(true);
+        const internalCaseType = filterType.toLowerCase().replace(/\s/g, '_');
+        setCaseType(internalCaseType);
+
+        try {
+            let results: any[] = [];
+
+            if (activeTab === 'Movie') {
+                if (filterType === 'Latest') {
+                    results = await fetchLatestMovies(10);
+                } else if (filterType === 'Upcoming') {
+                    results = await fetchUpcomingMovies(10);
+                } else if (filterType === 'Top Rated') {
+                    results = await fetchTopRatedMovies(10);
+                }
+            } else if (activeTab === 'TV Series') {
+                if (filterType === 'Latest') {
+                    results = await fetchLatestTVSeries(10);
+                } else if (filterType === 'Upcoming') {
+                    results = await fetchUpcomingTVSeries(10);
+                } else if (filterType === 'Top Rated') {
+                    results = await fetchTopRatedTVSeries(10);
+                }
+            }
+
+            setFilteredData(results);
+            setShowFilteredViewer(true);
+            closeDrawer();
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleFetchFiltered = (filterType: string, filterValue: string) => {
+        setIsLoading(true);
+        const internalCaseType = filterType.toLowerCase().replace(/\s/g, '_');
+        setCaseType(internalCaseType);
+
+        const fetchFunction =
+            activeTab === 'TV Series' ? fetchFilteredTVSeries : fetchFilteredMovies;
+
+        fetchFunction(filterType, filterValue)
             .then(results => {
                 setFilteredData(results);
                 setShowFilteredViewer(true);
                 closeDrawer();
             })
-            .catch(error => {
-                console.error("Error in fetching filtered movies:", error);
-            });
-    };
-
-    const renderFilterControl = (option: string) => {
-        if (activeTab === 'Movie' && expandedFilter === option) {
-            switch (option) {
-                case 'Genre':
-                    return (
-                        <View style={styles.genreContainer}>
-                            {genres.map((g) => (
-                                <TouchableOpacity
-                                    key={g}
-                                    style={[
-                                        styles.genreButton,
-                                        selectedGenre === g && styles.genreButtonSelected,
-                                    ]}
-                                    onPress={() => {
-                                        setSelectedGenre(g);
-                                        handleFetchFilteredMovies('Genre', g);
-                                    }}
-                                >
-                                    <Text
-                                        style={[
-                                            styles.genreText,
-                                            selectedGenre === g && styles.genreTextSelected,
-                                        ]}
-                                    >
-                                        {g}
-                                    </Text>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-                    );
-                case 'Release Year':
-                    return (
-                        <View style={styles.inputContainer}>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Enter year"
-                                placeholderTextColor="#aaa"
-                                keyboardType="numeric"
-                                value={releaseYear}
-                                onChangeText={setReleaseYear}
-                            />
-                            <TouchableOpacity
-                                style={styles.applyButton}
-                                onPress={() => {
-                                    if (releaseYear) {
-                                        handleFetchFilteredMovies('Release Year', releaseYear);
-                                    }
-                                }}
-                            >
-                                <Text style={styles.applyButtonText}>Apply</Text>
-                            </TouchableOpacity>
-                        </View>
-                    );
-                case 'Rating Above':
-                    return (
-                        <View style={styles.inputContainer}>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Enter rating (1-10)"
-                                placeholderTextColor="#aaa"
-                                keyboardType="numeric"
-                                value={rating}
-                                onChangeText={setRating}
-                            />
-                            <TouchableOpacity
-                                style={styles.applyButton}
-                                onPress={() => {
-                                    if (rating) {
-                                        handleFetchFilteredMovies('Rating Above', rating);
-                                    }
-                                }}
-                            >
-                                <Text style={styles.applyButtonText}>Apply</Text>
-                            </TouchableOpacity>
-                        </View>
-                    );
-                default:
-                    return null;
-            }
-        }
-        return null;
+            .catch(console.error)
+            .finally(() => setIsLoading(false));
     };
 
     const options = filterOptions[activeTab] || [];
@@ -170,18 +139,41 @@ export default function Dropdown({ activeTab, onFilterSelect }: DropdownProps) {
             <Modal visible={visible} transparent animationType="none">
                 <TouchableWithoutFeedback onPress={closeDrawer}>
                     <View style={styles.modalOverlay}>
-                        <TouchableWithoutFeedback onPress={() => { }}>
+                        <TouchableWithoutFeedback>
                             <Animated.View style={[styles.drawer, { left: slideAnim }]}>
                                 <Text style={styles.drawerTitle}>{activeTab} Filters</Text>
 
                                 {options.map((option) => (
                                     <View key={option} style={styles.filterItem}>
-                                        <TouchableOpacity onPress={() => toggleFilter(option)}>
-                                            <Text style={styles.filterItemText}>{option}</Text>
+                                        <TouchableOpacity
+                                            onPress={() => toggleFilter(option)}
+                                            disabled={isLoading}
+                                        >
+                                            <Text style={[
+                                                styles.filterItemText,
+                                                isLoading && styles.disabledText,
+                                            ]}>
+                                                {option}
+                                            </Text>
                                         </TouchableOpacity>
-                                        {renderFilterControl(option)}
+
+                                        {expandedFilter === option && (
+                                            <FilterControls
+                                                section={activeTab}
+                                                option={option}
+                                                onApply={handleFetchFiltered}
+                                                isLoading={isLoading}
+                                            />
+                                        )}
                                     </View>
                                 ))}
+
+                                {isLoading && (
+                                    <View style={styles.loadingContainer}>
+                                        <ActivityIndicator size="large" color="#3498db" />
+                                        <Text style={styles.loadingText}>Loading...</Text>
+                                    </View>
+                                )}
                             </Animated.View>
                         </TouchableWithoutFeedback>
                     </View>
@@ -193,9 +185,9 @@ export default function Dropdown({ activeTab, onFilterSelect }: DropdownProps) {
                 visible={showFilteredViewer}
                 onClose={() => setShowFilteredViewer(false)}
                 activeTab={activeTab}
-                caseType={caseType} 
-                titleKey="title"
-                filterKeys={['release_date', 'vote_average']}
+                caseType={caseType}
+                titleKey={activeTab === 'TV Series' ? 'name' : 'title'}
+                filterKeys={activeTab === 'TV Series' ? ['first_air_date', 'vote_average'] : ['release_date', 'vote_average']}
             />
         </View>
     );
@@ -245,53 +237,23 @@ const styles = StyleSheet.create({
         fontSize: 16,
         marginBottom: 5,
     },
-    genreContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 6,
-    },
-    genreButton: {
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        borderColor: '#888',
-        borderWidth: 1,
-        borderRadius: 20,
-        marginRight: 6,
-        marginBottom: 6,
-    },
-    genreButtonSelected: {
-        backgroundColor: '#3498db',
-        borderColor: '#3498db',
-    },
-    genreText: {
-        color: '#fff',
-    },
-    genreTextSelected: {
-        color: '#fff',
-        fontWeight: 'bold',
-    },
-    inputContainer: {
-        flexDirection: 'row',
-        marginTop: 8,
-    },
-    input: {
-        flex: 1,
-        borderWidth: 1,
-        borderColor: '#888',
-        borderRadius: 8,
-        paddingHorizontal: 10,
-        color: '#fff',
-        height: 40,
-    },
-    applyButton: {
-        marginLeft: 10,
-        backgroundColor: '#3498db',
-        borderRadius: 8,
-        paddingHorizontal: 15,
+    loadingContainer: {
+        position: 'absolute',
+        bottom: 30,
+        left: 0,
+        right: 0,
+        alignItems: 'center',
         justifyContent: 'center',
+        padding: 20,
+        backgroundColor: 'rgba(44, 62, 80, 0.9)',
+        borderRadius: 10,
     },
-    applyButtonText: {
+    loadingText: {
         color: '#fff',
-        fontWeight: 'bold',
+        marginTop: 10,
+        fontSize: 16,
     },
+    disabledText: {
+        color: '#aaa',
+    }
 });
