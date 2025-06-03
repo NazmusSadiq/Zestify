@@ -63,12 +63,12 @@ interface GenreContent {
 }
 
 const GENRES = [
-  { name: "Rock", color: "#FF6B6B", icon: "rocket" },
-  { name: "Pop", color: "#4ECDC4", icon: "musical-notes" },
-  { name: "Hip Hop", color: "#45B7D1", icon: "mic" },
-  { name: "Electronic", color: "#96CEB4", icon: "radio" },
-  { name: "Jazz", color: "#FFEEAD", icon: "musical-note" },
-  { name: "Classical", color: "#D4A5A5", icon: "piano" },
+  { name: "Rock", color: "#FF0000", icon: "rocket" },
+  { name: "Pop", color: "#CC0000", icon: "musical-notes" },
+  { name: "Hip Hop", color: "#990000", icon: "mic" },
+  { name: "Electronic", color: "#660000", icon: "radio" },
+  { name: "Jazz", color: "#330000", icon: "musical-note" },
+  { name: "Classical", color: "#1a0000", icon: "piano" },
 ];
 
 const DEFAULT_IMAGE = "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png";
@@ -117,7 +117,10 @@ export default function Music() {
 
   const getImageUrl = (images: TrackImage[]) => {
     if (!images || images.length === 0) return DEFAULT_IMAGE;
-    const image = images.find(img => img.size === "large") || images[0];
+    const image = images.find(img => img.size === "extralarge") || 
+                 images.find(img => img.size === "large") || 
+                 images.find(img => img.size === "medium") || 
+                 images[0];
     return image["#text"] || DEFAULT_IMAGE;
   };
 
@@ -183,7 +186,7 @@ export default function Music() {
           style={styles.backButton}
           onPress={() => setSelectedItem(null)}
         >
-          <Ionicons name="arrow-back" size={24} color="#666" />
+          <Ionicons name="arrow-back" size={24} color="#FF0000" />
           <Text style={styles.backButtonText}>Back</Text>
         </TouchableOpacity>
 
@@ -246,7 +249,7 @@ export default function Music() {
       <View style={styles.header}>
         <Text style={styles.title}>Music Explorer</Text>
         <View style={styles.searchContainer}>
-          <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
+          <Ionicons name="search" size={20} color="#FF0000" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search for songs..."
@@ -269,7 +272,7 @@ export default function Music() {
                   style={[styles.genreCard, { backgroundColor: genre.color }]}
                   onPress={() => handleGenreSelect(genre.name)}
                 >
-                  <Ionicons name={genre.icon as any} size={32} color="#333" />
+                  <Ionicons name={genre.icon as any} size={32} color="#fff" />
                   <Text style={styles.genreName}>{genre.name}</Text>
                 </TouchableOpacity>
               ))}
@@ -368,24 +371,24 @@ export default function Music() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f9fa",
+    backgroundColor: "#1B2631",
   },
   header: {
     padding: 20,
-    backgroundColor: "#fff",
+    backgroundColor: "#1B2631",
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    borderBottomColor: "#1B2631",
   },
   title: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#1a1a1a",
+    color: "#FF0000",
     marginBottom: 15,
   },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "#1C2741",
     borderRadius: 12,
     paddingHorizontal: 15,
   },
@@ -396,7 +399,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 45,
     fontSize: 16,
-    color: "#333",
+    color: "#fff",
   },
   scrollView: {
     flex: 1,
@@ -405,13 +408,13 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#1a1a1a",
+    color: "#FF0000",
     marginBottom: 15,
   },
   subsectionTitle: {
     fontSize: 20,
     fontWeight: "600",
-    color: "#333",
+    color: "#fff",
     marginTop: 20,
     marginBottom: 10,
   },
@@ -431,27 +434,27 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
+    shadowColor: "#FF0000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 3,
   },
   genreName: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#333",
+    color: "#fff",
     marginTop: 8,
   },
   trackItem: {
     flexDirection: "row",
-    backgroundColor: "#fff",
+    backgroundColor: "#1a1a1a",
     padding: 12,
     borderRadius: 12,
     marginBottom: 10,
-    shadowColor: "#000",
+    shadowColor: "#FF0000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.2,
     shadowRadius: 3,
     elevation: 2,
   },
@@ -459,6 +462,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 8,
+    backgroundColor: "#1B2631",
   },
   trackInfo: {
     marginLeft: 15,
@@ -467,11 +471,11 @@ const styles = StyleSheet.create({
   trackName: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#1a1a1a",
+    color: "#fff",
   },
   artistName: {
     fontSize: 14,
-    color: "#666",
+    color: "#FF0000",
     marginTop: 4,
   },
   horizontalScroll: {
@@ -480,12 +484,12 @@ const styles = StyleSheet.create({
   artistCard: {
     width: 150,
     marginRight: 15,
-    backgroundColor: "#fff",
+    backgroundColor: "#1a1a1a",
     borderRadius: 12,
     padding: 12,
-    shadowColor: "#000",
+    shadowColor: "#FF0000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.2,
     shadowRadius: 3,
     elevation: 2,
   },
@@ -494,28 +498,29 @@ const styles = StyleSheet.create({
     height: 126,
     borderRadius: 63,
     marginBottom: 10,
+    backgroundColor: "#1B2631",
   },
   artistCardName: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#1a1a1a",
+    color: "#fff",
     textAlign: "center",
   },
   listeners: {
     fontSize: 12,
-    color: "#666",
+    color: "#FF0000",
     textAlign: "center",
     marginTop: 4,
   },
   albumCard: {
     width: 150,
     marginRight: 15,
-    backgroundColor: "#fff",
+    backgroundColor: "#1a1a1a",
     borderRadius: 12,
     padding: 12,
-    shadowColor: "#000",
+    shadowColor: "#FF0000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.2,
     shadowRadius: 3,
     elevation: 2,
   },
@@ -524,62 +529,64 @@ const styles = StyleSheet.create({
     height: 126,
     borderRadius: 8,
     marginBottom: 10,
+    backgroundColor: "#1B2631",
   },
   albumName: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#1a1a1a",
+    color: "#fff",
     textAlign: "center",
   },
   albumArtist: {
     fontSize: 14,
-    color: "#666",
+    color: "#FF0000",
     textAlign: "center",
     marginTop: 4,
   },
   detailContainer: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#1B2631",
   },
   backButton: {
     flexDirection: "row",
     alignItems: "center",
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    borderBottomColor: "#1B2631",
   },
   backButtonText: {
     fontSize: 16,
-    color: "#666",
+    color: "#FF0000",
     marginLeft: 8,
   },
   detailImage: {
     width: "100%",
     height: 300,
     marginBottom: 20,
+    backgroundColor: "#333",
   },
   detailTitle: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#1a1a1a",
+    color: "#fff",
     marginBottom: 8,
     paddingHorizontal: 20,
   },
   detailSubtitle: {
     fontSize: 18,
-    color: "#666",
+    color: "#FF0000",
     marginBottom: 12,
     paddingHorizontal: 20,
   },
   detailStats: {
     fontSize: 14,
-    color: "#666",
+    color: "#FF0000",
     marginBottom: 16,
     paddingHorizontal: 20,
   },
   detailText: {
     fontSize: 16,
-    color: "#333",
+    color: "#fff",
     lineHeight: 24,
     paddingHorizontal: 20,
     marginBottom: 20,
