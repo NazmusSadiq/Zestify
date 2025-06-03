@@ -11,12 +11,21 @@ interface TrackImage {
   size: string;
 }
 
-interface Track {
+interface BaseItem {
   name: string;
+  image: TrackImage[];
+}
+
+interface Track extends BaseItem {
   artist: {
     name: string;
   };
-  image: TrackImage[];
+  listeners?: string;
+  playcount?: string;
+  duration?: string;
+  wiki?: {
+    summary: string;
+  };
 }
 
 interface SearchResult {
@@ -25,18 +34,26 @@ interface SearchResult {
   image: TrackImage[];
 }
 
-interface Artist {
-  name: string;
-  image: TrackImage[];
+interface Artist extends BaseItem {
   listeners: string;
+  bio?: {
+    summary: string;
+  };
+  stats?: {
+    listeners: string;
+    playcount: string;
+  };
 }
 
-interface Album {
-  name: string;
+interface Album extends BaseItem {
   artist: {
     name: string;
   };
-  image: TrackImage[];
+  playcount?: string;
+  listeners?: string;
+  wiki?: {
+    summary: string;
+  };
 }
 
 interface GenreContent {
@@ -54,12 +71,55 @@ const GENRES = [
   { name: "Classical", color: "#D4A5A5", icon: "piano" },
 ];
 
+const DEFAULT_IMAGE = "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png";
+
 export default function Music() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
   const [genreContent, setGenreContent] = useState<GenreContent | null>(null);
+  const [selectedItem, setSelectedItem] = useState<Artist | Album | Track | null>(null);
+  const [itemType, setItemType] = useState<"artist" | "album" | "track" | null>(null);
   const router = useRouter();
+
+  const fetchItemDetails = async (type: "artist" | "album" | "track", name: string, artist?: string) => {
+    try {
+      let url = "";
+      switch (type) {
+        case "artist":
+          url = `http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist=${encodeURIComponent(name)}&api_key=${LASTFM_API_KEY}&format=json`;
+          break;
+        case "album":
+          url = `http://ws.audioscrobbler.com/2.0/?method=album.getinfo&album=${encodeURIComponent(name)}&artist=${encodeURIComponent(artist || "")}&api_key=${LASTFM_API_KEY}&format=json`;
+          break;
+        case "track":
+          url = `http://ws.audioscrobbler.com/2.0/?method=track.getinfo&track=${encodeURIComponent(name)}&artist=${encodeURIComponent(artist || "")}&api_key=${LASTFM_API_KEY}&format=json`;
+          break;
+      }
+      const response = await fetch(url);
+      const data = await response.json();
+      setSelectedItem(data[type]);
+      setItemType(type);
+    } catch (error) {
+      console.error("Error fetching item details:", error);
+    }
+  };
+
+  const handleItemPress = (item: Artist | Album | Track, type: "artist" | "album" | "track") => {
+    if (type === "artist") {
+      fetchItemDetails("artist", item.name);
+    } else if (type === "album" && "artist" in item) {
+      fetchItemDetails("album", item.name, item.artist.name);
+    } else if (type === "track" && "artist" in item) {
+      fetchItemDetails("track", item.name, item.artist.name);
+    }
+  };
+
+  const getImageUrl = (images: TrackImage[]) => {
+    if (!images || images.length === 0) return DEFAULT_IMAGE;
+    const image = images.find(img => img.size === "large") || images[0];
+    return image["#text"] || DEFAULT_IMAGE;
+  };
 
   const fetchGenreContent = async (genre: string) => {
     try {
@@ -114,6 +174,73 @@ export default function Music() {
     fetchGenreContent(genre);
   };
 
+  const renderDetailView = () => {
+    if (!selectedItem || !itemType) return null;
+
+    return (
+      <View style={styles.detailContainer}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => setSelectedItem(null)}
+        >
+          <Ionicons name="arrow-back" size={24} color="#666" />
+          <Text style={styles.backButtonText}>Back</Text>
+        </TouchableOpacity>
+
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <Image
+            source={{ uri: getImageUrl(selectedItem.image) }}
+            style={styles.detailImage}
+          />
+          <Text style={styles.detailTitle}>{selectedItem.name}</Text>
+          
+          {itemType === "artist" && "stats" in selectedItem && (
+            <>
+              <Text style={styles.detailSubtitle}>
+                {selectedItem.stats?.listeners} listeners
+              </Text>
+              <Text style={styles.detailText}>
+                {selectedItem.bio?.summary.replace(/<[^>]*>/g, "")}
+              </Text>
+            </>
+          )}
+
+          {itemType === "album" && "artist" in selectedItem && (
+            <>
+              <Text style={styles.detailSubtitle}>
+                By {selectedItem.artist.name}
+              </Text>
+              <Text style={styles.detailStats}>
+                {selectedItem.listeners} listeners • {selectedItem.playcount} plays
+              </Text>
+              <Text style={styles.detailText}>
+                {selectedItem.wiki?.summary.replace(/<[^>]*>/g, "")}
+              </Text>
+            </>
+          )}
+
+          {itemType === "track" && "artist" in selectedItem && (
+            <>
+              <Text style={styles.detailSubtitle}>
+                By {selectedItem.artist.name}
+              </Text>
+              <Text style={styles.detailStats}>
+                {selectedItem.listeners} listeners • {selectedItem.playcount} plays
+              </Text>
+              <Text style={styles.detailText}>
+                {selectedItem.wiki?.summary.replace(/<[^>]*>/g, "")}
+              </Text>
+            </>
+          )}
+        </ScrollView>
+      </View>
+    );
+  };
+
+  if (selectedItem) {
+    return renderDetailView();
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -154,9 +281,17 @@ export default function Music() {
           <View>
             <Text style={styles.sectionTitle}>Search Results</Text>
             {searchResults.map((track, index) => (
-              <TouchableOpacity key={index} style={styles.trackItem}>
+              <TouchableOpacity
+                key={index}
+                style={styles.trackItem}
+                onPress={() => handleItemPress({
+                  name: track.name,
+                  artist: { name: track.artist },
+                  image: track.image
+                } as Track, "track")}
+              >
                 <Image
-                  source={{ uri: track.image[2]["#text"] }}
+                  source={{ uri: getImageUrl(track.image) }}
                   style={styles.trackImage}
                 />
                 <View style={styles.trackInfo}>
@@ -173,22 +308,30 @@ export default function Music() {
             <Text style={styles.subsectionTitle}>Top Artists</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
               {genreContent.topArtists.map((artist, index) => (
-                <View key={index} style={styles.artistCard}>
+                <TouchableOpacity
+                  key={index}
+                  style={styles.artistCard}
+                  onPress={() => handleItemPress(artist, "artist")}
+                >
                   <Image
-                    source={{ uri: artist.image[2]["#text"] }}
+                    source={{ uri: getImageUrl(artist.image) }}
                     style={styles.artistImage}
                   />
                   <Text style={styles.artistCardName}>{artist.name}</Text>
                   <Text style={styles.listeners}>{artist.listeners} listeners</Text>
-                </View>
+                </TouchableOpacity>
               ))}
             </ScrollView>
 
             <Text style={styles.subsectionTitle}>Top Tracks</Text>
             {genreContent.topTracks.map((track, index) => (
-              <TouchableOpacity key={index} style={styles.trackItem}>
+              <TouchableOpacity
+                key={index}
+                style={styles.trackItem}
+                onPress={() => handleItemPress(track, "track")}
+              >
                 <Image
-                  source={{ uri: track.image[2]["#text"] }}
+                  source={{ uri: getImageUrl(track.image) }}
                   style={styles.trackImage}
                 />
                 <View style={styles.trackInfo}>
@@ -201,14 +344,18 @@ export default function Music() {
             <Text style={styles.subsectionTitle}>Top Albums</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
               {genreContent.topAlbums.map((album, index) => (
-                <View key={index} style={styles.albumCard}>
+                <TouchableOpacity
+                  key={index}
+                  style={styles.albumCard}
+                  onPress={() => handleItemPress(album, "album")}
+                >
                   <Image
-                    source={{ uri: album.image[2]["#text"] }}
+                    source={{ uri: getImageUrl(album.image) }}
                     style={styles.albumImage}
                   />
                   <Text style={styles.albumName}>{album.name}</Text>
                   <Text style={styles.albumArtist}>{album.artist.name}</Text>
-                </View>
+                </TouchableOpacity>
               ))}
             </ScrollView>
           </View>
@@ -275,9 +422,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
+    paddingHorizontal: 5,
   },
   genreCard: {
-    width: (Dimensions.get("window").width - 50) / 2,
+    width: (Dimensions.get("window").width - 60) / 2,
     height: 120,
     borderRadius: 16,
     marginBottom: 15,
@@ -388,5 +536,52 @@ const styles = StyleSheet.create({
     color: "#666",
     textAlign: "center",
     marginTop: 4,
+  },
+  detailContainer: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  backButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  backButtonText: {
+    fontSize: 16,
+    color: "#666",
+    marginLeft: 8,
+  },
+  detailImage: {
+    width: "100%",
+    height: 300,
+    marginBottom: 20,
+  },
+  detailTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#1a1a1a",
+    marginBottom: 8,
+    paddingHorizontal: 20,
+  },
+  detailSubtitle: {
+    fontSize: 18,
+    color: "#666",
+    marginBottom: 12,
+    paddingHorizontal: 20,
+  },
+  detailStats: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 16,
+    paddingHorizontal: 20,
+  },
+  detailText: {
+    fontSize: 16,
+    color: "#333",
+    lineHeight: 24,
+    paddingHorizontal: 20,
+    marginBottom: 20,
   },
 });
