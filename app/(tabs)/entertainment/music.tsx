@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import React, { useState } from "react";
 import { Dimensions, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 const LASTFM_API_KEY = "230590d668df5533f830cbdf7920f94f";
@@ -240,8 +240,87 @@ export default function Music() {
     );
   };
 
+  const renderGenreContent = () => {
+    if (!selectedGenre || !genreContent) return null;
+
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => setSelectedGenre(null)}
+          >
+            <Ionicons name="arrow-back" size={24} color="#FF0000" />
+            <Text style={styles.backButtonText}>Back to Genres</Text>
+          </TouchableOpacity>
+          <Text style={styles.title}>{selectedGenre}</Text>
+        </View>
+
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <Text style={styles.subsectionTitle}>Top Artists</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
+            {genreContent.topArtists.map((artist, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.artistCard}
+                onPress={() => handleItemPress(artist, "artist")}
+              >
+                <Image
+                  source={{ uri: getImageUrl(artist.image) }}
+                  style={styles.artistImage}
+                />
+                <Text style={styles.artistCardName}>{artist.name}</Text>
+                <Text style={styles.listeners}>{artist.listeners} listeners</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          <Text style={styles.subsectionTitle}>Top Tracks</Text>
+          {genreContent.topTracks.map((track, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.trackItem}
+              onPress={() => handleItemPress(track, "track")}
+            >
+              <Image
+                source={{ uri: getImageUrl(track.image) }}
+                style={styles.trackImage}
+              />
+              <View style={styles.trackInfo}>
+                <Text style={styles.trackName}>{track.name}</Text>
+                <Text style={styles.artistName}>{track.artist.name}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+
+          <Text style={styles.subsectionTitle}>Top Albums</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
+            {genreContent.topAlbums.map((album, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.albumCard}
+                onPress={() => handleItemPress(album, "album")}
+              >
+                <Image
+                  source={{ uri: getImageUrl(album.image) }}
+                  style={styles.albumImage}
+                />
+                <Text style={styles.albumName}>{album.name}</Text>
+                <Text style={styles.albumArtist}>{album.artist.name}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </ScrollView>
+      </View>
+    );
+  };
+
   if (selectedItem) {
     return renderDetailView();
+  }
+
+  if (selectedGenre) {
+    return renderGenreContent();
   }
 
   return (
@@ -262,7 +341,7 @@ export default function Music() {
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {!selectedGenre && searchResults.length === 0 && (
+        {searchResults.length === 0 && (
           <View style={styles.genresContainer}>
             <Text style={styles.sectionTitle}>Explore Genres</Text>
             <View style={styles.genreGrid}>
@@ -280,7 +359,7 @@ export default function Music() {
           </View>
         )}
 
-        {searchResults.length > 0 ? (
+        {searchResults.length > 0 && (
           <View>
             <Text style={styles.sectionTitle}>Search Results</Text>
             {searchResults.map((track, index) => (
@@ -304,65 +383,7 @@ export default function Music() {
               </TouchableOpacity>
             ))}
           </View>
-        ) : selectedGenre && genreContent ? (
-          <View>
-            <Text style={styles.sectionTitle}>{selectedGenre}</Text>
-            
-            <Text style={styles.subsectionTitle}>Top Artists</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
-              {genreContent.topArtists.map((artist, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.artistCard}
-                  onPress={() => handleItemPress(artist, "artist")}
-                >
-                  <Image
-                    source={{ uri: getImageUrl(artist.image) }}
-                    style={styles.artistImage}
-                  />
-                  <Text style={styles.artistCardName}>{artist.name}</Text>
-                  <Text style={styles.listeners}>{artist.listeners} listeners</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-
-            <Text style={styles.subsectionTitle}>Top Tracks</Text>
-            {genreContent.topTracks.map((track, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.trackItem}
-                onPress={() => handleItemPress(track, "track")}
-              >
-                <Image
-                  source={{ uri: getImageUrl(track.image) }}
-                  style={styles.trackImage}
-                />
-                <View style={styles.trackInfo}>
-                  <Text style={styles.trackName}>{track.name}</Text>
-                  <Text style={styles.artistName}>{track.artist.name}</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-
-            <Text style={styles.subsectionTitle}>Top Albums</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
-              {genreContent.topAlbums.map((album, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.albumCard}
-                  onPress={() => handleItemPress(album, "album")}
-                >
-                  <Image
-                    source={{ uri: getImageUrl(album.image) }}
-                    style={styles.albumImage}
-                  />
-                  <Text style={styles.albumName}>{album.name}</Text>
-                  <Text style={styles.albumArtist}>{album.artist.name}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        ) : null}
+        )}
       </ScrollView>
     </View>
   );
