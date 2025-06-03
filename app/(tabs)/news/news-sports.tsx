@@ -1,8 +1,8 @@
 import NewsCard from "@/components/NewsCard";
+import NewsViewer from "@/components/NewsViewer";
 import * as FileSystem from "expo-file-system";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { WebView } from "react-native-webview";
+import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-native";
 
 interface Article {
   title: string;
@@ -21,7 +21,7 @@ export default function News_Sports() {
   const [error, setError] = useState<string | null>(null);
 
   const [modalVisible, setModalVisible] = useState(false);
-  const [articleUrl, setArticleUrl] = useState<string | null>(null);
+  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
 
   const NEWS_FILE_PATH = FileSystem.documentDirectory + "news.json";
 
@@ -40,13 +40,25 @@ export default function News_Sports() {
       }
 
       const jsonStr = await FileSystem.readAsStringAsync(NEWS_FILE_PATH);
-      const allNews: Article[] = JSON.parse(jsonStr);
+      let allNews: Article[] = JSON.parse(jsonStr);
 
-      const filtered = allNews
-        .filter(article => article.tags?.some(tag => tag === "sports"))
-        .filter((article, index, self) =>
-          index === self.findIndex(a => a.title.toLowerCase() === article.title.toLowerCase())
-        );
+      // Filter articles tagged with "sports"
+      let filtered = allNews.filter(article => article.tags?.includes("sports"));
+
+      // Remove duplicate titles (case insensitive)
+      filtered = filtered.filter((article, index, self) =>
+        index === self.findIndex(a => a.title.toLowerCase() === article.title.toLowerCase())
+      );
+
+      // Clean up content and description texts (optional)
+      const cleanupText = (text?: string): string | undefined =>
+        text?.replace(/\[\d+\s*chars\]$/, "").trim();
+
+      filtered = filtered.map(article => ({
+        ...article,
+        content: cleanupText(article.content),
+        description: cleanupText(article.description),
+      }));
 
       setArticles(filtered);
     } catch (e) {
@@ -57,14 +69,16 @@ export default function News_Sports() {
     }
   };
 
-  const openArticle = (url: string) => {
-    setArticleUrl(url);
+  // Open modal with selected article
+  const openArticle = (article: Article) => {
+    setSelectedArticle(article);
     setModalVisible(true);
   };
 
+  // Close modal
   const closeModal = () => {
     setModalVisible(false);
-    setArticleUrl(null);
+    setSelectedArticle(null);
   };
 
   const renderItem = ({ item }: { item: Article }) => (
@@ -74,7 +88,7 @@ export default function News_Sports() {
       title={item.title}
       source={item.source.name}
       imageUrl={item.image}
-      onPress={() => openArticle(item.url)}
+      onPress={() => openArticle(item)}
     />
   );
 
@@ -107,20 +121,19 @@ export default function News_Sports() {
         />
       )}
 
-      <Modal visible={modalVisible} animationType="slide">
-        <View style={styles.webviewContainer}>
-          <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
-            <Text style={styles.closeButtonText}>✕ Close</Text>
-          </TouchableOpacity>
-          {articleUrl && (
-            <WebView
-              source={{ uri: articleUrl }}
-              startInLoadingState
-              style={{ flex: 1 }}
-            />
-          )}
-        </View>
-      </Modal>
+      {selectedArticle && (
+        <NewsViewer
+          visible={modalVisible}
+          onClose={closeModal}
+          title={selectedArticle.title}
+          content={selectedArticle.content}
+          description={selectedArticle.description}
+          imageUrl={selectedArticle.image}
+          source={selectedArticle.source.name}
+          publishedAt={selectedArticle.publishedAt}
+          url={selectedArticle.url}
+        />
+      )}
     </View>
   );
 }
@@ -143,19 +156,5 @@ const styles = StyleSheet.create({
     color: "red",
     textAlign: "center",
     marginTop: 20,
-  },
-  webviewContainer: {
-    flex: 1,
-    backgroundColor: "#000",
-  },
-  closeButton: {
-    padding: 10,
-    backgroundColor: "#3B82F6",
-    alignItems: "center",
-  },
-  closeButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 16,
   },
 });

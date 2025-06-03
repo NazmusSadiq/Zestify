@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import News_Sports from './news-sports';
-import News_All from './news_all';
 import News_Games from './news_games';
 import News_Media from './news_media';
 import News_Music from './news_music';
-const tabs = ['All','Media','Music', 'Game', 'Sports'];
+import News_Top from './news_top';
+const tabs = ['Top','Media','Music', 'Game', 'Sports'];
 
 export default function EntertainmentLayout() {
-  const [activeTab, setActiveTab] = useState('All');
+  const [activeTab, setActiveTab] = useState('Top');
 
   const handleTabPress = (tab: string) => {
     setActiveTab(tab);
@@ -29,7 +29,7 @@ export default function EntertainmentLayout() {
       </View>
 
       <View style={styles.content}>
-        {activeTab === 'All' && <News_All />}
+        {activeTab === 'Top' && <News_Top />}
         {activeTab === 'Media' && <News_Media />}
         {activeTab === 'Music' && <News_Music />}
         {activeTab === 'Game' && <News_Games />}
