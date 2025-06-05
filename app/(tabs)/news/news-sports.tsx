@@ -42,15 +42,12 @@ export default function News_Sports() {
       const jsonStr = await FileSystem.readAsStringAsync(NEWS_FILE_PATH);
       let allNews: Article[] = JSON.parse(jsonStr);
 
-      // Filter articles tagged with "sports"
       let filtered = allNews.filter(article => article.tags?.includes("sports"));
 
-      // Remove duplicate titles (case insensitive)
       filtered = filtered.filter((article, index, self) =>
         index === self.findIndex(a => a.title.toLowerCase() === article.title.toLowerCase())
       );
 
-      // Clean up content and description texts (optional)
       const cleanupText = (text?: string): string | undefined =>
         text?.replace(/\[\d+\s*chars\]$/, "").trim();
 

@@ -68,8 +68,8 @@ const loadExistingNews = async () => {
 const saveNews = async (newArticles) => {
   const existing = await loadExistingNews();
 
-  const merged = [...existing];
-  newArticles.forEach(article => {
+  const merged = [...newArticles];
+  existing.forEach(article => {
     if (!merged.some(a => a.url === article.url)) {
       merged.push(article);
     }
@@ -89,16 +89,16 @@ export const fetchTopNewsAndSave = async () => {
     }));
     await saveNews(taggedArticles);
   } catch (e) {
-    console.error("Failed to fetch top news:", e);
+    console.log("Failed to fetch top news:", e);
   }
 };
 
 export const fetchGamesNewsAndSave = async () => {
   try {
-    const articles = await fetchNewsByTag('"video game" OR "game trailer" or PlayStation or Xbox or gaming', 'games');
+    const articles = await fetchNewsByTag('"game" OR "video game" OR "game trailer" or PlayStation or Xbox or gaming', 'games');
     await saveNews(articles);
   } catch (e) {
-    console.error("Failed to fetch games news:", e);
+    console.log("Failed to fetch games news:", e);
   }
 };
 
@@ -107,7 +107,7 @@ export const fetchSportsNewsAndSave = async () => {
     const articles = await fetchNewsByTag('football OR cricket OR tennis OR basketball OR soccer OR sports', 'sports');
     await saveNews(articles);
   } catch (e) {
-    console.error("Failed to fetch sports news:", e);
+    console.log("Failed to fetch sports news:", e);
   }
 };
 
@@ -116,7 +116,7 @@ export const fetchMusicNewsAndSave = async () => {
     const articles = await fetchNewsByTag('music albums OR songs OR artists or music', 'music');
     await saveNews(articles);
   } catch (e) {
-    console.error("Failed to fetch music news:", e);
+    console.log("Failed to fetch music news:", e);
   }
 };
 
@@ -126,7 +126,7 @@ export const fetchMediaNewsAndSave = async () => {
     const articles = await fetchNewsByTag(query, 'media');
     await saveNews(articles);
   } catch (e) {
-    console.error("Failed to fetch Media news:", e);
+    console.log("Failed to fetch Media news:", e);
   }
 };
 
@@ -140,7 +140,7 @@ export const fetchAndSaveAllNews = async () => {
     await delay(500);
 
     await fetchSportsNewsAndSave();
-    await delay(500);
+    await delay(1000);
 
     await fetchMusicNewsAndSave();
     await delay(500);

@@ -75,6 +75,5 @@ const styles = StyleSheet.create({
     marginTop: 5,
     flex: 1,
     backgroundColor: '#1B2631', 
-    padding: 10,
   },
 });
