@@ -1,6 +1,6 @@
 import { COMPETITIONS, STATS_OPTIONS } from "@/services/fotball_API";
-import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { ActivityIndicator, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { getTeamWithCrest, useFootballData } from "./footballdatafetcher";
 
 const tabs = ["Home", "Stats", "Matches", "Favorite"];
@@ -9,19 +9,52 @@ export default function Football() {
   const [activeTab, setActiveTab] = useState<"Home" | "Stats" | "Matches" | "Favorite">("Home");
   const [statsLeftTrayOpen, setStatsLeftTrayOpen] = useState(false);
   const [matchesLeftTrayOpen, setMatchesLeftTrayOpen] = useState(false);
+  const [showSearchModal, setShowSearchModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const debounceTimeout = useRef<number | null>(null);
+
+  const onSearchInputChange = (query: string) => {
+    setSearchQuery(query);
+  };
 
   const {
     statsCompetition, setStatsCompetition, statsOption, setStatsOption, statsData, loadingStats, fetchStatsData,
     matchesCompetition, setMatchesCompetition, matchesData, loadingMatches, fetchMatchesData, homeMatches, loadingHome,
-    fetchHomeMatches, favoriteTeams, setFavoriteTeams, favoriteTeamsStats, loadingFavStats, fetchFavoriteStats, addFavoriteTeam
+    fetchHomeMatches, favoriteTeams, setFavoriteTeams, favoriteTeamsStats, loadingFavStats, fetchFavoriteStats, addFavoriteTeam, searchTeams
   } = useFootballData();
 
   useEffect(() => {
     if (activeTab === "Home") fetchHomeMatches();
     if (activeTab === "Stats") fetchStatsData();
     if (activeTab === "Matches") fetchMatchesData();
-    if (activeTab === "Favorite" && favoriteTeams.length > 0) fetchFavoriteStats();
+    if (activeTab === "Favorite") fetchFavoriteStats();
   }, [activeTab, statsCompetition, statsOption, matchesCompetition, favoriteTeams]);
+
+  useEffect(() => {
+    if (!searchQuery || searchQuery.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+    debounceTimeout.current = setTimeout(async () => {
+      setIsSearching(true);
+      const teams = await searchTeams(searchQuery);
+      setSearchResults(teams);
+      setIsSearching(false);
+    }, 500);
+
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
+      }
+    };
+  }, [searchQuery]);
+
 
   const renderHome = () => (
     <View style={styles.tabContent}>
@@ -286,15 +319,12 @@ export default function Football() {
             style={styles.scrollContainer}
             ref={(ref) => {
               if (ref && matchesData.length > 0) {
-                // Find the first upcoming match index
                 const upcomingIndex = matchesData.findIndex(match => match.status === "SCHEDULED");
                 if (upcomingIndex !== -1) {
-                  // Scroll to first upcoming match
                   setTimeout(() => {
                     ref.scrollTo({ y: upcomingIndex * 110, animated: true });
                   }, 100);
                 } else {
-                  // If no upcoming, find last finished match index
                   const finishedIndices = matchesData
                     .map((match, idx) => (match.status === "FINISHED" ? idx : -1))
                     .filter(idx => idx !== -1);
@@ -304,7 +334,6 @@ export default function Football() {
                       ref.scrollTo({ y: lastFinishedIndex * 110, animated: true });
                     }, 100);
                   } else {
-                    // Otherwise, just scroll to top
                     setTimeout(() => {
                       ref.scrollTo({ y: 0, animated: true });
                     }, 100);
@@ -320,7 +349,7 @@ export default function Football() {
               const away = getTeamWithCrest(awayTeam);
 
               const matchDate = new Date(utcDate);
-              matchDate.setHours(matchDate.getHours() + 6); // Adjust for GMT+6
+              matchDate.setHours(matchDate.getHours() + 6);
               const timeString = matchDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
               const isPlayed = status === "FINISHED" || status === "IN_PLAY" || status === "PAUSED";
@@ -360,60 +389,123 @@ export default function Football() {
     </View>
   );
 
+  const selectTeam = (team: any) => {
+    setFavoriteTeams([{ id: team.id, name: team.name }]);
+    setShowSearchModal(false);
+    setSearchQuery("");
+  };
+
   const renderFavorite = () => {
-    const addFavoriteTeamPrompt = () => {
-      Alert.prompt(
-        "Add Favorite Team",
-        "Enter team name",
-        async (teamName) => {
-          if (!teamName) return;
-          const newTeam = await addFavoriteTeam(teamName);
-          if (newTeam) {
-            setFavoriteTeams((prev) => [...prev, newTeam]);
-          }
-        }
-      );
-    };
+    const favoriteTeamName = favoriteTeams[0]?.name;
+    const favoriteTeamStats = favoriteTeamsStats?.[favoriteTeamName ?? ""];
 
     return (
       <View style={styles.tabContent}>
         <View style={styles.favoriteHeader}>
-          <Text style={styles.sectionTitle}>Favorite Teams</Text>
-          <TouchableOpacity onPress={addFavoriteTeamPrompt} style={styles.addFavoriteBtn}>
-            <Text style={styles.addButtonText}>Add Team</Text>
+          <Text style={styles.sectionTitle}>Favorite Team</Text>
+          <TouchableOpacity
+            onPress={() => setShowSearchModal(true)}
+            style={styles.addFavoriteBtn}
+          >
+            <Text style={styles.addButtonText}>
+              {favoriteTeams.length > 0 ? "Change Team" : "Add Team"}
+            </Text>
           </TouchableOpacity>
         </View>
 
-        {favoriteTeams.length === 0 ? (
-          <Text style={styles.noDataText}>No favorite teams selected</Text>
-        ) : (
-          <ScrollView style={styles.scrollContainer}>
-            {favoriteTeams.map((team) => (
-              <View key={team.id} style={styles.teamCard}>
-                <Text style={styles.teamName}>{team.name}</Text>
-                {loadingFavStats ? (
-                  <ActivityIndicator size="small" color="#3B82F6" />
-                ) : favoriteTeamsStats && favoriteTeamsStats[team.name] ? (
-                  favoriteTeamsStats[team.name].matches?.map((match: any) => (
-                    <View key={match.id} style={styles.matchCard}>
-                      <Text style={styles.matchTitle}>
-                        {match.homeTeam?.name || "Unknown"} vs {match.awayTeam?.name || "Unknown"}
-                      </Text>
-                      <Text style={styles.matchDetail}>
-                        {match.utcDate ? new Date(match.utcDate).toLocaleString() : "Date not available"}
-                      </Text>
-                    </View>
-                  ))
-                ) : (
-                  <Text style={styles.noDataText}>No stats available</Text>
-                )}
-              </View>
-            ))}
-          </ScrollView>
-        )}
+        <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
+          {!favoriteTeamName || !favoriteTeamStats?.details ? (
+            <Text style={styles.noDataText}>
+              Loading team info or no favorite team selected.
+            </Text>
+          ) : (
+            <View style={styles.favoriteTeamCard}>
+              <Image
+                source={{ uri: favoriteTeamStats.details.crest || "" }}
+                style={{ width: 80, height: 80, marginBottom: 10 }}
+                resizeMode="contain"
+              />
+              <Text style={styles.teamName}>
+                {favoriteTeamStats.details.name || "N/A"}
+              </Text>
+              <Text style={styles.teamDetail}>
+                Founded: {favoriteTeamStats.details.founded ?? "N/A"}
+              </Text>
+              <Text style={styles.teamDetail}>
+                Address: {favoriteTeamStats.details.address || "N/A"}
+              </Text>
+              <Text style={styles.teamDetail}>
+                Venue: {favoriteTeamStats.details.venue || "N/A"}
+              </Text>
+              <Text style={styles.teamDetail}>
+                Coach: {favoriteTeamStats.details.coach || "N/A"}
+              </Text>
+
+              <Text style={[styles.teamDetail, { marginTop: 10 }]}>
+                Competitions:
+              </Text>
+              {(favoriteTeamStats.details.competitions ?? []).map(
+                (comp: string, index: number) => (
+                  <Text key={index} style={styles.teamDetail}>
+                    • {comp}
+                  </Text>
+                )
+              )}
+
+              <Text style={[styles.teamDetail, { marginTop: 10 }]}>Squad:</Text>
+              {(favoriteTeamStats.details.squad ?? []).map(
+                (player: string, index: number) => (
+                  <Text key={index} style={styles.teamDetail}>
+                    • {player}
+                  </Text>
+                )
+              )}
+            </View>
+          )}
+        </ScrollView>
+
+        <Modal visible={showSearchModal} animationType="slide" transparent={false}>
+          <View style={styles.modalContainer}>
+            <View style={styles.searchBarContainer}>
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search for a team"
+                placeholderTextColor="gray"
+                value={searchQuery}
+                onChangeText={onSearchInputChange}
+                autoFocus={true}
+              />
+              <TouchableOpacity
+                onPress={() => setShowSearchModal(false)}
+                style={styles.closeModalButton}
+              >
+                <Text style={styles.closeButtonText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            {isSearching ? (
+              <ActivityIndicator size="large" color="#3B82F6" style={styles.loader} />
+            ) : searchResults.length === 0 && searchQuery.length > 1 ? (
+              <Text style={styles.noResultsText}>No teams found</Text>
+            ) : (
+              <ScrollView style={styles.searchResults}>
+                {searchResults.map((team) => (
+                  <TouchableOpacity
+                    key={`${team.id}-${team.name}`}
+                    onPress={() => selectTeam(team)}
+                    style={styles.searchResultItem}
+                  >
+                    <Text style={styles.noDataText}>{team.name}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
+          </View>
+        </Modal>
       </View>
     );
   };
+
 
   return (
     <View style={styles.container}>
@@ -551,7 +643,56 @@ const styles = StyleSheet.create({
     transform: [{ translateY: -3 }],
   },
 
-
+  favoriteTeamCard: {
+    backgroundColor: '#0f172a',
+    borderRadius: 8,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#1e293b',
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#1B2631',
+    padding: 15,
+  },
+  searchBarContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  searchInput: {
+    flex: 1,
+    backgroundColor: '#0f172a',
+    color: '#fff',
+    borderRadius: 8,
+    padding: 12,
+    marginRight: 10,
+  },
+  closeModalButton: {
+    backgroundColor: '#ef4444',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  searchResults: {
+    flex: 1,
+  },
+  searchResultItem: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#334155',
+  },
+  loader: {
+    marginTop: 20,
+  },
+  noResultsText: {
+    color: '#94a3b8',
+    textAlign: 'center',
+    marginTop: 20,
+    fontSize: 16,
+  },
   scoreText: {
     color: '#fbbf24',
     fontSize: 18,

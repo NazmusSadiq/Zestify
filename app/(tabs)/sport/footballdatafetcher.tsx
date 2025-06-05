@@ -16,6 +16,8 @@ export const getTeamWithCrest = (team: any) => {
   };
 };
 
+let cachedTeams: any[] = [];
+
 export function useFootballData() {
   const [statsCompetition, setStatsCompetition] = useState(COMPETITIONS[0]);
   const [statsOption, setStatsOption] = useState("Standings");
@@ -136,7 +138,7 @@ export function useFootballData() {
       setLoadingStats(false);
     }
   };
-  
+
   const fetchMatchesData = async () => {
     setLoadingMatches(true);
     try {
@@ -164,7 +166,10 @@ export function useFootballData() {
 
 
   const fetchFavoriteStats = async () => {
-    if (favoriteTeams.length === 0) return;
+    if (favoriteTeams.length === 0) {
+      setFavoriteTeamsStats({});
+      return;
+    }
 
     setLoadingFavStats(true);
     try {
@@ -172,12 +177,24 @@ export function useFootballData() {
 
       for (const team of favoriteTeams) {
         const teamStats: Record<string, any> = {};
-        const data = await fetchFromApi(`teams/${team.id}/matches`, "?status=SCHEDULED&limit=3");
 
+        const data = await fetchFromApi(`teams/${team.id}`);
         if (data?.error) {
           teamStats.error = data.error;
         } else {
-          teamStats.matches = data.matches;
+          teamStats.details = {
+            id: data.id,
+            name: data.name,
+            crest: data.crest,
+            address: data.address,
+            founded: data.founded,
+            venue: data.venue,
+            coach: data.coach?.name || "Unknown",
+            competitions: data.runningCompetitions?.map((c: any) =>
+              c.name === "Primera Division" ? "La Liga" : c.name
+            ) || [],
+            squad: data.squad?.map((p: any) => `${p.name} (${p.position})`) || [],
+          };
         }
 
         allStats[team.name] = teamStats;
@@ -201,8 +218,8 @@ export function useFootballData() {
         return null;
       }
 
-      if (favoriteTeams.length >= 2) {
-        Alert.alert("Limit", "Only 2 favorite teams allowed");
+      if (favoriteTeams.length >= 1) {
+        Alert.alert("Limit", "Only 1 favorite teams allowed");
         return null;
       }
 
@@ -215,6 +232,49 @@ export function useFootballData() {
       return null;
     }
   };
+
+
+  const COMPETITION_IDS = [2021, 2001, 2014, 2002, 2019, 2015];
+
+  const fetchAllTeams = async () => {
+    const allTeamsMap = new Map<number, any>();
+    for (const compId of COMPETITION_IDS) {
+      const data = await fetchFromApi(`competitions/${compId}/teams`);
+      if (data.teams) {
+        data.teams.forEach((team: any) => {
+          if (!allTeamsMap.has(team.id)) {
+            allTeamsMap.set(team.id, team);
+          }
+        });
+      }
+    }
+    return Array.from(allTeamsMap.values());
+  };
+
+  const searchTeams = async (query: string) => {
+    if (!query || query.length < 2) {
+      return [];
+    }
+
+    const lowerQuery = query.toLowerCase();
+
+    try {
+      if (!cachedTeams || cachedTeams.length === 0) {
+        cachedTeams = await fetchAllTeams();
+      } else {
+        console.log("Using cached teams");
+      }
+
+      const filtered = cachedTeams.filter((team: any) =>
+        team.name.toLowerCase().includes(lowerQuery)
+      );
+
+      return filtered.slice(0, 10);
+    } catch (error) {
+      return [];
+    }
+  };
+
 
   return {
     statsCompetition,
@@ -241,5 +301,6 @@ export function useFootballData() {
     loadingFavStats,
     fetchFavoriteStats,
     addFavoriteTeam,
+    searchTeams,
   };
 }

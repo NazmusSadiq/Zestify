@@ -1,9 +1,8 @@
-import { Stack } from "expo-router";
-import { Platform, StatusBar, View } from "react-native";
 import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
 import { Slot, useRouter, useSegments } from 'expo-router';
-import { useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
+import { useEffect } from 'react';
+import { Platform, StatusBar, View } from "react-native";
 
 const CLERK_PUBLISHABLE_KEY = process.env.EEXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 

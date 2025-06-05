@@ -59,6 +59,7 @@ const Register = () => {
       await setDoc(doc(db, 'users', emailAddress), {
         email: emailAddress,
         createdAt: new Date().toISOString(),
+        favoriteTeam: null,
       });
 
       await setActive({ session: completeSignUp.createdSessionId });
