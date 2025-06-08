@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Dimensions, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import MusicDetailsViewer from "../../../components/MusicDetailsViewer";
 
 const LASTFM_API_KEY = "230590d668df5533f830cbdf7920f94f";
 const LASTFM_SHARED_SECRET = "77ae2d4558ce691378b31d6a7e309fcf";
@@ -176,67 +177,14 @@ export default function Music() {
     setSearchResults([]);
     fetchGenreContent(genre);
   };
-
   const renderDetailView = () => {
-    if (!selectedItem || !itemType) return null;
-
     return (
-      <View style={styles.detailContainer}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => setSelectedItem(null)}
-        >
-          <Ionicons name="arrow-back" size={24} color="#FF0000" />
-          <Text style={styles.backButtonText}>Back</Text>
-        </TouchableOpacity>
-
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <Image
-            source={{ uri: getImageUrl(selectedItem.image) }}
-            style={styles.detailImage}
-          />
-          <Text style={styles.detailTitle}>{selectedItem.name}</Text>
-          
-          {itemType === "artist" && "stats" in selectedItem && (
-            <>
-              <Text style={styles.detailSubtitle}>
-                {selectedItem.stats?.listeners} listeners
-              </Text>
-              <Text style={styles.detailText}>
-                {selectedItem.bio?.summary.replace(/<[^>]*>/g, "")}
-              </Text>
-            </>
-          )}
-
-          {itemType === "album" && "artist" in selectedItem && (
-            <>
-              <Text style={styles.detailSubtitle}>
-                By {selectedItem.artist.name}
-              </Text>
-              <Text style={styles.detailStats}>
-                {selectedItem.listeners} listeners • {selectedItem.playcount} plays
-              </Text>
-              <Text style={styles.detailText}>
-                {selectedItem.wiki?.summary.replace(/<[^>]*>/g, "")}
-              </Text>
-            </>
-          )}
-
-          {itemType === "track" && "artist" in selectedItem && (
-            <>
-              <Text style={styles.detailSubtitle}>
-                By {selectedItem.artist.name}
-              </Text>
-              <Text style={styles.detailStats}>
-                {selectedItem.listeners} listeners • {selectedItem.playcount} plays
-              </Text>
-              <Text style={styles.detailText}>
-                {selectedItem.wiki?.summary.replace(/<[^>]*>/g, "")}
-              </Text>
-            </>
-          )}
-        </ScrollView>
-      </View>
+      <MusicDetailsViewer
+        selectedItem={selectedItem}
+        itemType={itemType}
+        onClose={() => setSelectedItem(null)}
+        getImageUrl={getImageUrl}
+      />
     );
   };
 

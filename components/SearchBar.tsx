@@ -23,6 +23,7 @@ import {
   View,
 } from "react-native";
 import DetailsViewer from "./DetailsViewer";
+import MusicDetailsViewer from "./MusicDetailsViewer";
 type SearchItem = MediaItem | SearchResult;
 
 interface Props {
@@ -335,14 +336,22 @@ const SearchBar = ({ activeTab }: Props) => {
       {loading && <Text style={styles.loadingText}>Loading...</Text>}
 
       
-      
-      <DetailsViewer
-        data={selectedItem}
-        visible={!!selectedItem}
-        onClose={() => setSelectedItem(null)}
-        titleKey={activeTab === "Movie" ? "title" : "name"}
-        imageKey="poster_path"
-      />
+        {activeTab === "Music" ? (
+        <MusicDetailsViewer
+          selectedItem={selectedItem as SearchResult}
+          itemType="track"
+          onClose={() => setSelectedItem(null)}
+          getImageUrl={(images) => images?.[2]?.["#text"] || DEFAULT_IMAGE}
+        />
+      ) : (
+        <DetailsViewer
+          data={selectedItem}
+          visible={!!selectedItem}
+          onClose={() => setSelectedItem(null)}
+          titleKey={activeTab === "Movie" ? "title" : "name"}
+          imageKey="poster_path"
+        />
+      )}
     </View>
   );
 };
