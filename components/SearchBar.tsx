@@ -104,7 +104,6 @@ const SearchBar = ({ activeTab }: Props) => {
       console.error(`Error searching ${activeTab}:`, error);
     }
   };
-
   const searchMusic = async () => {
     if (!searchQuery.trim()) return;
 
@@ -125,6 +124,21 @@ const SearchBar = ({ activeTab }: Props) => {
     } catch (error) {
       console.error("Error searching music:", error);
       setLoading(false);
+    }
+  };
+
+  const fetchTrackDetails = async (trackName: string, artistName: string) => {
+    try {
+      const response = await fetch(
+        `http://ws.audioscrobbler.com/2.0/?method=track.getInfo&track=${encodeURIComponent(
+          trackName
+        )}&artist=${encodeURIComponent(artistName)}&api_key=${LASTFM_API_KEY}&format=json`
+      );
+      const data = await response.json();
+      return data.track;
+    } catch (error) {
+      console.error("Error fetching track details:", error);
+      return null;
     }
   };
 
@@ -149,11 +163,27 @@ const SearchBar = ({ activeTab }: Props) => {
       animateModalOut();
     }
   };
-
-  const handleMusicItemPress = (item: SearchResult) => {
-    console.log("Selected music track:", item);
-    setSelectedItem(item);
-    animateModalOut();
+  const handleMusicItemPress = async (item: SearchResult) => {
+    try {
+      console.log("Selected music track:", item);
+      const trackDetails = await fetchTrackDetails(item.name, item.artist);
+      if (trackDetails) {
+        setSelectedItem({
+          ...item,
+          ...trackDetails,
+          artist: { name: item.artist },  // Ensure artist is in the correct format
+          listeners: trackDetails.listeners || "0",
+          playcount: trackDetails.playcount || "0",
+        });
+      } else {
+        setSelectedItem(item);
+      }
+      animateModalOut();
+    } catch (error) {
+      console.error("Error handling music item press:", error);
+      setSelectedItem(item);
+      animateModalOut();
+    }
   };
 
   const handleItemPress = async (item: MediaItem) => {
