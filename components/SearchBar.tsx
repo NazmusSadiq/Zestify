@@ -23,6 +23,7 @@ import {
   View,
 } from "react-native";
 import DetailsViewer from "./DetailsViewer";
+type SearchItem = MediaItem | SearchResult;
 
 interface Props {
   activeTab: string;
@@ -38,22 +39,33 @@ interface MediaItem {
   [key: string]: any;
 }
 
+interface TrackImage {
+  "#text": string;
+  size: string;
+}
+
+interface SearchResult {
+  name: string;
+  artist: string;
+  image: TrackImage[];
+}
+
 const POSTER_BASE_URL = "https://image.tmdb.org/t/p/w92";
-const DROPDOWN_WIDTH = 220; // dropdown width used for animation
+const DROPDOWN_WIDTH = 220;
+const LASTFM_API_KEY = "230590d668df5533f830cbdf7920f94f";
+const DEFAULT_IMAGE = "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png";
 
 const SearchBar = ({ activeTab }: Props) => {
+  const [searchQuery, setSearchQuery] = useState("");
   const [searchText, setSearchText] = useState("");
-  const [searchResults, setSearchResults] = useState<MediaItem[]>([]);
+  const [searchResults, setSearchResults] = useState<(MediaItem | SearchResult)[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null);
-  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<MediaItem | SearchResult | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const [modalMounted, setModalMounted] = useState(false); // control mounting for animation
+  const [modalMounted, setModalMounted] = useState(false);
 
   const debounceTimeout = useRef<number | null>(null);
-
-  // Animated value for horizontal slide
-  const slideAnim = useRef(new Animated.Value(DROPDOWN_WIDTH)).current; // start off shifted right by dropdown width
+  const slideAnim = useRef(new Animated.Value(DROPDOWN_WIDTH)).current;
 
   const searchHandlers: { [key: string]: (query: string) => Promise<MediaItem[]> } = {
     Movie: (query: string) => fetchMovies({ query }),
@@ -92,6 +104,29 @@ const SearchBar = ({ activeTab }: Props) => {
     }
   };
 
+  const searchMusic = async () => {
+    if (!searchQuery.trim()) return;
+
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `http://ws.audioscrobbler.com/2.0/?method=track.search&track=${encodeURIComponent(
+          searchQuery
+        )}&api_key=${LASTFM_API_KEY}&format=json`
+      );
+      const data = await response.json();
+      const tracks = data.results.trackmatches.track;
+      setSearchResults(tracks);
+      setLoading(false);
+      if (tracks.length > 0) {
+        animateModalIn();
+      }
+    } catch (error) {
+      console.error("Error searching music:", error);
+      setLoading(false);
+    }
+  };
+
   const onChangeText = (text: string) => {
     setSearchText(text);
 
@@ -105,17 +140,22 @@ const SearchBar = ({ activeTab }: Props) => {
   };
 
   const onIconPress = () => {
-    if (searchText.trim() !== "") {
+    if (searchText.trim() !== "" || searchQuery.trim() !== "") {
       setSearchText("");
+      setSearchQuery("");
       Keyboard.dismiss();
       setSearchResults([]);
       animateModalOut();
-      console.log("Search cleared");
     }
   };
 
+  const handleMusicItemPress = (item: SearchResult) => {
+    console.log("Selected music track:", item);
+    setSelectedItem(item);
+    animateModalOut();
+  };
+
   const handleItemPress = async (item: MediaItem) => {
-    setDetailsLoading(true);
     try {
       const detailsFn = detailsHandlers[activeTab];
       const details = detailsFn ? await detailsFn(item.id.toString()) : {};
@@ -131,8 +171,6 @@ const SearchBar = ({ activeTab }: Props) => {
       setSearchResults([]);
       animateModalOut();
       Keyboard.dismiss();
-    } finally {
-      setDetailsLoading(false);
     }
   };
 
@@ -150,9 +188,8 @@ const SearchBar = ({ activeTab }: Props) => {
     });
 
     return () => backHandler.remove();
-  }, [searchText, searchResults, selectedItem]);
+  }, [searchText, searchResults, selectedItem, onIconPress]);
 
-  // Animate modal sliding in from right (slideAnim from DROPDOWN_WIDTH -> 0)
   const animateModalIn = () => {
     setModalMounted(true);
     setModalVisible(true);
@@ -163,7 +200,6 @@ const SearchBar = ({ activeTab }: Props) => {
     }).start();
   };
 
-  // Animate modal sliding out to right (slideAnim from 0 -> DROPDOWN_WIDTH)
   const animateModalOut = () => {
     Animated.timing(slideAnim, {
       toValue: DROPDOWN_WIDTH,
@@ -177,16 +213,35 @@ const SearchBar = ({ activeTab }: Props) => {
 
   const getPlaceholder = () => `Search for a ${activeTab}`;
 
-  const renderItem = ({ item }: { item: MediaItem }) => {
-    const title = item.title || item.name || "Untitled";
-    const date = item.release_date || item.first_air_date || "";
+  const renderItem = (item: MediaItem | SearchResult) => {
+    if (activeTab === "Music") {
+      const musicItem = item as SearchResult;
+      return (
+        <TouchableOpacity onPress={() => handleMusicItemPress(musicItem)} activeOpacity={0.7}>
+          <View style={styles.trackItem}>
+            <Image
+              source={{ uri: musicItem.image?.[2]?.["#text"] || DEFAULT_IMAGE }}
+              style={styles.trackImage}
+            />
+            <View style={styles.trackInfo}>
+              <Text style={styles.trackName}>{musicItem.name}</Text>
+              <Text style={styles.artistName}>{musicItem.artist}</Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      );
+    }
+
+    const mediaItem = item as MediaItem;
+    const title = mediaItem.title || mediaItem.name || "Untitled";
+    const date = mediaItem.release_date || mediaItem.first_air_date || "";
 
     return (
-      <TouchableOpacity onPress={() => handleItemPress(item)} activeOpacity={0.7}>
+      <TouchableOpacity onPress={() => handleItemPress(mediaItem)} activeOpacity={0.7}>
         <View style={styles.resultItem}>
-          {item.poster_path ? (
+          {mediaItem.poster_path ? (
             <Image
-              source={{ uri: POSTER_BASE_URL + item.poster_path }}
+              source={{ uri: POSTER_BASE_URL + mediaItem.poster_path }}
               style={styles.poster}
               resizeMode="cover"
             />
@@ -209,21 +264,34 @@ const SearchBar = ({ activeTab }: Props) => {
   return (
     <View style={styles.searchContainer}>
       <View style={styles.wrapper}>
-        <TouchableOpacity onPress={onIconPress} disabled={searchText.trim() === ""}>
+        <TouchableOpacity onPress={onIconPress} disabled={searchText.trim() === "" && searchQuery.trim() === ""}>
           <Image source={icons.search} style={styles.icon} resizeMode="contain" />
         </TouchableOpacity>
-        <TextInput
-          placeholder={getPlaceholder()}
-          value={searchText}
-          onChangeText={onChangeText}
-          placeholderTextColor="#ccc"
-          style={styles.input}
-          clearButtonMode="while-editing"
-          autoCorrect={false}
-          autoCapitalize="none"
-          returnKeyType="search"
-          onSubmitEditing={() => searchMedia(searchText)}
-        />
+        
+        {activeTab === "Music" ? (
+          <TextInput
+            style={styles.input}
+            placeholder="Search for songs..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            onSubmitEditing={searchMusic}
+            placeholderTextColor="#666"
+            returnKeyType="search"
+          />
+        ) : (
+          <TextInput
+            placeholder={getPlaceholder()}
+            value={searchText}
+            onChangeText={onChangeText}
+            placeholderTextColor="#ccc"
+            style={styles.input}
+            clearButtonMode="while-editing"
+            autoCorrect={false}
+            autoCapitalize="none"
+            returnKeyType="search"
+            onSubmitEditing={() => searchMedia(searchText)}
+          />
+        )}
       </View>
 
       <Modal
@@ -249,8 +317,10 @@ const SearchBar = ({ activeTab }: Props) => {
                 >
                   <FlatList
                     data={searchResults}
-                    keyExtractor={(item) => item.id.toString()}
-                    renderItem={renderItem}
+                    keyExtractor={(item, index) =>
+                      'id' in item ? item.id.toString() : `${(item as SearchResult).name}-${(item as SearchResult).artist}-${index}`
+                    }
+                    renderItem={({ item }) => renderItem(item)}
                     keyboardShouldPersistTaps="always"
                     nestedScrollEnabled={true}
                     showsVerticalScrollIndicator={false}
@@ -264,6 +334,8 @@ const SearchBar = ({ activeTab }: Props) => {
 
       {loading && <Text style={styles.loadingText}>Loading...</Text>}
 
+      
+      
       <DetailsViewer
         data={selectedItem}
         visible={!!selectedItem}
@@ -281,6 +353,43 @@ const styles = StyleSheet.create({
   searchContainer: {
     position: "relative",
     zIndex: 1000,
+  },sectionTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#FF0000",
+    marginBottom: 15,
+  },
+  trackItem: {
+    flexDirection: "row",
+    backgroundColor: "#1a1a1a",
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 10,
+    shadowColor: "#FF0000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+   trackImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    backgroundColor: "#1B2631",
+  },
+  trackInfo: {
+    marginLeft: 15,
+    justifyContent: "center",
+  },
+  trackName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#fff",
+  },
+  artistName: {
+    fontSize: 14,
+    color: "#FF0000",
+    marginTop: 4,
   },
   wrapper: {
     flexDirection: "row",
