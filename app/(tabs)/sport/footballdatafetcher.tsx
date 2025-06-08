@@ -3,8 +3,11 @@ import {
   fetchFromApi,
   STATS_ENDPOINTS,
 } from "@/services/fotball_API";
-import { useState } from "react";
+import { useUser } from "@clerk/clerk-expo";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { useEffect, useState } from "react";
 import { Alert } from "react-native";
+import { db } from "../../../firebase";
 
 export const getTeamWithCrest = (team: any) => {
   const name = typeof team === "string" ? team : team?.shortName ?? team?.name ?? "N/A";
@@ -19,6 +22,7 @@ export const getTeamWithCrest = (team: any) => {
 let cachedTeams: any[] = [];
 
 export function useFootballData() {
+  const { user } = useUser();
   const [statsCompetition, setStatsCompetition] = useState(COMPETITIONS[0]);
   const [statsOption, setStatsOption] = useState("Standings");
   const [statsData, setStatsData] = useState<any>(null);
@@ -34,6 +38,44 @@ export function useFootballData() {
   const [favoriteTeams, setFavoriteTeams] = useState<{ id: number; name: string }[]>([]);
   const [favoriteTeamsStats, setFavoriteTeamsStats] = useState<any>(null);
   const [loadingFavStats, setLoadingFavStats] = useState(false);
+
+  // Load favorite teams from Firebase when component mounts
+  useEffect(() => {
+    const loadFavoriteTeams = async () => {
+      if (!user?.primaryEmailAddress?.emailAddress) return;
+
+      try {
+        const userDocRef = doc(db, "users", user.primaryEmailAddress.emailAddress);
+        const docSnap = await getDoc(userDocRef);
+        
+        if (docSnap.exists() && docSnap.data().favoriteTeams) {
+          setFavoriteTeams(docSnap.data().favoriteTeams);
+        }      } catch (error: any) {
+        console.error("Error loading favorite teams:", error);
+        Alert.alert("Error", "Failed to load favorite teams");
+      }
+    };
+
+    loadFavoriteTeams();
+  }, [user?.primaryEmailAddress?.emailAddress]);
+
+  // Save favorite teams to Firebase whenever they change
+  useEffect(() => {
+    const saveFavoriteTeams = async () => {
+      if (!user?.primaryEmailAddress?.emailAddress) return;
+
+      try {
+        const userDocRef = doc(db, "users", user.primaryEmailAddress.emailAddress);
+        await setDoc(userDocRef, { favoriteTeams }, { merge: true });      } catch (error: any) {
+        console.error("Error saving favorite teams:", error);
+        Alert.alert("Error", "Failed to save favorite teams");
+      }
+    };
+
+    if (favoriteTeams.length > 0) {
+      saveFavoriteTeams();
+    }
+  }, [favoriteTeams, user?.primaryEmailAddress?.emailAddress]);
 
   const fetchHomeMatches = async () => {
     setLoadingHome(true);
