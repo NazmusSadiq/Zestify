@@ -1,5 +1,10 @@
 import { icons } from "@/constants/icons";
 import {
+  getTrackDetails,
+  searchTracks,
+  type SearchResult
+} from "@/services/music_API";
+import {
   fetchMovieDetails,
   fetchMovies,
   fetchTVSeries,
@@ -40,20 +45,8 @@ interface MediaItem {
   [key: string]: any;
 }
 
-interface TrackImage {
-  "#text": string;
-  size: string;
-}
-
-interface SearchResult {
-  name: string;
-  artist: string;
-  image: TrackImage[];
-}
-
 const POSTER_BASE_URL = "https://image.tmdb.org/t/p/w92";
 const DROPDOWN_WIDTH = 220;
-const LASTFM_API_KEY = "230590d668df5533f830cbdf7920f94f";
 const DEFAULT_IMAGE = "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png";
 
 const SearchBar = ({ activeTab }: Props) => {
@@ -103,19 +96,12 @@ const SearchBar = ({ activeTab }: Props) => {
       animateModalOut();
       console.error(`Error searching ${activeTab}:`, error);
     }
-  };
-  const searchMusic = async () => {
+  };  const searchMusic = async () => {
     if (!searchQuery.trim()) return;
 
     try {
       setLoading(true);
-      const response = await fetch(
-        `http://ws.audioscrobbler.com/2.0/?method=track.search&track=${encodeURIComponent(
-          searchQuery
-        )}&api_key=${LASTFM_API_KEY}&format=json`
-      );
-      const data = await response.json();
-      const tracks = data.results.trackmatches.track;
+      const tracks = await searchTracks(searchQuery);
       setSearchResults(tracks);
       setLoading(false);
       if (tracks.length > 0) {
@@ -124,21 +110,6 @@ const SearchBar = ({ activeTab }: Props) => {
     } catch (error) {
       console.error("Error searching music:", error);
       setLoading(false);
-    }
-  };
-
-  const fetchTrackDetails = async (trackName: string, artistName: string) => {
-    try {
-      const response = await fetch(
-        `http://ws.audioscrobbler.com/2.0/?method=track.getInfo&track=${encodeURIComponent(
-          trackName
-        )}&artist=${encodeURIComponent(artistName)}&api_key=${LASTFM_API_KEY}&format=json`
-      );
-      const data = await response.json();
-      return data.track;
-    } catch (error) {
-      console.error("Error fetching track details:", error);
-      return null;
     }
   };
 
@@ -163,10 +134,11 @@ const SearchBar = ({ activeTab }: Props) => {
       animateModalOut();
     }
   };
-  const handleMusicItemPress = async (item: SearchResult) => {
+
+    const handleMusicItemPress = async (item: SearchResult) => {
     try {
       console.log("Selected music track:", item);
-      const trackDetails = await fetchTrackDetails(item.name, item.artist);
+      const trackDetails = await getTrackDetails(item.name, item.artist);
       if (trackDetails) {
         setSelectedItem({
           ...item,

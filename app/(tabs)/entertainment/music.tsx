@@ -1,67 +1,18 @@
+import {
+  getGenreContent,
+  getImageUrl,
+  getItemDetails,
+  searchTracks,
+  type Album,
+  type Artist,
+  type GenreContent,
+  type SearchResult,
+  type Track,
+} from "@/services/music_API";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Dimensions, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import MusicDetailsViewer from "../../../components/MusicDetailsViewer";
-
-const LASTFM_API_KEY = "230590d668df5533f830cbdf7920f94f";
-const LASTFM_SHARED_SECRET = "77ae2d4558ce691378b31d6a7e309fcf";
-
-interface TrackImage {
-  "#text": string;
-  size: string;
-}
-
-interface BaseItem {
-  name: string;
-  image: TrackImage[];
-}
-
-interface Track extends BaseItem {
-  artist: {
-    name: string;
-  };
-  listeners?: string;
-  playcount?: string;
-  duration?: string;
-  wiki?: {
-    summary: string;
-  };
-}
-
-interface SearchResult {
-  name: string;
-  artist: string;
-  image: TrackImage[];
-}
-
-interface Artist extends BaseItem {
-  listeners: string;
-  bio?: {
-    summary: string;
-  };
-  stats?: {
-    listeners: string;
-    playcount: string;
-  };
-}
-
-interface Album extends BaseItem {
-  artist: {
-    name: string;
-  };
-  playcount?: string;
-  listeners?: string;
-  wiki?: {
-    summary: string;
-  };
-}
-
-interface GenreContent {
-  topArtists: Artist[];
-  topTracks: Track[];
-  topAlbums: Album[];
-}
 
 const GENRES = [
   { name: "Rock", color: "#FF0000", icon: "rocket" },
@@ -72,8 +23,6 @@ const GENRES = [
   { name: "Classical", color: "#1a0000", icon: "piano" },
 ];
 
-const DEFAULT_IMAGE = "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png";
-
 export default function Music() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -81,101 +30,34 @@ export default function Music() {
   const [genreContent, setGenreContent] = useState<GenreContent | null>(null);
   const [selectedItem, setSelectedItem] = useState<Artist | Album | Track | null>(null);
   const [itemType, setItemType] = useState<"artist" | "album" | "track" | null>(null);
-  const router = useRouter();
-
-  const fetchItemDetails = async (type: "artist" | "album" | "track", name: string, artist?: string) => {
-    try {
-      let url = "";
-      switch (type) {
-        case "artist":
-          url = `http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist=${encodeURIComponent(name)}&api_key=${LASTFM_API_KEY}&format=json`;
-          break;
-        case "album":
-          url = `http://ws.audioscrobbler.com/2.0/?method=album.getinfo&album=${encodeURIComponent(name)}&artist=${encodeURIComponent(artist || "")}&api_key=${LASTFM_API_KEY}&format=json`;
-          break;
-        case "track":
-          url = `http://ws.audioscrobbler.com/2.0/?method=track.getinfo&track=${encodeURIComponent(name)}&artist=${encodeURIComponent(artist || "")}&api_key=${LASTFM_API_KEY}&format=json`;
-          break;
-      }
-      const response = await fetch(url);
-      const data = await response.json();
-      setSelectedItem(data[type]);
+  // const router = useRouter(); // Removed unused router  /* Removed fetchItemDetails - using getItemDetails directly instead */
+  const handleItemPress = async (item: Artist | Album | Track, type: "artist" | "album" | "track") => {
+    const details = await getItemDetails(type, item.name, "artist" in item ? item.artist.name : undefined);
+    if (details) {
+      setSelectedItem(details);
       setItemType(type);
-    } catch (error) {
-      console.error("Error fetching item details:", error);
     }
   };
-
-  const handleItemPress = (item: Artist | Album | Track, type: "artist" | "album" | "track") => {
-    if (type === "artist") {
-      fetchItemDetails("artist", item.name);
-    } else if (type === "album" && "artist" in item) {
-      fetchItemDetails("album", item.name, item.artist.name);
-    } else if (type === "track" && "artist" in item) {
-      fetchItemDetails("track", item.name, item.artist.name);
-    }
-  };
-
-  const getImageUrl = (images: TrackImage[]) => {
-    if (!images || images.length === 0) return DEFAULT_IMAGE;
-    const image = images.find(img => img.size === "extralarge") || 
-                 images.find(img => img.size === "large") || 
-                 images.find(img => img.size === "medium") || 
-                 images[0];
-    return image["#text"] || DEFAULT_IMAGE;
-  };
-
-  const fetchGenreContent = async (genre: string) => {
-    try {
-      // Fetch top artists
-      const artistsResponse = await fetch(
-        `http://ws.audioscrobbler.com/2.0/?method=tag.gettopartists&tag=${genre}&api_key=${LASTFM_API_KEY}&format=json&limit=5`
-      );
-      const artistsData = await artistsResponse.json();
-
-      // Fetch top tracks
-      const tracksResponse = await fetch(
-        `http://ws.audioscrobbler.com/2.0/?method=tag.gettoptracks&tag=${genre}&api_key=${LASTFM_API_KEY}&format=json&limit=5`
-      );
-      const tracksData = await tracksResponse.json();
-
-      // Fetch top albums
-      const albumsResponse = await fetch(
-        `http://ws.audioscrobbler.com/2.0/?method=tag.gettopalbums&tag=${genre}&api_key=${LASTFM_API_KEY}&format=json&limit=5`
-      );
-      const albumsData = await albumsResponse.json();
-
-      setGenreContent({
-        topArtists: artistsData.topartists.artist,
-        topTracks: tracksData.tracks.track,
-        topAlbums: albumsData.albums.album,
-      });
-    } catch (error) {
-      console.error("Error fetching genre content:", error);
-    }
-  };
-
+  /* Removed getImageUrl - now using the centralized version from music_API.tsx */
+  /* Removed fetchGenreContent - now using the centralized version from music_API.tsx */
   const searchMusic = async () => {
     if (!searchQuery.trim()) return;
 
     try {
-      const response = await fetch(
-        `http://ws.audioscrobbler.com/2.0/?method=track.search&track=${encodeURIComponent(
-          searchQuery
-        )}&api_key=${LASTFM_API_KEY}&format=json`
-      );
-      const data = await response.json();
-      setSearchResults(data.results.trackmatches.track);
+      const tracks = await searchTracks(searchQuery);
+      setSearchResults(tracks);
       setSelectedGenre(null);
     } catch (error) {
       console.error("Error searching music:", error);
     }
   };
-
-  const handleGenreSelect = (genre: string) => {
+  const handleGenreSelect = async (genre: string) => {
     setSelectedGenre(genre);
     setSearchResults([]);
-    fetchGenreContent(genre);
+    const content = await getGenreContent(genre);
+    if (content) {
+      setGenreContent(content);
+    }
   };
   const renderDetailView = () => {
     return (
@@ -273,7 +155,7 @@ export default function Music() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      {/* <View style={styles.header}>
         <Text style={styles.title}>Music Explorer</Text>
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color="#FF0000" style={styles.searchIcon} />
@@ -286,7 +168,7 @@ export default function Music() {
             placeholderTextColor="#666"
           />
         </View>
-      </View>
+      </View> */}
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {searchResults.length === 0 && (
@@ -397,7 +279,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
   },
   genreCard: {
-    width: (Dimensions.get("window").width - 60) / 2,
+    width: (Dimensions.get("window").width ) / 2 + 140,
     height: 120,
     borderRadius: 16,
     marginBottom: 15,
