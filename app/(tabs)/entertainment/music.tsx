@@ -1,18 +1,16 @@
 import {
   getGenreContent,
   getImageUrl,
-  getItemDetails,
-  searchTracks,
   type Album,
   type Artist,
   type GenreContent,
-  type SearchResult,
-  type Track,
+  type Track
 } from "@/services/music_API";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { Dimensions, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import MusicDetailsViewer from "../../../components/MusicDetailsViewer";
+import MusicGenre from "../../../components/MusicGenre";
 
 const GENRES = [
   { name: "Rock", color: "#FF0000", icon: "rocket" },
@@ -24,42 +22,20 @@ const GENRES = [
 ];
 
 export default function Music() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
   const [genreContent, setGenreContent] = useState<GenreContent | null>(null);
   const [selectedItem, setSelectedItem] = useState<Artist | Album | Track | null>(null);
   const [itemType, setItemType] = useState<"artist" | "album" | "track" | null>(null);
-  // const router = useRouter(); // Removed unused router  /* Removed fetchItemDetails - using getItemDetails directly instead */
-  const handleItemPress = async (item: Artist | Album | Track, type: "artist" | "album" | "track") => {
-    const details = await getItemDetails(type, item.name, "artist" in item ? item.artist.name : undefined);
-    if (details) {
-      setSelectedItem(details);
-      setItemType(type);
-    }
-  };
-  /* Removed getImageUrl - now using the centralized version from music_API.tsx */
-  /* Removed fetchGenreContent - now using the centralized version from music_API.tsx */
-  const searchMusic = async () => {
-    if (!searchQuery.trim()) return;
 
-    try {
-      const tracks = await searchTracks(searchQuery);
-      setSearchResults(tracks);
-      setSelectedGenre(null);
-    } catch (error) {
-      console.error("Error searching music:", error);
-    }
-  };
   const handleGenreSelect = async (genre: string) => {
     setSelectedGenre(genre);
-    setSearchResults([]);
     const content = await getGenreContent(genre);
     if (content) {
       setGenreContent(content);
     }
   };
-  const renderDetailView = () => {
+
+  if (selectedItem) {
     return (
       <MusicDetailsViewer
         selectedItem={selectedItem}
@@ -68,152 +44,38 @@ export default function Music() {
         getImageUrl={getImageUrl}
       />
     );
-  };
-
-  const renderGenreContent = () => {
-    if (!selectedGenre || !genreContent) return null;
-
-    return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => setSelectedGenre(null)}
-          >
-            <Ionicons name="arrow-back" size={24} color="#FF0000" />
-            <Text style={styles.backButtonText}>Back to Genres</Text>
-          </TouchableOpacity>
-          <Text style={styles.title}>{selectedGenre}</Text>
-        </View>
-
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-          <Text style={styles.subsectionTitle}>Top Artists</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
-            {genreContent.topArtists.map((artist, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.artistCard}
-                onPress={() => handleItemPress(artist, "artist")}
-              >
-                <Image
-                  source={{ uri: getImageUrl(artist.image) }}
-                  style={styles.artistImage}
-                />
-                <Text style={styles.artistCardName}>{artist.name}</Text>
-                <Text style={styles.listeners}>{artist.listeners} listeners</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-
-          <Text style={styles.subsectionTitle}>Top Tracks</Text>
-          {genreContent.topTracks.map((track, index) => (
-            <TouchableOpacity
-              key={index}
-              style={styles.trackItem}
-              onPress={() => handleItemPress(track, "track")}
-            >
-              <Image
-                source={{ uri: getImageUrl(track.image) }}
-                style={styles.trackImage}
-              />
-              <View style={styles.trackInfo}>
-                <Text style={styles.trackName}>{track.name}</Text>
-                <Text style={styles.artistName}>{track.artist.name}</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-
-          <Text style={styles.subsectionTitle}>Top Albums</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
-            {genreContent.topAlbums.map((album, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.albumCard}
-                onPress={() => handleItemPress(album, "album")}
-              >
-                <Image
-                  source={{ uri: getImageUrl(album.image) }}
-                  style={styles.albumImage}
-                />
-                <Text style={styles.albumName}>{album.name}</Text>
-                <Text style={styles.albumArtist}>{album.artist.name}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </ScrollView>
-      </View>
-    );
-  };
-
-  if (selectedItem) {
-    return renderDetailView();
   }
 
-  if (selectedGenre) {
-    return renderGenreContent();
+  if (selectedGenre && genreContent) {
+    return (
+      <MusicGenre
+        genre={selectedGenre}
+        onBack={() => {
+          setSelectedGenre(null);
+          setGenreContent(null);
+        }}
+      />
+    );
   }
 
   return (
     <View style={styles.container}>
-      {/* <View style={styles.header}>
-        <Text style={styles.title}>Music Explorer</Text>
-        <View style={styles.searchContainer}>
-          <Ionicons name="search" size={20} color="#FF0000" style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search for songs..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            onSubmitEditing={searchMusic}
-            placeholderTextColor="#666"
-          />
-        </View>
-      </View> */}
-
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {searchResults.length === 0 && (
-          <View style={styles.genresContainer}>
-            <Text style={styles.sectionTitle}>Explore Genres</Text>
-            <View style={styles.genreGrid}>
-              {GENRES.map((genre, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={[styles.genreCard, { backgroundColor: genre.color }]}
-                  onPress={() => handleGenreSelect(genre.name)}
-                >
-                  <Ionicons name={genre.icon as any} size={32} color="#fff" />
-                  <Text style={styles.genreName}>{genre.name}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {searchResults.length > 0 && (
-          <View>
-            <Text style={styles.sectionTitle}>Search Results</Text>
-            {searchResults.map((track, index) => (
+        <View style={styles.genresContainer}>
+          <Text style={styles.sectionTitle}>Explore Genres</Text>
+          <View style={styles.genreGrid}>
+            {GENRES.map((genre, index) => (
               <TouchableOpacity
                 key={index}
-                style={styles.trackItem}
-                onPress={() => handleItemPress({
-                  name: track.name,
-                  artist: { name: track.artist },
-                  image: track.image
-                } as Track, "track")}
+                style={[styles.genreCard, { backgroundColor: genre.color }]}
+                onPress={() => handleGenreSelect(genre.name)}
               >
-                <Image
-                  source={{ uri: getImageUrl(track.image) }}
-                  style={styles.trackImage}
-                />
-                <View style={styles.trackInfo}>
-                  <Text style={styles.trackName}>{track.name}</Text>
-                  <Text style={styles.artistName}>{track.artist}</Text>
-                </View>
+                <Ionicons name={genre.icon as any} size={32} color="#fff" />
+                <Text style={styles.genreName}>{genre.name}</Text>
               </TouchableOpacity>
             ))}
           </View>
-        )}
+        </View>
       </ScrollView>
     </View>
   );
@@ -225,6 +87,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#1B2631",
   },
   header: {
+    flexDirection: "row",
+    alignItems: "center",
     padding: 20,
     backgroundColor: "#1B2631",
     borderBottomWidth: 1,

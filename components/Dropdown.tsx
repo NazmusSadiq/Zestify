@@ -28,7 +28,7 @@ const screenWidth = Dimensions.get('window').width;
 const filterOptions: Record<string, string[]> = {
     Movie: ['Latest', 'Upcoming', 'Top Rated', 'Genre', 'Language', 'Release Year', 'Rating Above'],
     'TV Series': ['Latest', 'Upcoming', 'Top Rated', 'Genre', 'Network', 'Language', 'Release Year'],
-    Music: ['Genre', 'Artist', 'Year'],
+    Music: ['Pop', 'Rock', 'Jazz', 'Hip-Hop', 'Electronic', 'Classical'],
     Game: ['Genre', 'Platform', 'Publisher'],
     Book: ['Genre', 'Author', 'Year'],
 };
