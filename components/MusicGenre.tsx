@@ -3,6 +3,8 @@ import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import MusicDetailsViewer from "./MusicDetailsViewer";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 
 interface MusicGenreProps {
   genre: string;
@@ -56,7 +58,7 @@ export default function MusicGenre({ genre, onBack }: MusicGenreProps) {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -122,7 +124,7 @@ export default function MusicGenre({ genre, onBack }: MusicGenreProps) {
           ))}
         </ScrollView>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -258,10 +260,13 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   backButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#1B2631",
-  },
+  position: "absolute",
+  top: -25,
+  left: 0,
+  zIndex: 10,
+  backgroundColor: "#1B2631",
+  borderRadius: 20,
+  padding: 10,
+},
+
 });
