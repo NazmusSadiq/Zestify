@@ -133,7 +133,20 @@ export const fetchUpcomingGames = async (): Promise<GameResponse> => {
   }
 };
 
-export const fetchTopPublishers = async (): Promise<any> => {
+export interface CompanyDetails {
+  id: number;
+  name: string;
+  games_count: number;
+  image_background: string;
+  description?: string;
+  games?: {
+    id: number;
+    name: string;
+    added: number;
+  }[];
+}
+
+export const fetchTopPublishers = async (): Promise<{ results: CompanyDetails[] }> => {
   try {
     const response = await axios.get(`${BASE_URL}/publishers`, {
       params: {
@@ -149,7 +162,7 @@ export const fetchTopPublishers = async (): Promise<any> => {
   }
 };
 
-export const fetchTopDevelopers = async (): Promise<any> => {
+export const fetchTopDevelopers = async (): Promise<{ results: CompanyDetails[] }> => {
   try {
     const response = await axios.get(`${BASE_URL}/developers`, {
       params: {
@@ -161,6 +174,34 @@ export const fetchTopDevelopers = async (): Promise<any> => {
     return response.data;
   } catch (error) {
     console.error('Error fetching top developers:', error);
+    throw error;
+  }
+};
+
+export const fetchPublisherDetails = async (id: number): Promise<CompanyDetails> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/publishers/${id}`, {
+      params: {
+        key: RAWG_API_KEY,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching publisher details:', error);
+    throw error;
+  }
+};
+
+export const fetchDeveloperDetails = async (id: number): Promise<CompanyDetails> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/developers/${id}`, {
+      params: {
+        key: RAWG_API_KEY,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching developer details:', error);
     throw error;
   }
 };

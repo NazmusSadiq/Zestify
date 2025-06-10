@@ -1,17 +1,30 @@
+import CompanyDetailsModal from '@/components/CompanyDetails';
 import GameDetails from '@/components/GameDetails';
-import { fetchGameDetails, fetchNewReleases, fetchTopDevelopers, fetchTopPublishers, fetchTopRatedGames, fetchTrendingGames, fetchUpcomingGames, Game } from '@/services/GameAPI';
-import { LinearGradient } from 'expo-linear-gradient';
+import type { CompanyDetails } from '@/services/GameAPI';
+import {
+  fetchDeveloperDetails,
+  fetchGameDetails,
+  fetchNewReleases,
+  fetchPublisherDetails,
+  fetchTopDevelopers,
+  fetchTopPublishers,
+  fetchTopRatedGames,
+  fetchTrendingGames,
+  fetchUpcomingGames,
+  Game
+} from '@/services/GameAPI';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function Games() {  const [trendingGames, setTrendingGames] = useState<Game[]>([]);
   const [newReleases, setNewReleases] = useState<Game[]>([]);
   const [topRatedGames, setTopRatedGames] = useState<Game[]>([]);
-  const [upcomingGames, setUpcomingGames] = useState<Game[]>([]);
-  const [topPublishers, setTopPublishers] = useState<any[]>([]);
-  const [topDevelopers, setTopDevelopers] = useState<any[]>([]);
+  const [upcomingGames, setUpcomingGames] = useState<Game[]>([]);  const [topPublishers, setTopPublishers] = useState<CompanyDetails[]>([]);
+  const [topDevelopers, setTopDevelopers] = useState<CompanyDetails[]>([]);
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<CompanyDetails | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [companyModalVisible, setCompanyModalVisible] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const loadGames = async () => {
@@ -149,16 +162,28 @@ export default function Games() {  const [trendingGames, setTrendingGames] = use
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.listContainer}
         />
-      </View>
-
-      <View style={styles.section}>
+      </View>      <View style={styles.section}>
         <Text style={styles.sectionTitle}>Top Publishers</Text>
         <FlatList
           data={topPublishers}
           renderItem={({ item }) => (
-            <TouchableOpacity style={styles.companyCard}>
-              <Text style={styles.companyName}>{item.name}</Text>
-              <Text style={styles.companyGames}>Games: {item.games_count}</Text>
+            <TouchableOpacity 
+              style={styles.companyCard}
+              onPress={async () => {
+                const details = await fetchPublisherDetails(item.id);
+                setSelectedCompany(details);
+                setCompanyModalVisible(true);
+              }}
+            >
+              <Image
+                source={{ uri: item.image_background }}
+                style={styles.companyImage}
+                resizeMode="cover"
+              />
+              <View style={styles.companyInfo}>
+                <Text style={styles.companyName}>{item.name}</Text>
+                <Text style={styles.companyGames}>Games: {item.games_count}</Text>
+              </View>
             </TouchableOpacity>
           )}
           keyExtractor={(item) => item.id.toString()}
@@ -173,9 +198,23 @@ export default function Games() {  const [trendingGames, setTrendingGames] = use
         <FlatList
           data={topDevelopers}
           renderItem={({ item }) => (
-            <TouchableOpacity style={styles.companyCard}>
-              <Text style={styles.companyName}>{item.name}</Text>
-              <Text style={styles.companyGames}>Games: {item.games_count}</Text>
+            <TouchableOpacity 
+              style={styles.companyCard}
+              onPress={async () => {
+                const details = await fetchDeveloperDetails(item.id);
+                setSelectedCompany(details);
+                setCompanyModalVisible(true);
+              }}
+            >
+              <Image
+                source={{ uri: item.image_background }}
+                style={styles.companyImage}
+                resizeMode="cover"
+              />
+              <View style={styles.companyInfo}>
+                <Text style={styles.companyName}>{item.name}</Text>
+                <Text style={styles.companyGames}>Games: {item.games_count}</Text>
+              </View>
             </TouchableOpacity>
           )}
           keyExtractor={(item) => item.id.toString()}
@@ -183,12 +222,16 @@ export default function Games() {  const [trendingGames, setTrendingGames] = use
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.listContainer}
         />
-      </View>
-
-      <GameDetails
+      </View>      <GameDetails
         game={selectedGame}
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
+      />
+      
+      <CompanyDetailsModal
+        company={selectedCompany}
+        visible={companyModalVisible}
+        onClose={() => setCompanyModalVisible(false)}
       />
     </ScrollView>
   );
@@ -263,13 +306,12 @@ const styles = StyleSheet.create({
   gameReleased: {
     fontSize: 14,
     color: '#CCCCCC',
-  },
-  companyCard: {
-    width: 200,
+  },  companyCard: {
+    width: 280,
     backgroundColor: '#1E1E1E',
     borderRadius: 15,
     marginRight: 16,
-    padding: 15,
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -278,6 +320,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  companyImage: {
+    width: '100%',
+    height: 160,
+    backgroundColor: '#2A2A2A',
+  },
+  companyInfo: {
+    padding: 12,
   },
   companyName: {
     fontSize: 16,
