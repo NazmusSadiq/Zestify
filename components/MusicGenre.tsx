@@ -1,9 +1,9 @@
 import { getGenreContent, getImageUrl, getItemDetails, type Album, type Artist, type GenreContent, type Track } from "@/services/music_API";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import MusicDetailsViewer from "./MusicDetailsViewer";
+import { Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import MusicDetailsViewer from "./MusicDetailsViewer";
 
 
 interface MusicGenreProps {
@@ -58,73 +58,80 @@ export default function MusicGenre({ genre, onBack }: MusicGenreProps) {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={onBack}
-        >
-          <Ionicons name="arrow-back" size={24} color="#FF0000" />
-        </TouchableOpacity>
-        <Text style={styles.title}>{genre}</Text>
-      </View>
-
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <Text style={styles.subsectionTitle}>Top Artists</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
-          {genreContent.topArtists.map((artist, index) => (
-            <TouchableOpacity
-              key={index}
-              style={styles.artistCard}
-              onPress={() => handleItemPress(artist, "artist")}
-            >
-              <Image
-                source={{ uri: getImageUrl(artist.image) }}
-                style={styles.artistImage}
-              />
-              <Text style={styles.artistCardName}>{artist.name}</Text>
-              <Text style={styles.listeners}>{artist.listeners} listeners</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        <Text style={styles.subsectionTitle}>Top Tracks</Text>
-        {genreContent.topTracks.map((track, index) => (
+    <Modal
+      visible={true}
+      animationType="slide"
+      transparent={false}
+      onRequestClose={onBack}
+    >
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
           <TouchableOpacity
-            key={index}
-            style={styles.trackItem}
-            onPress={() => handleItemPress(track, "track")}
+            style={styles.backButton}
+            onPress={onBack}
           >
-            <Image
-              source={{ uri: getImageUrl(track.image) }}
-              style={styles.trackImage}
-            />
-            <View style={styles.trackInfo}>
-              <Text style={styles.trackName}>{track.name}</Text>
-              <Text style={styles.artistName}>{track.artist.name}</Text>
-            </View>
+            <Ionicons name="arrow-back" size={24} color="#FF0000" />
           </TouchableOpacity>
-        ))}
+          <Text style={styles.title}>{genre}</Text>
+        </View>
 
-        <Text style={styles.subsectionTitle}>Top Albums</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
-          {genreContent.topAlbums.map((album, index) => (
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <Text style={styles.subsectionTitle}>Top Artists</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
+            {genreContent.topArtists.map((artist, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.artistCard}
+                onPress={() => handleItemPress(artist, "artist")}
+              >
+                <Image
+                  source={{ uri: getImageUrl(artist.image) }}
+                  style={styles.artistImage}
+                />
+                <Text style={styles.artistCardName}>{artist.name}</Text>
+                <Text style={styles.listeners}>{artist.listeners} listeners</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          <Text style={styles.subsectionTitle}>Top Tracks</Text>
+          {genreContent.topTracks.map((track, index) => (
             <TouchableOpacity
               key={index}
-              style={styles.albumCard}
-              onPress={() => handleItemPress(album, "album")}
+              style={styles.trackItem}
+              onPress={() => handleItemPress(track, "track")}
             >
               <Image
-                source={{ uri: getImageUrl(album.image) }}
-                style={styles.albumImage}
+                source={{ uri: getImageUrl(track.image) }}
+                style={styles.trackImage}
               />
-              <Text style={styles.albumName}>{album.name}</Text>
-              <Text style={styles.albumArtist}>{album.artist.name}</Text>
+              <View style={styles.trackInfo}>
+                <Text style={styles.trackName}>{track.name}</Text>
+                <Text style={styles.artistName}>{track.artist.name}</Text>
+              </View>
             </TouchableOpacity>
           ))}
+
+          <Text style={styles.subsectionTitle}>Top Albums</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
+            {genreContent.topAlbums.map((album, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.albumCard}
+                onPress={() => handleItemPress(album, "album")}
+              >
+                <Image
+                  source={{ uri: getImageUrl(album.image) }}
+                  style={styles.albumImage}
+                />
+                <Text style={styles.albumName}>{album.name}</Text>
+                <Text style={styles.albumArtist}>{album.artist.name}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         </ScrollView>
-      </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </Modal>
   );
 }
 
@@ -260,13 +267,12 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   backButton: {
-  position: "absolute",
-  top: -25,
-  left: 0,
-  zIndex: 10,
-  backgroundColor: "#1B2631",
-  borderRadius: 20,
-  padding: 10,
-},
-
+    // position: "absolute",
+    top: -5,
+    left: -10,
+    zIndex: 10,
+    backgroundColor: "#1B2631",
+    borderRadius: 20,
+    padding: 10,
+  },
 });

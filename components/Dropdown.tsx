@@ -1,27 +1,37 @@
 import {
-    fetchFilteredMovies,
-    fetchFilteredTVSeries,
-    fetchLatestMovies,
-    fetchLatestTVSeries,
-    fetchTopRatedMovies,
-    fetchTopRatedTVSeries,
-    fetchUpcomingMovies,
-    fetchUpcomingTVSeries
+  getGenreContent,
+  getImageUrl,
+  type Album,
+  type Artist,
+  type GenreContent,
+  type Track
+} from "@/services/music_API";
+import {
+  fetchFilteredMovies,
+  fetchFilteredTVSeries,
+  fetchLatestMovies,
+  fetchLatestTVSeries,
+  fetchTopRatedMovies,
+  fetchTopRatedTVSeries,
+  fetchUpcomingMovies,
+  fetchUpcomingTVSeries
 } from '@/services/tmdb_API';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Animated,
-    Dimensions,
-    Modal,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View
+  ActivityIndicator,
+  Animated,
+  Dimensions,
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View
 } from 'react-native';
 import FilterControls from './FilterControls';
 import FilteredViewer from './FilteredViewer';
+import MusicDetailsViewer from "./MusicDetailsViewer";
+import MusicGenre from "./MusicGenre";
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -46,6 +56,33 @@ export default function Dropdown({ activeTab }: DropdownProps) {
     const [showFilteredViewer, setShowFilteredViewer] = useState(false);
     const [caseType, setCaseType] = useState<string>('');
     const [isLoading, setIsLoading] = useState(false);
+    const [genreContent, setGenreContent] = useState<GenreContent | null>(null);
+    const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
+    const [selectedItem, setSelectedItem] = useState<Artist | Album | Track | null>(null);
+    const [itemType, setItemType] = useState<"artist" | "album" | "track" | null>(null);
+    
+    
+    
+
+
+
+    const handleMusicGenreSelect = async (genre: string) => {
+      setIsLoading(true);
+      setCaseType(genre.toLowerCase().replace(/\s/g, '_')); // optional
+      try {
+        setSelectedGenre(genre);
+        const content = await getGenreContent(genre);
+        if (content) {
+          setGenreContent(content);
+        }
+        closeDrawer(); // Close after selecting
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
 
     const openDrawer = () => {
         setVisible(true);
@@ -143,6 +180,17 @@ export default function Dropdown({ activeTab }: DropdownProps) {
 
     const options = filterOptions[activeTab] || [];
 
+    if (selectedItem) {
+      return (
+        <MusicDetailsViewer
+          selectedItem={selectedItem}
+          itemType={itemType}
+          onClose={() => setSelectedItem(null)}
+          getImageUrl={getImageUrl}
+        />
+      );
+    }
+    
     return (
         <View>
             <TouchableOpacity style={styles.filterButton} onPress={openDrawer}>
@@ -157,28 +205,36 @@ export default function Dropdown({ activeTab }: DropdownProps) {
                                 <Text style={styles.drawerTitle}>{activeTab} Filters</Text>
 
                                 {options.map((option) => (
-                                    <View key={option} style={styles.filterItem}>
-                                        <TouchableOpacity
-                                            onPress={() => toggleFilter(option)}
-                                            disabled={isLoading}
-                                        >
-                                            <Text style={[
-                                                styles.filterItemText,
-                                                isLoading && styles.disabledText,
-                                            ]}>
-                                                {option}
-                                            </Text>
-                                        </TouchableOpacity>
-
-                                        {expandedFilter === option && (
-                                            <FilterControls
-                                                section={activeTab}
-                                                option={option}
-                                                onApply={handleFetchFiltered}
-                                                isLoading={isLoading}
-                                            />
-                                        )}
-                                    </View>
+                                  <View key={option} style={styles.filterItem}>
+                                    <TouchableOpacity
+                                      onPress={() =>
+                                        activeTab === 'Music'
+                                          ? handleMusicGenreSelect(option)
+                                          : toggleFilter(option)
+                                      }
+                                      disabled={isLoading}
+                                    >
+                                      <Text
+                                        style={[
+                                          styles.filterItemText,
+                                          isLoading && styles.disabledText,
+                                        ]}
+                                      >
+                                        {option}
+                                      </Text>
+                                    </TouchableOpacity>
+                                    
+                                    {/* Only render FilterControls for non-Music options */}
+                                    {expandedFilter === option &&
+                                      activeTab !== 'Music' && (
+                                        <FilterControls
+                                          section={activeTab}
+                                          option={option}
+                                          onApply={handleFetchFiltered}
+                                          isLoading={isLoading}
+                                        />
+                                      )}
+                                  </View>
                                 ))}
 
                                 {isLoading && (
@@ -193,15 +249,31 @@ export default function Dropdown({ activeTab }: DropdownProps) {
                 </TouchableWithoutFeedback>
             </Modal>
 
-            <FilteredViewer
+            {activeTab !== 'Music' && (
+              <FilteredViewer
                 data={filteredData}
                 visible={showFilteredViewer}
                 onClose={() => setShowFilteredViewer(false)}
                 activeTab={activeTab}
                 caseType={caseType}
                 titleKey={activeTab === 'TV Series' ? 'name' : 'title'}
-                filterKeys={activeTab === 'TV Series' ? ['first_air_date', 'vote_average'] : ['release_date', 'vote_average']}
-            />
+                filterKeys={
+                  activeTab === 'TV Series'
+                    ? ['first_air_date', 'vote_average']
+                    : ['release_date', 'vote_average']
+                }
+              />
+            )}
+
+            {activeTab === 'Music' && selectedGenre && genreContent && (
+              <MusicGenre
+                genre={selectedGenre}
+                onBack={() => {
+                  setSelectedGenre(null);
+                  setGenreContent(null);
+                }}
+              />
+            )}
         </View>
     );
 }
@@ -268,5 +340,13 @@ const styles = StyleSheet.create({
     },
     disabledText: {
         color: '#aaa',
-    }
+    },
+    fullScreenContainer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 1000,
+    },
 });
