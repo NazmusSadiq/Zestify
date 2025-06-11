@@ -47,6 +47,8 @@ const GameFilteredViewer = ({ data, visible, onClose }: GameFilteredViewerProps)
   const [filteredGames, setFilteredGames] = useState<Game[]>([]);
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showOrderDropdown, setShowOrderDropdown] = useState(false);
+  const [showPlatformDropdown, setShowPlatformDropdown] = useState(false);
 
   useEffect(() => {
     if (data) {
@@ -56,6 +58,7 @@ const GameFilteredViewer = ({ data, visible, onClose }: GameFilteredViewerProps)
 
   const handleOrderChange = async (order: typeof ORDER_OPTIONS[0]) => {
     setSelectedOrder(order);
+    setShowOrderDropdown(false);
     setIsLoading(true);
     try {
       const response = await fetchFilteredGames({
@@ -72,6 +75,7 @@ const GameFilteredViewer = ({ data, visible, onClose }: GameFilteredViewerProps)
 
   const handlePlatformChange = async (platform: typeof PLATFORM_OPTIONS[0]) => {
     setSelectedPlatform(platform);
+    setShowPlatformDropdown(false);
     setIsLoading(true);
     try {
       const response = await fetchFilteredGames({
@@ -115,61 +119,77 @@ const GameFilteredViewer = ({ data, visible, onClose }: GameFilteredViewerProps)
     <Modal visible={visible} animationType="slide" transparent={false}>
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
+        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+            <Text style={styles.closeButtonText}>✕</Text>
+          </TouchableOpacity>
           <View style={styles.filterSection}>
+            
             <View style={styles.dropdown}>
-              <Text style={styles.dropdownLabel}>Order By:</Text>
-              <View style={styles.dropdownOptions}>
-                {ORDER_OPTIONS.map((option) => (
-                  <TouchableOpacity
-                    key={option.value}
-                    style={[
-                      styles.dropdownItem,
-                      selectedOrder.value === option.value && styles.selectedItem,
-                    ]}
-                    onPress={() => handleOrderChange(option)}
-                  >
-                    <Text
+              <TouchableOpacity 
+                style={styles.dropdownButton}
+                onPress={() => setShowOrderDropdown(!showOrderDropdown)}
+              >
+                <Text style={styles.dropdownLabel}>{selectedOrder.label}</Text>
+              </TouchableOpacity>
+              {showOrderDropdown && (
+                <View style={styles.dropdownOptions}>
+                  {ORDER_OPTIONS.map((option) => (
+                    <TouchableOpacity
+                      key={option.value}
                       style={[
-                        styles.dropdownItemText,
-                        selectedOrder.value === option.value && styles.selectedItemText,
+                        styles.dropdownItem,
+                        selectedOrder.value === option.value && styles.selectedItem,
                       ]}
+                      onPress={() => handleOrderChange(option)}
                     >
-                      {option.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+                      <Text
+                        style={[
+                          styles.dropdownItemText,
+                          selectedOrder.value === option.value && styles.selectedItemText,
+                        ]}
+                      >
+                        {option.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
             </View>
 
             <View style={styles.dropdown}>
-              <Text style={styles.dropdownLabel}>Platform:</Text>
-              <View style={styles.dropdownOptions}>
-                {PLATFORM_OPTIONS.map((option) => (
-                  <TouchableOpacity
-                    key={option.value}
-                    style={[
-                      styles.dropdownItem,
-                      selectedPlatform.value === option.value && styles.selectedItem,
-                    ]}
-                    onPress={() => handlePlatformChange(option)}
-                  >
-                    <Text
+              <TouchableOpacity 
+                style={styles.dropdownButton}
+                onPress={() => setShowPlatformDropdown(!showPlatformDropdown)}
+              >
+                <Text style={styles.dropdownLabel}>{selectedPlatform.label}</Text>
+              </TouchableOpacity>
+              {showPlatformDropdown && (
+                <View style={styles.dropdownOptions}>
+                  {PLATFORM_OPTIONS.map((option) => (
+                    <TouchableOpacity
+                      key={option.value}
                       style={[
-                        styles.dropdownItemText,
-                        selectedPlatform.value === option.value && styles.selectedItemText,
+                        styles.dropdownItem,
+                        selectedPlatform.value === option.value && styles.selectedItem,
                       ]}
+                      onPress={() => handlePlatformChange(option)}
                     >
-                      {option.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+                      <Text
+                        style={[
+                          styles.dropdownItemText,
+                          selectedPlatform.value === option.value && styles.selectedItemText,
+                        ]}
+                      >
+                        {option.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
             </View>
           </View>
 
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>Close ✕</Text>
-          </TouchableOpacity>
+
         </View>
 
         <FlatList
@@ -205,29 +225,42 @@ const styles = StyleSheet.create({
   filterSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    marginBottom: 0,
   },
   dropdown: {
     flex: 1,
     marginHorizontal: 8,
   },
+  dropdownButton: {
+    backgroundColor: '#2f3640',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
   dropdownLabel: {
     color: '#f1f2f6',
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 8,
   },
   dropdownOptions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
+    backgroundColor: '#2f3640',
+    borderRadius: 8,
+    padding: 8,
+    zIndex: 1000,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   dropdownItem: {
-    paddingVertical: 6,
+    paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: 16,
-    backgroundColor: '#2f3640',
-    marginRight: 8,
-    marginBottom: 8,
+    borderRadius: 4,
   },
   selectedItem: {
     backgroundColor: '#ffffff',

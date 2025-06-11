@@ -15,7 +15,11 @@ export interface Game {
     };
   }[];
   genres: {
+    id: number;
     name: string;
+    slug: string;
+    games_count: number;
+    image_background: string;
   }[];
   description: string;
   website: string;
@@ -25,6 +29,17 @@ export interface Game {
   publishers: {
     name: string;
   }[];
+  added: number;
+  added_by_status: {
+    toplay?: number;
+    yet?: number;
+    [key: string]: number | undefined;
+  };
+  esrb_rating?: {
+    id: number;
+    name: string;
+    slug: string;
+  };
 }
 
 export interface GameResponse {
