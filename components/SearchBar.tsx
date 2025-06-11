@@ -1,4 +1,5 @@
 import { icons } from "@/constants/icons";
+import { fetchGameDetails, searchGames, type Game } from "@/services/GameAPI";
 import {
   getTrackDetails,
   searchTracks,
@@ -28,8 +29,10 @@ import {
   View,
 } from "react-native";
 import DetailsViewer from "./DetailsViewer";
+import GameDetails from "./GameDetails";
 import MusicDetailsViewer from "./MusicDetailsViewer";
-type SearchItem = MediaItem | SearchResult;
+
+type SearchItem = MediaItem | SearchResult | Game;
 
 interface Props {
   activeTab: string;
@@ -52,23 +55,25 @@ const DEFAULT_IMAGE = "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46
 const SearchBar = ({ activeTab }: Props) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchText, setSearchText] = useState("");
-  const [searchResults, setSearchResults] = useState<(MediaItem | SearchResult)[]>([]);
+  const [searchResults, setSearchResults] = useState<(MediaItem | SearchResult | Game)[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<MediaItem | SearchResult | null>(null);
+  const [selectedItem, setSelectedItem] = useState<MediaItem | SearchResult | Game | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMounted, setModalMounted] = useState(false);
 
   const debounceTimeout = useRef<number | null>(null);
   const slideAnim = useRef(new Animated.Value(DROPDOWN_WIDTH)).current;
 
-  const searchHandlers: { [key: string]: (query: string) => Promise<MediaItem[]> } = {
+  const searchHandlers: { [key: string]: (query: string) => Promise<MediaItem[] | Game[]> } = {
     Movie: (query: string) => fetchMovies({ query }),
     "TV Series": (query: string) => fetchTVSeries({ query }),
+    Game: (query: string) => searchGames(query).then(response => response.results),
   };
 
   const detailsHandlers: { [key: string]: (id: string) => Promise<any> } = {
     Movie: fetchMovieDetails,
     "TV Series": fetchTVSeriesDetails,
+    Game: (id: string) => fetchGameDetails(parseInt(id)),
   };
 
   const searchMedia = async (query: string) => {
@@ -216,7 +221,7 @@ const SearchBar = ({ activeTab }: Props) => {
 
   const getPlaceholder = () => `Search for a ${activeTab}`;
 
-  const renderItem = (item: MediaItem | SearchResult) => {
+  const renderItem = (item: MediaItem | SearchResult | Game) => {
     if (activeTab === "Music") {
       const musicItem = item as SearchResult;
       return (
@@ -229,6 +234,33 @@ const SearchBar = ({ activeTab }: Props) => {
             <View style={styles.trackInfo}>
               <Text style={styles.trackName}>{musicItem.name}</Text>
               <Text style={styles.artistName}>{musicItem.artist}</Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      );
+    }
+
+    if (activeTab === "Game") {
+      const gameItem = item as Game;
+      return (
+        <TouchableOpacity onPress={() => handleItemPress(gameItem)} activeOpacity={0.7}>
+          <View style={styles.resultItem}>
+            {gameItem.background_image ? (
+              <Image
+                source={{ uri: gameItem.background_image }}
+                style={styles.poster}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={[styles.poster, styles.posterPlaceholder]}>
+                <Text style={styles.posterPlaceholderText}>N/A</Text>
+              </View>
+            )}
+            <View style={styles.movieInfo}>
+              <Text style={styles.resultTitle} numberOfLines={1}>
+                {gameItem.name}
+              </Text>
+              {gameItem.released ? <Text style={styles.resultDate}>{gameItem.released}</Text> : null}
             </View>
           </View>
         </TouchableOpacity>
@@ -344,6 +376,12 @@ const SearchBar = ({ activeTab }: Props) => {
           itemType="track"
           onClose={() => setSelectedItem(null)}
           getImageUrl={(images) => images?.[2]?.["#text"] || DEFAULT_IMAGE}
+        />
+      ) : activeTab === "Game" ? (
+        <GameDetails
+          game={selectedItem as Game}
+          visible={!!selectedItem}
+          onClose={() => setSelectedItem(null)}
         />
       ) : (
         <DetailsViewer
