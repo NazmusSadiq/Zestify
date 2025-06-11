@@ -205,3 +205,57 @@ export const fetchDeveloperDetails = async (id: number): Promise<CompanyDetails>
     throw error;
   }
 };
+
+export interface GameFilterParams {
+  ordering?: string;
+  platforms?: string;
+  page_size?: number;
+}
+
+export const fetchFilteredGames = async (params: GameFilterParams): Promise<GameResponse> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/games`, {
+      params: {
+        key: RAWG_API_KEY,
+        ...params,
+        page_size: params.page_size || 20,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching filtered games:', error);
+    throw error;
+  }
+};
+
+export const fetchGamesByPlatform = async (platformId: string): Promise<GameResponse> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/games`, {
+      params: {
+        key: RAWG_API_KEY,
+        platforms: platformId,
+        page_size: 20,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching games by platform:', error);
+    throw error;
+  }
+};
+
+export const fetchGamesByOrdering = async (ordering: string): Promise<GameResponse> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/games`, {
+      params: {
+        key: RAWG_API_KEY,
+        ordering,
+        page_size: 20,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching games by ordering:', error);
+    throw error;
+  }
+};

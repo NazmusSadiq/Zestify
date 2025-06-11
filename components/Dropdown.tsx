@@ -1,3 +1,4 @@
+import { fetchFilteredGames } from '@/services/GameAPI';
 import {
   getGenreContent,
   getImageUrl,
@@ -30,6 +31,7 @@ import {
 } from 'react-native';
 import FilterControls from './FilterControls';
 import FilteredViewer from './FilteredViewer';
+import GameFilteredViewer from './GameFilteredViewer';
 import MusicDetailsViewer from "./MusicDetailsViewer";
 import MusicGenre from "./MusicGenre";
 
@@ -39,7 +41,7 @@ const filterOptions: Record<string, string[]> = {
     Movie: ['Latest', 'Upcoming', 'Top Rated', 'Genre', 'Language', 'Release Year', 'Rating Above'],
     'TV Series': ['Latest', 'Upcoming', 'Top Rated', 'Genre', 'Network', 'Language', 'Release Year'],
     Music: ['Pop', 'Rock', 'Jazz', 'Hip-Hop', 'Electronic', 'Classical'],
-    Game: ['Genre', 'Platform', 'Publisher'],
+    Game: ['Last 30 days', 'This week', 'Next week', 'Best of the year', 'Popular in 2024'],
     Book: ['Genre', 'Author', 'Year'],
 };
 
@@ -60,6 +62,8 @@ export default function Dropdown({ activeTab }: DropdownProps) {
     const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
     const [selectedItem, setSelectedItem] = useState<Artist | Album | Track | null>(null);
     const [itemType, setItemType] = useState<"artist" | "album" | "track" | null>(null);
+    const [gameFilteredData, setGameFilteredData] = useState<any[] | null>(null);
+    const [showGameFilteredViewer, setShowGameFilteredViewer] = useState(false);
     
     
     
@@ -102,7 +106,7 @@ export default function Dropdown({ activeTab }: DropdownProps) {
     };
 
     const toggleFilter = async (option: string) => {
-        const directFetchOptions = ['Latest', 'Upcoming', 'Top Rated'];
+        const directFetchOptions = ['Latest', 'Upcoming', 'Top Rated', 'Last 30 days', 'This week', 'Next week', 'Best of the year', 'Popular in 2024'];
 
         if (directFetchOptions.includes(option)) {
             await handlePredefinedFetch(option);
@@ -119,7 +123,34 @@ export default function Dropdown({ activeTab }: DropdownProps) {
         try {
             let results: any[] = [];
 
-            if (activeTab === 'Movie') {
+            if (activeTab === 'Game') {
+                let ordering = '';
+                switch (filterType) {
+                    case 'Last 30 days':
+                        ordering = '-released';
+                        break;
+                    case 'This week':
+                        ordering = '-added';
+                        break;
+                    case 'Next week':
+                        ordering = 'released';
+                        break;
+                    case 'Best of the year':
+                        ordering = '-rating';
+                        break;
+                    case 'Popular in 2024':
+                        ordering = '-metacritic';
+                        break;
+                }
+
+                const response = await fetchFilteredGames({
+                    ordering,
+                    page_size: 20,
+                });
+                results = response.results;
+                setGameFilteredData(results);
+                setShowGameFilteredViewer(true);
+            } else if (activeTab === 'Movie') {
                 if (filterType === 'Latest') {
                     results = await fetchLatestMovies(10);
                     // Sort descending by release_date (latest first)
@@ -153,7 +184,7 @@ export default function Dropdown({ activeTab }: DropdownProps) {
             setShowFilteredViewer(true);
             closeDrawer();
         } catch (error) {
-            console.error(error);
+            console.error('Error fetching data:', error);
         } finally {
             setIsLoading(false);
         }
@@ -205,36 +236,38 @@ export default function Dropdown({ activeTab }: DropdownProps) {
                                 <Text style={styles.drawerTitle}>{activeTab} Filters</Text>
 
                                 {options.map((option) => (
-                                  <View key={option} style={styles.filterItem}>
-                                    <TouchableOpacity
-                                      onPress={() =>
-                                        activeTab === 'Music'
-                                          ? handleMusicGenreSelect(option)
-                                          : toggleFilter(option)
-                                      }
-                                      disabled={isLoading}
-                                    >
-                                      <Text
-                                        style={[
-                                          styles.filterItemText,
-                                          isLoading && styles.disabledText,
-                                        ]}
-                                      >
-                                        {option}
-                                      </Text>
-                                    </TouchableOpacity>
-                                    
-                                    {/* Only render FilterControls for non-Music options */}
-                                    {expandedFilter === option &&
-                                      activeTab !== 'Music' && (
-                                        <FilterControls
-                                          section={activeTab}
-                                          option={option}
-                                          onApply={handleFetchFiltered}
-                                          isLoading={isLoading}
-                                        />
-                                      )}
-                                  </View>
+                                    <View key={option} style={styles.filterItem}>
+                                        <TouchableOpacity
+                                            onPress={() => {
+                                                if (activeTab === 'Music') {
+                                                    handleMusicGenreSelect(option);
+                                                } else {
+                                                    toggleFilter(option);
+                                                }
+                                            }}
+                                            disabled={isLoading}
+                                        >
+                                            <Text
+                                                style={[
+                                                    styles.filterItemText,
+                                                    isLoading && styles.disabledText,
+                                                ]}
+                                            >
+                                                {option}
+                                            </Text>
+                                        </TouchableOpacity>
+                                        
+                                        {expandedFilter === option &&
+                                            activeTab !== 'Music' &&
+                                            activeTab !== 'Game' && (
+                                                <FilterControls
+                                                    section={activeTab}
+                                                    option={option}
+                                                    onApply={handleFetchFiltered}
+                                                    isLoading={isLoading}
+                                                />
+                                            )}
+                                    </View>
                                 ))}
 
                                 {isLoading && (
@@ -249,30 +282,38 @@ export default function Dropdown({ activeTab }: DropdownProps) {
                 </TouchableWithoutFeedback>
             </Modal>
 
-            {activeTab !== 'Music' && (
-              <FilteredViewer
-                data={filteredData}
-                visible={showFilteredViewer}
-                onClose={() => setShowFilteredViewer(false)}
-                activeTab={activeTab}
-                caseType={caseType}
-                titleKey={activeTab === 'TV Series' ? 'name' : 'title'}
-                filterKeys={
-                  activeTab === 'TV Series'
-                    ? ['first_air_date', 'vote_average']
-                    : ['release_date', 'vote_average']
-                }
-              />
+            {activeTab === 'Game' && (
+                <GameFilteredViewer
+                    data={gameFilteredData}
+                    visible={showGameFilteredViewer}
+                    onClose={() => setShowGameFilteredViewer(false)}
+                />
+            )}
+
+            {activeTab !== 'Music' && activeTab !== 'Game' && (
+                <FilteredViewer
+                    data={filteredData}
+                    visible={showFilteredViewer}
+                    onClose={() => setShowFilteredViewer(false)}
+                    activeTab={activeTab}
+                    caseType={caseType}
+                    titleKey={activeTab === 'TV Series' ? 'name' : 'title'}
+                    filterKeys={
+                        activeTab === 'TV Series'
+                            ? ['first_air_date', 'vote_average']
+                            : ['release_date', 'vote_average']
+                    }
+                />
             )}
 
             {activeTab === 'Music' && selectedGenre && genreContent && (
-              <MusicGenre
-                genre={selectedGenre}
-                onBack={() => {
-                  setSelectedGenre(null);
-                  setGenreContent(null);
-                }}
-              />
+                <MusicGenre
+                    genre={selectedGenre}
+                    onBack={() => {
+                        setSelectedGenre(null);
+                        setGenreContent(null);
+                    }}
+                />
             )}
         </View>
     );
