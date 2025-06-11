@@ -1,16 +1,16 @@
 import { Game, fetchFilteredGames } from '@/services/GameAPI';
 import React, { useEffect, useState } from 'react';
 import {
-    FlatList,
-    Image,
-    Modal,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  FlatList,
+  Image,
+  Modal,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import GameDetails from './GameDetails';
+import GameFilterDetails from './GameFilterDetails';
 
 interface GameFilteredViewerProps {
   data: Game[] | null;
@@ -85,6 +85,9 @@ const GameFilteredViewer = ({ data, visible, onClose }: GameFilteredViewerProps)
       setIsLoading(false);
     }
   };
+    // useEffect(() => { 
+    //   console.log('Selected Game:', selectedGame);
+    // }, [selectedGame]);
 
   const renderGameItem = ({ item }: { item: Game }) => (
     <TouchableOpacity
@@ -177,9 +180,8 @@ const GameFilteredViewer = ({ data, visible, onClose }: GameFilteredViewerProps)
           contentContainerStyle={styles.listContent}
           columnWrapperStyle={styles.row}
           showsVerticalScrollIndicator={false}
-        />
-
-        <GameDetails
+        />        
+        <GameFilterDetails
           game={selectedGame}
           visible={!!selectedGame}
           onClose={() => setSelectedGame(null)}
