@@ -20,6 +20,20 @@ export interface Book {
   };
 }
 
+export interface BookResponse {
+  items: Book[];
+}
+
+export const searchBooks = async (query: string): Promise<BookResponse> => {
+  const response = await fetch(`${BASE_URL}/volumes?q=${query}&key=${API_KEY}&maxResults=20`);
+  return response.json();
+};
+
+export const getBookDetails = async (bookId: string): Promise<Book> => {
+  const response = await fetch(`${BASE_URL}/volumes/${bookId}?key=${API_KEY}`);
+  return response.json();
+};
+
 export const useBookAPI = () => {
   const fetchNewReleases = async () => {
     const currentYear = new Date().getFullYear();
@@ -40,29 +54,9 @@ export const useBookAPI = () => {
     return response.json();
   };
 
-  const fetchBookDetails = async (bookId: string) => {
-    const response = await fetch(`${BASE_URL}/volumes/${bookId}?key=${API_KEY}`);
-    return response.json();
-  };
-
-  const fetchSearchResults = async (query: string) => {
-    const response = await fetch(`${BASE_URL}/volumes?q=${query}&key=${API_KEY}&maxResults=20`);
-    return response.json();
-  };
-
   const { data: newReleases, loading: newReleasesLoading, error: newReleasesError, refetch: getNewReleases } = useFetch(fetchNewReleases);
   const { data: bestSellers, loading: bestSellersLoading, error: bestSellersError, refetch: getBestSellers } = useFetch(fetchBestSellers);
   const { data: trendingBooks, loading: trendingBooksLoading, error: trendingBooksError, refetch: getTrendingBooks } = useFetch(fetchTrendingBooks);
-
-  const searchBooks = async (query: string) => {
-    const response = await fetchSearchResults(query);
-    return response;
-  };
-
-  const getBookDetails = async (bookId: string) => {
-    const response = await fetchBookDetails(bookId);
-    return response;
-  };
 
   return {
     data: newReleases || bestSellers || trendingBooks,

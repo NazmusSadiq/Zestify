@@ -1,4 +1,5 @@
 import { icons } from "@/constants/icons";
+import { Book, getBookDetails, searchBooks } from "@/services/book_API";
 import { fetchGameDetails, searchGames, type Game } from "@/services/GameAPI";
 import {
   getTrackDetails,
@@ -28,11 +29,12 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import BookDetails from "./BookDetails";
 import DetailsViewer from "./DetailsViewer";
 import GameDetails from "./GameDetails";
 import MusicDetailsViewer from "./MusicDetailsViewer";
 
-type SearchItem = MediaItem | SearchResult | Game;
+type SearchItem = MediaItem | SearchResult | Game | Book;
 
 interface Props {
   activeTab: string;
@@ -55,25 +57,27 @@ const DEFAULT_IMAGE = "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46
 const SearchBar = ({ activeTab }: Props) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchText, setSearchText] = useState("");
-  const [searchResults, setSearchResults] = useState<(MediaItem | SearchResult | Game)[]>([]);
+  const [searchResults, setSearchResults] = useState<(MediaItem | SearchResult | Game | Book)[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<MediaItem | SearchResult | Game | null>(null);
+  const [selectedItem, setSelectedItem] = useState<MediaItem | SearchResult | Game | Book | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMounted, setModalMounted] = useState(false);
 
   const debounceTimeout = useRef<number | null>(null);
   const slideAnim = useRef(new Animated.Value(DROPDOWN_WIDTH)).current;
 
-  const searchHandlers: { [key: string]: (query: string) => Promise<MediaItem[] | Game[]> } = {
+  const searchHandlers: { [key: string]: (query: string) => Promise<MediaItem[] | Game[] | Book[]> } = {
     Movie: (query: string) => fetchMovies({ query }),
     "TV Series": (query: string) => fetchTVSeries({ query }),
     Game: (query: string) => searchGames(query).then(response => response.results),
+    Book: (query: string) => searchBooks(query).then(response => response.items || []),
   };
 
-  const detailsHandlers: { [key: string]: (id: string) => Promise<any> } = {
-    Movie: fetchMovieDetails,
-    "TV Series": fetchTVSeriesDetails,
-    Game: (id: string) => fetchGameDetails(parseInt(id)),
+  const detailsHandlers: { [key: string]: (id: string | number) => Promise<any> } = {
+    Movie: (id: string | number) => fetchMovieDetails(id.toString()),
+    "TV Series": (id: string | number) => fetchTVSeriesDetails(id.toString()),
+    Game: (id: string | number) => fetchGameDetails(Number(id)),
+    Book: (id: string | number) => getBookDetails(id.toString()),
   };
 
   const searchMedia = async (query: string) => {
@@ -163,10 +167,29 @@ const SearchBar = ({ activeTab }: Props) => {
     }
   };
 
-  const handleItemPress = async (item: MediaItem) => {
+  const getItemId = (item: SearchItem): string | number => {
+    if ('id' in item) {
+      return item.id;
+    }
+    if ('name' in item && 'artist' in item) {
+      // For music items, we use name and artist as identifier
+      return `${item.name}-${item.artist}`;
+    }
+    return '';
+  };
+
+  const handleItemPress = async (item: SearchItem) => {
     try {
       const detailsFn = detailsHandlers[activeTab];
-      const details = detailsFn ? await detailsFn(item.id.toString()) : {};
+      if (!detailsFn) return;
+
+      const itemId = getItemId(item);
+      if (!itemId) {
+        console.error('No valid ID found for item');
+        return;
+      }
+
+      const details = await detailsFn(itemId);
       setSelectedItem({ ...item, ...details });
       setSearchText("");
       setSearchResults([]);
@@ -221,7 +244,7 @@ const SearchBar = ({ activeTab }: Props) => {
 
   const getPlaceholder = () => `Search for a ${activeTab}`;
 
-  const renderItem = (item: MediaItem | SearchResult | Game) => {
+  const renderItem = (item: MediaItem | SearchResult | Game | Book) => {
     if (activeTab === "Music") {
       const musicItem = item as SearchResult;
       return (
@@ -261,6 +284,35 @@ const SearchBar = ({ activeTab }: Props) => {
                 {gameItem.name}
               </Text>
               {gameItem.released ? <Text style={styles.resultDate}>{gameItem.released}</Text> : null}
+            </View>
+          </View>
+        </TouchableOpacity>
+      );
+    }
+
+    if (activeTab === "Book") {
+      const bookItem = item as Book;
+      return (
+        <TouchableOpacity onPress={() => handleItemPress(bookItem)} activeOpacity={0.7}>
+          <View style={styles.resultItem}>
+            {bookItem.volumeInfo.imageLinks?.thumbnail ? (
+              <Image
+                source={{ uri: bookItem.volumeInfo.imageLinks.thumbnail }}
+                style={styles.poster}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={[styles.poster, styles.posterPlaceholder]}>
+                <Text style={styles.posterPlaceholderText}>N/A</Text>
+              </View>
+            )}
+            <View style={styles.movieInfo}>
+              <Text style={styles.resultTitle} numberOfLines={1}>
+                {bookItem.volumeInfo.title}
+              </Text>
+              {bookItem.volumeInfo.authors && (
+                <Text style={styles.resultDate}>{bookItem.volumeInfo.authors[0]}</Text>
+              )}
             </View>
           </View>
         </TouchableOpacity>
@@ -380,6 +432,12 @@ const SearchBar = ({ activeTab }: Props) => {
       ) : activeTab === "Game" ? (
         <GameDetails
           game={selectedItem as Game}
+          visible={!!selectedItem}
+          onClose={() => setSelectedItem(null)}
+        />
+      ) : activeTab === "Book" ? (
+        <BookDetails
+          book={selectedItem as Book}
           visible={!!selectedItem}
           onClose={() => setSelectedItem(null)}
         />
