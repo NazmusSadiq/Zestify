@@ -3,26 +3,58 @@ import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacit
 import BookDetails from '../../../components/BookDetails';
 import { Book, useBookAPI } from '../../../services/book_API';
 
+interface BookResponse {
+  items: Book[];
+}
+
 export default function Books() {
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const { data, loading, error, getNewReleases, getBestSellers, getTrendingBooks } = useBookAPI();
+  const [books, setBooks] = useState<{
+    newReleases: Book[];
+    bestSellers: Book[];
+    trending: Book[];
+  }>({
+    newReleases: [],
+    bestSellers: [],
+    trending: []
+  });
+  const { data, loading, error, getNewReleases, getBestSellers, getTrendingBooks, getBookDetails } = useBookAPI();
 
   useEffect(() => {
     loadBooks();
   }, []);
 
   const loadBooks = async () => {
-    await Promise.all([
-      getNewReleases(),
-      getBestSellers(),
-      getTrendingBooks()
-    ]);
+    try {
+      await Promise.all([
+        getNewReleases(),
+        getBestSellers(),
+        getTrendingBooks()
+      ]);
+    } catch (error) {
+      console.error('Error loading books:', error);
+    }
   };
 
-  const handleBookPress = (book: Book) => {
-    setSelectedBook(book);
-    setModalVisible(true);
+  useEffect(() => {
+    if (data) {
+      setBooks({
+        newReleases: (data as BookResponse)?.items || [],
+        bestSellers: (data as BookResponse)?.items || [],
+        trending: (data as BookResponse)?.items || []
+      });
+    }
+  }, [data]);
+
+  const handleBookPress = async (book: Book) => {
+    try {
+      const detailedBook = await getBookDetails(book.id);
+      setSelectedBook(detailedBook);
+      setModalVisible(true);
+    } catch (error) {
+      console.error('Error fetching book details:', error);
+    }
   };
 
   const renderSection = (title: string, books: Book[] = []) => (
@@ -72,9 +104,9 @@ export default function Books() {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {renderSection("New Releases", data?.items)}
-        {renderSection("Best Sellers", data?.items)}
-        {renderSection("Trending", data?.items)}
+        {renderSection("New Releases", books.newReleases)}
+        {renderSection("Best Sellers", books.bestSellers)}
+        {renderSection("Trending", books.trending)}
       </ScrollView>
 
       <BookDetails

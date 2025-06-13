@@ -89,8 +89,8 @@ const styles = StyleSheet.create({
   modalContent: {
     backgroundColor: '#1B2631',
     borderRadius: 20,
-    width: '90%',
-    maxHeight: '80%',
+    // width: '90%',
+    // maxHeight: '80%',
     padding: 20,
   },
   closeButton: {
