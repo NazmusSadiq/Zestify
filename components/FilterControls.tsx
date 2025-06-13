@@ -20,12 +20,66 @@ const tvGenres = ['Action', 'Adventure', 'Comedy', 'Crime', 'Sci-Fi'];
 const languages = ['English', 'Spanish', 'Bengali', 'Korean', 'Hindi'];
 const networks = ['Netflix', 'HBO', 'Amazon Prime', 'Disney+', 'Hulu', 'CW'];
 
+const bookCategories = {
+    'Fiction & Literature': [
+        'Fiction',
+        'Literary Collections',
+        'Romance',
+        'Mystery & Detective',
+        'Science Fiction',
+        'Fantasy',
+        'Historical Fiction',
+        'Horror'
+    ],
+    'Non-Fiction': [
+        'Biography & Autobiography',
+        'Business & Economics',
+        'Self-Help',
+        'True Crime',
+        'Religion',
+        'Philosophy',
+        'Political Science',
+        'Psychology',
+        'Education'
+    ],
+    'Children & Young Adult': [
+        'Juvenile Fiction',
+        'Juvenile Nonfiction',
+        'Young Adult Fiction',
+        'Young Adult Nonfiction'
+    ],
+    'Academic & Reference': [
+        'Computers',
+        'Mathematics',
+        'Science',
+        'Medical',
+        'Technology & Engineering',
+        'Law',
+        'History'
+    ],
+    'Other Categories': [
+        'Art',
+        'Design',
+        'Cooking',
+        'Crafts & Hobbies',
+        'Travel',
+        'Health & Fitness',
+        'Sports & Recreation',
+        'Performing Arts',
+        'Music',
+        'Comics & Graphic Novels',
+        'Games'
+    ]
+};
+
 export default function FilterControls({ section, option, onApply, isLoading }: Props) {
     const [releaseYear, setReleaseYear] = useState('');
     const [rating, setRating] = useState('');
     const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
     const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
     const [selectedNetwork, setSelectedNetwork] = useState<string | null>(null);
+    const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+    const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
 
     if (section === 'Movie' && (option === 'Genre' || option === 'Language')) {
         const isGenre = option === 'Genre';
@@ -159,6 +213,64 @@ export default function FilterControls({ section, option, onApply, isLoading }: 
         }
     }
 
+    if (section === 'Book') {
+        if (option === 'Genre') {
+            return (
+                <View style={styles.container}>
+                    <View style={styles.categoryContainer}>
+                        {Object.keys(bookCategories).map((category) => (
+                            <TouchableOpacity
+                                key={category}
+                                style={[
+                                    styles.categoryButton,
+                                    selectedCategory === category && styles.categoryButtonSelected
+                                ]}
+                                onPress={() => {
+                                    setSelectedCategory(category);
+                                    setSelectedSubcategory(null);
+                                }}
+                                disabled={isLoading}
+                            >
+                                <Text style={[
+                                    styles.categoryText,
+                                    selectedCategory === category && styles.categoryTextSelected
+                                ]}>
+                                    {category}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+
+                    {selectedCategory && (
+                        <View style={styles.subcategoryContainer}>
+                            {bookCategories[selectedCategory as keyof typeof bookCategories].map((subcategory) => (
+                                <TouchableOpacity
+                                    key={subcategory}
+                                    style={[
+                                        styles.subcategoryButton,
+                                        selectedSubcategory === subcategory && styles.subcategoryButtonSelected
+                                    ]}
+                                    onPress={() => {
+                                        setSelectedSubcategory(subcategory);
+                                        onApply(option, subcategory);
+                                    }}
+                                    disabled={isLoading}
+                                >
+                                    <Text style={[
+                                        styles.subcategoryText,
+                                        selectedSubcategory === subcategory && styles.subcategoryTextSelected
+                                    ]}>
+                                        {subcategory}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    )}
+                </View>
+            );
+        }
+    }
+
     // Fallback to null if no matching filter handled
     return null;
 }
@@ -214,5 +326,49 @@ const styles = StyleSheet.create({
     },
     applyButtonText: {
         color: '#fff',
+    },
+    container: {
+        padding: 10,
+    },
+    categoryContainer: {
+        marginBottom: 15,
+    },
+    categoryButton: {
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        backgroundColor: '#1a1a1a',
+        borderRadius: 8,
+        marginBottom: 8,
+    },
+    categoryButtonSelected: {
+        backgroundColor: '#FF0000',
+    },
+    categoryText: {
+        color: '#fff',
+        fontSize: 14,
+    },
+    categoryTextSelected: {
+        fontWeight: 'bold',
+    },
+    subcategoryContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+    },
+    subcategoryButton: {
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        backgroundColor: '#2C3E50',
+        borderRadius: 15,
+    },
+    subcategoryButtonSelected: {
+        backgroundColor: '#FF0000',
+    },
+    subcategoryText: {
+        color: '#fff',
+        fontSize: 12,
+    },
+    subcategoryTextSelected: {
+        fontWeight: 'bold',
     },
 });

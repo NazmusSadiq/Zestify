@@ -1,34 +1,35 @@
 import { fetchFilteredGames } from '@/services/GameAPI';
 import {
-  getGenreContent,
-  getImageUrl,
-  type Album,
-  type Artist,
-  type GenreContent,
-  type Track
+    getGenreContent,
+    getImageUrl,
+    type Album,
+    type Artist,
+    type GenreContent,
+    type Track
 } from "@/services/music_API";
 import {
-  fetchFilteredMovies,
-  fetchFilteredTVSeries,
-  fetchLatestMovies,
-  fetchLatestTVSeries,
-  fetchTopRatedMovies,
-  fetchTopRatedTVSeries,
-  fetchUpcomingMovies,
-  fetchUpcomingTVSeries
+    fetchFilteredMovies,
+    fetchFilteredTVSeries,
+    fetchLatestMovies,
+    fetchLatestTVSeries,
+    fetchTopRatedMovies,
+    fetchTopRatedTVSeries,
+    fetchUpcomingMovies,
+    fetchUpcomingTVSeries
 } from '@/services/tmdb_API';
 import React, { useState } from 'react';
 import {
-  ActivityIndicator,
-  Animated,
-  Dimensions,
-  Modal,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View
+    ActivityIndicator,
+    Animated,
+    Dimensions,
+    Modal,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View
 } from 'react-native';
+import CategoryBooks from './CategoryBooks';
 import FilterControls from './FilterControls';
 import FilteredViewer from './FilteredViewer';
 import GameFilteredViewer from './GameFilteredViewer';
@@ -42,7 +43,7 @@ const filterOptions: Record<string, string[]> = {
     'TV Series': ['Latest', 'Upcoming', 'Top Rated', 'Genre', 'Network', 'Language', 'Release Year'],
     Music: ['Pop', 'Rock', 'Jazz', 'Hip-Hop', 'Electronic', 'Classical'],
     Game: ['Last 30 days', 'This week', 'Next week', 'Best of the year', 'Popular in 2024'],
-    Book: ['Genre', 'Author', 'Year'],
+    Book: ['Genre'],
 };
 
 interface DropdownProps {
@@ -64,6 +65,9 @@ export default function Dropdown({ activeTab }: DropdownProps) {
     const [itemType, setItemType] = useState<"artist" | "album" | "track" | null>(null);
     const [gameFilteredData, setGameFilteredData] = useState<any[] | null>(null);
     const [showGameFilteredViewer, setShowGameFilteredViewer] = useState(false);
+    const [showCategoryBooks, setShowCategoryBooks] = useState(false);
+    const [selectedBookCategory, setSelectedBookCategory] = useState<string>('');
+    const [selectedBookSubcategory, setSelectedBookSubcategory] = useState<string>('');
     
     
     
@@ -191,6 +195,14 @@ export default function Dropdown({ activeTab }: DropdownProps) {
     };
 
     const handleFetchFiltered = (filterType: string, filterValue: string) => {
+        if (activeTab === 'Book' && filterType === 'Genre') {
+            setSelectedBookCategory(filterType);
+            setSelectedBookSubcategory(filterValue);
+            setShowCategoryBooks(true);
+            closeDrawer();
+            return;
+        }
+
         setIsLoading(true);
         const internalCaseType = filterType.toLowerCase().replace(/\s/g, '_');
         setCaseType(internalCaseType);
@@ -312,6 +324,19 @@ export default function Dropdown({ activeTab }: DropdownProps) {
                     onBack={() => {
                         setSelectedGenre(null);
                         setGenreContent(null);
+                    }}
+                />
+            )}
+
+            {activeTab === 'Book' && (
+                <CategoryBooks
+                    category={selectedBookCategory}
+                    subcategory={selectedBookSubcategory}
+                    visible={showCategoryBooks}
+                    onClose={() => {
+                        setShowCategoryBooks(false);
+                        setSelectedBookCategory('');
+                        setSelectedBookSubcategory('');
                     }}
                 />
             )}
