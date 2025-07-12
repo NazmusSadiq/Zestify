@@ -216,56 +216,39 @@ export default function FilterControls({ section, option, onApply, isLoading }: 
     if (section === 'Book') {
         if (option === 'Genre') {
             return (
-                <View style={styles.container}>
-                    <View style={styles.categoryContainer}>
-                        {Object.keys(bookCategories).map((category) => (
+                <View style={styles.genreContainer}>
+                    {Object.keys(bookCategories).map((category) => (
+                        <React.Fragment key={category}>
                             <TouchableOpacity
-                                key={category}
-                                style={[
-                                    styles.categoryButton,
-                                    selectedCategory === category && styles.categoryButtonSelected
-                                ]}
+                                style={[styles.genreButton, selectedCategory === category && styles.genreButtonSelected]}
                                 onPress={() => {
                                     setSelectedCategory(category);
                                     setSelectedSubcategory(null);
                                 }}
                                 disabled={isLoading}
                             >
-                                <Text style={[
-                                    styles.categoryText,
-                                    selectedCategory === category && styles.categoryTextSelected
-                                ]}>
+                                <Text style={[styles.genreText, selectedCategory === category && styles.genreTextSelected]}>
                                     {category}
                                 </Text>
                             </TouchableOpacity>
-                        ))}
-                    </View>
-
-                    {selectedCategory && (
-                        <View style={styles.subcategoryContainer}>
-                            {bookCategories[selectedCategory as keyof typeof bookCategories].map((subcategory) => (
+                            
+                            {selectedCategory === category && bookCategories[category as keyof typeof bookCategories].map((subcategory) => (
                                 <TouchableOpacity
                                     key={subcategory}
-                                    style={[
-                                        styles.subcategoryButton,
-                                        selectedSubcategory === subcategory && styles.subcategoryButtonSelected
-                                    ]}
+                                    style={[styles.genreButton, selectedSubcategory === subcategory && styles.genreButtonSelected]}
                                     onPress={() => {
                                         setSelectedSubcategory(subcategory);
                                         onApply(option, subcategory);
                                     }}
                                     disabled={isLoading}
                                 >
-                                    <Text style={[
-                                        styles.subcategoryText,
-                                        selectedSubcategory === subcategory && styles.subcategoryTextSelected
-                                    ]}>
+                                    <Text style={[styles.genreText, selectedSubcategory === subcategory && styles.genreTextSelected]}>
                                         {subcategory}
                                     </Text>
                                 </TouchableOpacity>
                             ))}
-                        </View>
-                    )}
+                        </React.Fragment>
+                    ))}
                 </View>
             );
         }
@@ -287,8 +270,6 @@ const styles = StyleSheet.create({
         borderColor: '#888',
         borderWidth: 1,
         borderRadius: 20,
-        marginRight: 6,
-        marginBottom: 6,
         backgroundColor: 'transparent',
     },
     genreButtonSelected: {
@@ -326,49 +307,5 @@ const styles = StyleSheet.create({
     },
     applyButtonText: {
         color: '#fff',
-    },
-    container: {
-        padding: 10,
-    },
-    categoryContainer: {
-        marginBottom: 15,
-    },
-    categoryButton: {
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        backgroundColor: '#1a1a1a',
-        borderRadius: 8,
-        marginBottom: 8,
-    },
-    categoryButtonSelected: {
-        backgroundColor: '#FF0000',
-    },
-    categoryText: {
-        color: '#fff',
-        fontSize: 14,
-    },
-    categoryTextSelected: {
-        fontWeight: 'bold',
-    },
-    subcategoryContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 8,
-    },
-    subcategoryButton: {
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        backgroundColor: '#2C3E50',
-        borderRadius: 15,
-    },
-    subcategoryButtonSelected: {
-        backgroundColor: '#FF0000',
-    },
-    subcategoryText: {
-        color: '#fff',
-        fontSize: 12,
-    },
-    subcategoryTextSelected: {
-        fontWeight: 'bold',
     },
 });
