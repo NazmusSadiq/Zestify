@@ -220,14 +220,14 @@ export default function FilterControls({ section, option, onApply, isLoading }: 
                     {Object.keys(bookCategories).map((category) => (
                         <React.Fragment key={category}>
                             <TouchableOpacity
-                                style={[styles.genreButton, selectedCategory === category && styles.genreButtonSelected]}
+                                style={[styles.categoryHeader, selectedCategory === category && styles.categoryHeaderSelected]}
                                 onPress={() => {
                                     setSelectedCategory(category);
                                     setSelectedSubcategory(null);
                                 }}
                                 disabled={isLoading}
                             >
-                                <Text style={[styles.genreText, selectedCategory === category && styles.genreTextSelected]}>
+                                <Text style={[styles.categoryHeaderText, selectedCategory === category && styles.categoryHeaderTextSelected]}>
                                     {category}
                                 </Text>
                             </TouchableOpacity>
@@ -307,5 +307,23 @@ const styles = StyleSheet.create({
     },
     applyButtonText: {
         color: '#fff',
+    },
+    categoryHeader: {
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#555',
+        marginBottom: 6,
+    },
+    categoryHeaderSelected: {
+        borderBottomColor: '#3498db',
+    },
+    categoryHeaderText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    categoryHeaderTextSelected: {
+        color: '#3498db',
     },
 });
