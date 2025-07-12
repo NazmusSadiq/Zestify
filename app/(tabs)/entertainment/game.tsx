@@ -108,7 +108,10 @@ export default function Games() {  const [trendingGames, setTrendingGames] = use
     );
   }
   return (
-    <ScrollView style={styles.container} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+    <ScrollView
+      style={styles.container}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+    >
       {/* <LinearGradient
         colors={['#4c669f', '#3b5998', '#192f6a']}
         style={styles.headerGradient}
@@ -162,12 +165,14 @@ export default function Games() {  const [trendingGames, setTrendingGames] = use
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.listContainer}
         />
-      </View>      <View style={styles.section}>
+      </View>
+
+      <View style={styles.section}>
         <Text style={styles.sectionTitle}>Top Publishers</Text>
         <FlatList
           data={topPublishers}
           renderItem={({ item }) => (
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.companyCard}
               onPress={async () => {
                 const details = await fetchPublisherDetails(item.id);
@@ -198,7 +203,7 @@ export default function Games() {  const [trendingGames, setTrendingGames] = use
         <FlatList
           data={topDevelopers}
           renderItem={({ item }) => (
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.companyCard}
               onPress={async () => {
                 const details = await fetchDeveloperDetails(item.id);
@@ -222,12 +227,14 @@ export default function Games() {  const [trendingGames, setTrendingGames] = use
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.listContainer}
         />
-      </View>      <GameDetails
+      </View>
+
+      <GameDetails
         game={selectedGame}
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
       />
-      
+
       <CompanyDetailsModal
         company={selectedCompany}
         visible={companyModalVisible}
