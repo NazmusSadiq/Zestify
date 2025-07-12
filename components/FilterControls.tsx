@@ -56,20 +56,20 @@ const bookCategories = {
         'Technology & Engineering',
         'Law',
         'History'
-    ],
-    'Other Categories': [
-        'Art',
-        'Design',
-        'Cooking',
-        'Crafts & Hobbies',
-        'Travel',
-        'Health & Fitness',
-        'Sports & Recreation',
-        'Performing Arts',
-        'Music',
-        'Comics & Graphic Novels',
-        'Games'
     ]
+    // 'Other Categories': [
+    //     'Art',
+    //     'Design',
+    //     'Cooking',
+    //     'Crafts & Hobbies',
+    //     'Travel',
+    //     'Health & Fitness',
+    //     'Sports & Recreation',
+    //     'Performing Arts',
+    //     'Music',
+    //     'Comics & Graphic Novels',
+    //     'Games'
+    // ]
 };
 
 export default function FilterControls({ section, option, onApply, isLoading }: Props) {
@@ -220,14 +220,14 @@ export default function FilterControls({ section, option, onApply, isLoading }: 
                     {Object.keys(bookCategories).map((category) => (
                         <React.Fragment key={category}>
                             <TouchableOpacity
-                                style={[styles.categoryHeader, selectedCategory === category && styles.categoryHeaderSelected]}
+                                style={styles.categoryHeader}
                                 onPress={() => {
                                     setSelectedCategory(category);
                                     setSelectedSubcategory(null);
                                 }}
                                 disabled={isLoading}
                             >
-                                <Text style={[styles.categoryHeaderText, selectedCategory === category && styles.categoryHeaderTextSelected]}>
+                                <Text style={styles.categoryHeaderText}>
                                     {category}
                                 </Text>
                             </TouchableOpacity>
