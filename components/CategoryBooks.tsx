@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    FlatList,
-    Image,
-    Modal,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  FlatList,
+  Modal,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { Book, searchBooks } from '../services/book_API';
 import BookDetails from './BookDetails';
+import MovieCard from './MovieCard';
 
 interface CategoryBooksProps {
   category: string;
@@ -21,12 +22,18 @@ interface CategoryBooksProps {
 
 type SortOption = 'title' | 'author' | 'rating' | 'date';
 
+const sortOptions = [
+  { option: 'Title', key: 'title' },
+  { option: 'Author', key: 'author' },
+  { option: 'Rating', key: 'rating' },
+  { option: 'Date', key: 'date' },
+];
+
 export default function CategoryBooks({ category, subcategory, visible, onClose }: CategoryBooksProps) {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
-  const [sortBy, setSortBy] = useState<SortOption>('title');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [sortBy, setSortBy] = useState(sortOptions[0]);
 
   useEffect(() => {
     if (visible) {
@@ -50,7 +57,7 @@ export default function CategoryBooks({ category, subcategory, visible, onClose 
   const sortBooks = (books: Book[]) => {
     return [...books].sort((a, b) => {
       let comparison = 0;
-      switch (sortBy) {
+      switch (sortBy.key) {
         case 'title':
           comparison = a.volumeInfo.title.localeCompare(b.volumeInfo.title);
           break;
@@ -62,70 +69,44 @@ export default function CategoryBooks({ category, subcategory, visible, onClose 
         case 'rating':
           const ratingA = a.volumeInfo.averageRating || 0;
           const ratingB = b.volumeInfo.averageRating || 0;
-          comparison = ratingA - ratingB;
+          comparison = ratingB - ratingA; // Higher ratings first
           break;
         case 'date':
           const dateA = new Date(a.volumeInfo.publishedDate || '').getTime();
           const dateB = new Date(b.volumeInfo.publishedDate || '').getTime();
-          comparison = dateA - dateB;
+          comparison = dateB - dateA; // Newer dates first
           break;
       }
-      return sortOrder === 'asc' ? comparison : -comparison;
+      return comparison;
     });
   };
 
-  const handleSort = (option: SortOption) => {
-    if (sortBy === option) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(option);
-      setSortOrder('asc');
-    }
-  };
+  const renderBook = ({ item }: { item: Book }) => {
+    const title = item.volumeInfo.title || 'Unknown Title';
+    const posterUrl = item.volumeInfo.imageLinks?.thumbnail || 'https://via.placeholder.com/128x192';
+    const averageRating = item.volumeInfo.averageRating || null;
+    const publishedDate = item.volumeInfo.publishedDate || null;
 
-  const renderSortButton = (option: SortOption, label: string) => (
-    <TouchableOpacity
-      style={[
-        styles.sortButton,
-        sortBy === option && styles.sortButtonActive
-      ]}
-      onPress={() => handleSort(option)}
-    >
-      <Text style={[
-        styles.sortButtonText,
-        sortBy === option && styles.sortButtonTextActive
-      ]}>
-        {label} {sortBy === option && (sortOrder === 'asc' ? '↑' : '↓')}
-      </Text>
-    </TouchableOpacity>
-  );
-
-  const renderBook = ({ item }: { item: Book }) => (
-    <TouchableOpacity
-      style={styles.bookCard}
-      onPress={() => setSelectedBook(item)}
-    >
-      <Image
-        source={{ uri: item.volumeInfo.imageLinks?.thumbnail || 'https://via.placeholder.com/128x192' }}
-        style={styles.bookCover}
-      />
-      <View style={styles.bookInfo}>
-        <Text style={styles.bookTitle} numberOfLines={2}>
-          {item.volumeInfo.title}
-        </Text>
-        {item.volumeInfo.authors && (
-          <Text style={styles.bookAuthor} numberOfLines={1}>
-            {item.volumeInfo.authors[0]}
-          </Text>
-        )}
-        {item.volumeInfo.averageRating && (
-          <Text style={styles.bookRating}>
-            Rating: {item.volumeInfo.averageRating}/5
-          </Text>
-        )}
+    return (
+      <View style={styles.cardWrapper}>
+        <MovieCard 
+          title={title} 
+          posterUrl={posterUrl} 
+          onPress={() => setSelectedBook(item)} 
+        />
+        <View style={styles.infoContainer}>
+          {averageRating !== null && (
+            <Text style={styles.infoText}>⭐ {averageRating.toFixed(1)}</Text>
+          )}
+          {publishedDate && (
+            <Text style={styles.infoText}>
+              {new Date(publishedDate).getFullYear()}
+            </Text>
+          )}
+        </View>
       </View>
-    </TouchableOpacity>
-  );
+    );
+  };
 
   if (!visible) return null;
 
@@ -133,22 +114,39 @@ export default function CategoryBooks({ category, subcategory, visible, onClose 
     <Modal
       visible={visible}
       animationType="slide"
-      transparent={true}
+      transparent={false}
       onRequestClose={onClose}
     >
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>{subcategory}</Text>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>×</Text>
-          </TouchableOpacity>
-        </View>
+      <SafeAreaView style={styles.fullscreenContainer}>
+        <View style={styles.sortSection}>
+          <View style={styles.sortHeader}>
+            <Text style={styles.sortLabel}>Sort By:</Text>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <Text style={styles.closeButtonText}>Close ✕</Text>
+            </TouchableOpacity>
+          </View>
 
-        <View style={styles.sortContainer}>
-          {renderSortButton('title', 'Title')}
-          {renderSortButton('author', 'Author')}
-          {renderSortButton('rating', 'Rating')}
-          {renderSortButton('date', 'Date')}
+          <View style={styles.dropdown}>
+            {sortOptions.map(({ option, key }) => (
+              <TouchableOpacity
+                key={key}
+                onPress={() => setSortBy({ option, key })}
+                style={[
+                  styles.dropdownItem,
+                  sortBy.key === key && styles.dropdownItemSelected,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.dropdownItemText,
+                    sortBy.key === key && styles.dropdownItemTextSelected,
+                  ]}
+                >
+                  {option}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
 
         {loading ? (
@@ -160,7 +158,9 @@ export default function CategoryBooks({ category, subcategory, visible, onClose 
             data={sortBooks(books)}
             renderItem={renderBook}
             keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.bookList}
+            numColumns={3}
+            contentContainerStyle={styles.listContent}
+            columnWrapperStyle={styles.row}
             showsVerticalScrollIndicator={false}
           />
         )}
@@ -170,101 +170,101 @@ export default function CategoryBooks({ category, subcategory, visible, onClose 
           visible={!!selectedBook}
           onClose={() => setSelectedBook(null)}
         />
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  fullscreenContainer: {
     flex: 1,
-    backgroundColor: '#1B2631',
+    backgroundColor: "#1e272e",
+    paddingTop: 10,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
+  sortSection: {
+    backgroundColor: "#000",
+    paddingBottom: 10,
+    paddingTop: 12,
+    marginTop: -10,
     borderBottomWidth: 1,
-    borderBottomColor: '#2C3E50',
+    borderBottomColor: "#485460",
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FF0000',
+  sortHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    marginTop: -10,
   },
   closeButton: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: '#1a1a1a',
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    backgroundColor: "#FF0000",
+    borderRadius: 16,
   },
   closeButtonText: {
-    fontSize: 24,
-    color: '#FF0000',
-  },
-  sortContainer: {
-    flexDirection: 'row',
-    padding: 10,
-    backgroundColor: '#2C3E50',
-    justifyContent: 'space-around',
-  },
-  sortButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 15,
-    backgroundColor: '#1a1a1a',
-  },
-  sortButtonActive: {
-    backgroundColor: '#FF0000',
-  },
-  sortButtonText: {
-    color: '#fff',
+    color: "#f1f2f6",
     fontSize: 12,
+    fontWeight: "600",
   },
-  sortButtonTextActive: {
-    fontWeight: 'bold',
+  sortLabel: {
+    color: "#f1f2f6",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  dropdown: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    paddingHorizontal: 16,
+    marginTop: 6,
+    marginBottom: -10,
+  },
+  dropdownItem: {
+    paddingVertical: 4,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#f1f2f6",
+    marginRight: 10,
+    marginBottom: 8,
+    backgroundColor: "#2f3640",
+  },
+  dropdownItemSelected: {
+    backgroundColor: "#ffffff",
+    borderColor: "#ffffff",
+  },
+  dropdownItemTextSelected: {
+    color: "#000000",
+    fontWeight: "700",
+  },
+  dropdownItemText: {
+    color: "#f1f2f6",
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
-  bookList: {
-    padding: 10,
+  listContent: {
+    paddingHorizontal: 4,
+    paddingBottom: 10,
   },
-  bookCard: {
-    flexDirection: 'row',
-    backgroundColor: '#2C3E50',
-    borderRadius: 10,
-    marginBottom: 10,
-    padding: 10,
+  row: {
+    justifyContent: "space-between",
   },
-  bookCover: {
-    width: 80,
-    height: 120,
-    borderRadius: 5,
+  cardWrapper: {
+    flex: 1 / 3,
+    marginVertical: 8,
+    marginHorizontal: 14,
   },
-  bookInfo: {
-    flex: 1,
-    marginLeft: 10,
-    justifyContent: 'center',
+  infoContainer: {
+    marginTop: 6,
+    flexDirection: "column",
+    justifyContent: "space-between",
   },
-  bookTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 5,
-  },
-  bookAuthor: {
-    fontSize: 14,
-    color: '#FF0000',
-    marginBottom: 5,
-  },
-  bookRating: {
+  infoText: {
+    color: "#d2dae2",
+    fontWeight: "bold",
     fontSize: 12,
-    color: '#ccc',
   },
 }); 
