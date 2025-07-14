@@ -95,7 +95,7 @@ export const fetchTopNewsAndSave = async () => {
 
 export const fetchGamesNewsAndSave = async () => {
   try {
-    const articles = await fetchNewsByTag('"game" OR "video game" OR "game trailer" or PlayStation or Xbox or gaming', 'games');
+    const articles = await fetchNewsByTag('game or games OR "video game" OR "game trailer" or PlayStation or Xbox or gaming', 'games');
     await saveNews(articles);
   } catch (e) {
     console.log("Failed to fetch games news:", e);
@@ -113,7 +113,7 @@ export const fetchSportsNewsAndSave = async () => {
 
 export const fetchMusicNewsAndSave = async () => {
   try {
-    const articles = await fetchNewsByTag('music albums OR songs OR artists or music', 'music');
+    const articles = await fetchNewsByTag('album OR song OR artist or music or singer', 'music');
     await saveNews(articles);
   } catch (e) {
     console.log("Failed to fetch music news:", e);

@@ -1,7 +1,7 @@
 import { Game } from '@/services/GameAPI';
 import { Ionicons } from '@expo/vector-icons';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Image, Linking, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface GameDetailsProps {
@@ -11,6 +11,28 @@ interface GameDetailsProps {
 }
 
 export default function GameDetails({ game, visible, onClose }: GameDetailsProps) {
+  // Like state based on game id
+  const [likedIds, setLikedIds] = useState<{ [id: number]: boolean }>({});
+  const isLiked = !!game?.id && likedIds[game.id];
+
+  const handleLike = () => {
+    if (game?.id) {
+      setLikedIds((prev) => ({ ...prev, [game.id]: true }));
+      // TODO: Integrate with DB
+    }
+  };
+
+  const handleUnlike = () => {
+    if (game?.id) {
+      setLikedIds((prev) => {
+        const updated = { ...prev };
+        delete updated[game.id];
+        return updated;
+      });
+      // TODO: Integrate with DB
+    }
+  };
+
   if (!game) return null;
 
   return (
@@ -22,23 +44,33 @@ export default function GameDetails({ game, visible, onClose }: GameDetailsProps
     >
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
-          
           <ScrollView>
             <TouchableOpacity style={styles.backButton} onPress={onClose}>
               <Ionicons name="arrow-back" size={24} color="#FF0000" />
               <Text style={styles.backButtonText}>Back</Text>
             </TouchableOpacity>
 
+            <View style={{ position: 'relative' }}>
+              <Image
+                source={{ uri: game.background_image }}
+                style={styles.image}
+                resizeMode="cover"
+              />
+              {/* Heart button at top right of poster */}
+              <TouchableOpacity
+                style={styles.posterHeartButton}
+                onPress={isLiked ? handleUnlike : handleLike}
+                activeOpacity={0.7}
+              >
+                <Text style={{ fontSize: 28 }}>
+                  {isLiked ? '❤️' : '🤍'}
+                </Text>
+              </TouchableOpacity>
+            </View>
 
-            <Image
-              source={{ uri: game.background_image }}
-              style={styles.image}
-              resizeMode="cover"
-            />
-            
             <View style={styles.detailsContainer}>
               <Text style={styles.title}>{game.name}</Text>
-              
+
               <View style={styles.infoRow}>
                 <Text style={styles.label}>Rating:</Text>
                 <Text style={styles.value}>{game.rating}/5</Text>
@@ -80,7 +112,7 @@ export default function GameDetails({ game, visible, onClose }: GameDetailsProps
               {game.description && (
                 <View style={styles.section}>
                   <Text style={styles.sectionTitle}>Description</Text>
-                  <Text style={styles.description}>{game.description}</Text>
+                  <Text style={styles.description}>{game.description.replace(/<[^>]+>/g, "")}</Text>
                 </View>
               )}
 
@@ -95,7 +127,7 @@ export default function GameDetails({ game, visible, onClose }: GameDetailsProps
             </View>
           </ScrollView>
 
-          
+
         </View>
       </View>
     </Modal>
@@ -112,8 +144,6 @@ const styles = StyleSheet.create({
   modalContent: {
     backgroundColor: '#1E1E1E',
     borderRadius: 20,
-    // width: '92%',
-    // maxHeight: '92%',
     padding: 20,
     borderWidth: 1,
     borderColor: '#333333',
@@ -122,6 +152,15 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 220,
     borderRadius: 15,
+  },
+  posterHeartButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 10,
+    backgroundColor: 'rgba(0,0,0,0.8)', 
+    borderRadius: 20,
+    padding: 2,
   },
   detailsContainer: {
     padding: 15,
@@ -202,15 +241,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   backButton: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  marginBottom: 16,
-},
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
 
-backButtonText: {
-  color: '#FF0000',
-  fontSize: 16,
-  marginLeft: 8,
-},
-
+  backButtonText: {
+    color: '#FF0000',
+    fontSize: 16,
+    marginLeft: 8,
+  },
 });

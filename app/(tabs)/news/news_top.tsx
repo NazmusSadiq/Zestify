@@ -48,6 +48,13 @@ export default function News_Top() {
           index === self.findIndex(a => a.title.toLowerCase() === article.title.toLowerCase())
         );
 
+        // Sort articles by publishedAt descending (fix for TS: return number)
+        localNews.sort((a, b) => {
+          const dateA = new Date(a.publishedAt).getTime();
+          const dateB = new Date(b.publishedAt).getTime();
+          return dateB - dateA;
+        });
+
         if (localNews.length > 0) {
           setArticles(localNews);
           setLoading(false);

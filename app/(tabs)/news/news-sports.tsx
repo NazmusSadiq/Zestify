@@ -57,6 +57,9 @@ export default function News_Sports() {
         description: cleanupText(article.description),
       }));
 
+      // Sort articles in descending order of publishedAt
+      filtered.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+
       setArticles(filtered);
     } catch (e) {
       console.error("Error loading news:", e);

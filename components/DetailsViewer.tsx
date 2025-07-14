@@ -1,4 +1,5 @@
-import React from "react";
+import { Ionicons } from "@expo/vector-icons";
+import React, { useState } from "react";
 import {
   Image,
   Modal,
@@ -25,6 +26,30 @@ const DetailsViewer = ({
   titleKey = "title",
   imageKey = "poster_path",
 }: DetailsViewerProps) => {
+  // Use the TMDB id for like/unlike
+  const itemId = data?.id;
+  // For demo, store liked state locally. Later, integrate with DB.
+  const [likedIds, setLikedIds] = useState<{ [id: number]: boolean }>({});
+  const isLiked = !!itemId && likedIds[itemId];
+
+  const handleLike = () => {
+    if (itemId) {
+      setLikedIds((prev) => ({ ...prev, [itemId]: true }));
+      // TODO: Integrate with DB
+    }
+  };
+
+  const handleUnlike = () => {
+    if (itemId) {
+      setLikedIds((prev) => {
+        const updated = { ...prev };
+        delete updated[itemId];
+        return updated;
+      });
+      // TODO: Integrate with DB
+    }
+  };
+
   if (!data) return null;
 
   const excludedFields = [
@@ -85,7 +110,6 @@ const DetailsViewer = ({
         );
       }
 
-
       if (typeof value === "string" || typeof value === "number") {
         return (
           <View key={key} style={styles.fieldContainer}>
@@ -135,29 +159,40 @@ const DetailsViewer = ({
       onRequestClose={onClose}
     >
       <SafeAreaView style={styles.fullscreenContainer}>
-        <View style={styles.closeButtonContainer}>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Text style={styles.closeButtonText}>Close ✕</Text>
+        <View style={styles.fullContent}>
+          {/* Back button at top left, like in GameDetails */}
+          <TouchableOpacity style={styles.backButton} onPress={onClose}>
+            <Ionicons name="arrow-back" size={24} color="#FF0000" />
+            <Text style={styles.backButtonText}>Back</Text>
           </TouchableOpacity>
+          <ScrollView contentContainerStyle={styles.scrollContent}>
+            {data[titleKey] && <Text style={styles.title}>{data[titleKey]}</Text>}
+
+            {data[imageKey] && (
+              <View style={styles.imageContainer}>
+                <Image
+                  source={{
+                    uri: `https://image.tmdb.org/t/p/w342${data[imageKey]}`,
+                  }}
+                  style={styles.image}
+                  resizeMode="cover"
+                />
+                {/* Heart button on top right of poster */}
+                <TouchableOpacity
+                  style={styles.posterHeartButton}
+                  onPress={isLiked ? handleUnlike : handleLike}
+                  activeOpacity={0.7}
+                >
+                  <Text style={{ fontSize: 28 }}>
+                    {isLiked ? "❤️" : "🤍"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            <View style={styles.detailsContainer}>{renderFields()}</View>
+          </ScrollView>
         </View>
-
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          {data[titleKey] && <Text style={styles.title}>{data[titleKey]}</Text>}
-
-          {data[imageKey] && (
-            <View style={styles.imageContainer}>
-              <Image
-                source={{
-                  uri: `https://image.tmdb.org/t/p/w342${data[imageKey]}`,
-                }}
-                style={styles.image}
-                resizeMode="cover"
-              />
-            </View>
-          )}
-
-          <View style={styles.detailsContainer}>{renderFields()}</View>
-        </ScrollView>
       </SafeAreaView>
     </Modal>
   );
@@ -166,29 +201,29 @@ const DetailsViewer = ({
 const styles = StyleSheet.create({
   fullscreenContainer: {
     flex: 1,
-    backgroundColor: "#000", // same as container background
+    backgroundColor: "#1B2631",
+  },
+  fullContent: {
+    flex: 1,
+    padding: 0,
+    backgroundColor: "#1B2631",
   },
   scrollContent: {
     padding: 16,
     paddingBottom: 40,
   },
-  closeButtonContainer: {
-    alignItems: "flex-end",
-    padding: 10,
-    backgroundColor: "#1B2631", // match dark tab background
+  backButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 2,
+    marginTop: 20, // Increased from 4 to make the back button lower
+    marginLeft: 4,
+    alignSelf: "flex-start",
   },
-  closeButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 10,
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#fff",
-  },
-  closeButtonText: {
-    color: "#000",
+  backButtonText: {
+    color: "#FF0000",
     fontSize: 16,
-    fontWeight: "700",
+    marginLeft: 8,
   },
   title: {
     fontSize: 24,
@@ -196,6 +231,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     marginBottom: 12,
     textAlign: "center",
+    marginTop: 4, 
   },
   imageContainer: {
     aspectRatio: 2 / 3,
@@ -205,14 +241,27 @@ const styles = StyleSheet.create({
     backgroundColor: "#34495e",
     alignSelf: "center",
     marginBottom: 12,
+    position: "relative",
+    justifyContent: "center",
+    alignItems: "center",
   },
   image: {
     width: "100%",
     height: "100%",
+    borderRadius: 4,
+  },
+  posterHeartButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    zIndex: 10,
+    backgroundColor: "rgba(0,0,0,0.8)",
+    borderRadius: 20,
+    padding: 2,
   },
   detailsContainer: {
     marginTop: 8,
-    backgroundColor: "#1B2631",
+    backgroundColor: "#222a34",
     padding: 12,
     borderRadius: 8,
   },

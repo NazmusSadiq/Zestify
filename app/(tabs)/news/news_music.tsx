@@ -42,7 +42,7 @@ export default function News_Media() {
       const jsonStr = await FileSystem.readAsStringAsync(NEWS_FILE_PATH);
       let allNews: Article[] = JSON.parse(jsonStr);
 
-      let filtered = allNews.filter(article => article.tags?.includes("music"));
+      let filtered = allNews.filter(article => article.tags?.includes("music")|| article.tags?.includes("song") || article.tags?.includes("album") || article.tags?.includes("band")|| article.tags?.includes("artist"));
 
       // Remove duplicate titles
       filtered = filtered.filter((article, index, self) =>
@@ -57,6 +57,13 @@ export default function News_Media() {
         content: cleanupText(article.content),
         description: cleanupText(article.description),
       }));
+
+      // Sort articles by publishedAt descending (fix for TS: return number)
+      filtered.sort((a, b) => {
+        const dateA = new Date(a.publishedAt).getTime();
+        const dateB = new Date(b.publishedAt).getTime();
+        return dateB - dateA;
+      });
 
       setArticles(filtered);
     } catch (e) {

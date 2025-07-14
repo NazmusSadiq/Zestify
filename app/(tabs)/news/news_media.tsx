@@ -60,6 +60,13 @@ export default function News_Media() {
         description: cleanupText(article.description),
       }));
 
+      // Sort articles by publishedAt descending (fix for TS: return number)
+      filtered.sort((a, b) => {
+        const dateA = new Date(a.publishedAt).getTime();
+        const dateB = new Date(b.publishedAt).getTime();
+        return dateB - dateA;
+      });
+
       setArticles(filtered);
     } catch (e) {
       console.error("Error loading news:", e);

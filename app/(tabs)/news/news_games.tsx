@@ -48,6 +48,12 @@ export default function News_Games() {
         index === self.findIndex(a => a.title.toLowerCase() === article.title.toLowerCase())
       );
 
+      // Sort articles by publishedAt descending (fix for TS: return number)
+      filtered.sort((a, b) => {
+        const dateA = new Date(a.publishedAt).getTime();
+        const dateB = new Date(b.publishedAt).getTime();
+        return dateB - dateA;
+      });
 
       const cleanupText = (text?: string): string | undefined =>
         text?.replace(/\[\d+\s*chars\]$/, "").trim();

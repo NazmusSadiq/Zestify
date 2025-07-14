@@ -1,14 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {
-    Image,
-    Modal,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Image,
+  Modal,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 interface TrackImage {
@@ -29,6 +29,29 @@ const MusicDetailsViewer = ({
   onClose,
   getImageUrl,
 }: MusicDetailsViewerProps) => {
+  // Use a unique id for like/unlike (e.g., mbid or name+type fallback)
+  const itemId = selectedItem?.mbid || `${itemType}:${selectedItem?.name}`;
+  const [likedIds, setLikedIds] = React.useState<{ [id: string]: boolean }>({});
+  const isLiked = !!itemId && likedIds[itemId];
+
+  const handleLike = () => {
+    if (itemId) {
+      setLikedIds((prev) => ({ ...prev, [itemId]: true }));
+      // TODO: Integrate with DB
+    }
+  };
+
+  const handleUnlike = () => {
+    if (itemId) {
+      setLikedIds((prev) => {
+        const updated = { ...prev };
+        delete updated[itemId];
+        return updated;
+      });
+      // TODO: Integrate with DB
+    }
+  };
+
   if (!selectedItem || !itemType) return null;
 
   return (
@@ -46,10 +69,22 @@ const MusicDetailsViewer = ({
           </TouchableOpacity>
 
           <ScrollView showsVerticalScrollIndicator={false}>
-            <Image
-              source={{ uri: getImageUrl(selectedItem.image) }}
-              style={styles.detailImage}
-            />
+            <View style={{ position: "relative" }}>
+              <Image
+                source={{ uri: getImageUrl(selectedItem.image) }}
+                style={styles.detailImage}
+              />
+              {/* Heart button at top right of poster */}
+              <TouchableOpacity
+                style={styles.posterHeartButton}
+                onPress={isLiked ? handleUnlike : handleLike}
+                activeOpacity={0.7}
+              >
+                <Text style={{ fontSize: 28 }}>
+                  {isLiked ? "❤️" : "🤍"}
+                </Text>
+              </TouchableOpacity>
+            </View>
             <Text style={styles.detailTitle}>{selectedItem.name}</Text>
 
             {itemType === "artist" && "stats" in selectedItem && (
@@ -142,6 +177,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#fff",
     lineHeight: 24,
+  },
+  posterHeartButton: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    zIndex: 1,
   },
 });
 
