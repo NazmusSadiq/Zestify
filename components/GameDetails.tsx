@@ -1,8 +1,11 @@
 import { Game } from '@/services/GameAPI';
 import { Ionicons } from '@expo/vector-icons';
 
-import React, { useState } from 'react';
+import { useUser } from "@clerk/clerk-expo";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import React, { useEffect, useState } from 'react';
 import { Image, Linking, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { db } from "../firebase";
 
 interface GameDetailsProps {
   game: Game | null;
@@ -11,26 +14,57 @@ interface GameDetailsProps {
 }
 
 export default function GameDetails({ game, visible, onClose }: GameDetailsProps) {
-  // Like state based on game id
-  const [likedIds, setLikedIds] = useState<{ [id: number]: boolean }>({});
-  const isLiked = !!game?.id && likedIds[game.id];
+  // Like state based on game id, integrated with Firestore
+  const { user } = useUser();
+  const [isLiked, setIsLiked] = useState(false);
+  const [loadingLike, setLoadingLike] = useState(false);
 
-  const handleLike = () => {
-    if (game?.id) {
-      setLikedIds((prev) => ({ ...prev, [game.id]: true }));
-      // TODO: Integrate with DB
+  useEffect(() => {
+    const fetchLike = async () => {
+      if (!user?.primaryEmailAddress?.emailAddress || !game?.id) {
+        setIsLiked(false);
+        return;
+      }
+      try {
+        const docRef = doc(db, user.primaryEmailAddress.emailAddress, "games");
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setIsLiked(!!data[game.id]);
+        } else {
+          setIsLiked(false);
+        }
+      } catch (e) {
+        setIsLiked(false);
+      }
+    };
+    fetchLike();
+  }, [user?.primaryEmailAddress?.emailAddress, game?.id]);
+
+  const handleLike = async () => {
+    if (!user?.primaryEmailAddress?.emailAddress || !game?.id) return;
+    setLoadingLike(true);
+    try {
+      const docRef = doc(db, user.primaryEmailAddress.emailAddress, "games");
+      await setDoc(docRef, { [game.id]: true }, { merge: true });
+      setIsLiked(true);
+    } catch (e) {
+      // Optionally show error
     }
+    setLoadingLike(false);
   };
 
-  const handleUnlike = () => {
-    if (game?.id) {
-      setLikedIds((prev) => {
-        const updated = { ...prev };
-        delete updated[game.id];
-        return updated;
-      });
-      // TODO: Integrate with DB
+  const handleUnlike = async () => {
+    if (!user?.primaryEmailAddress?.emailAddress || !game?.id) return;
+    setLoadingLike(true);
+    try {
+      const docRef = doc(db, user.primaryEmailAddress.emailAddress, "games");
+      await setDoc(docRef, { [game.id]: false }, { merge: true });
+      setIsLiked(false);
+    } catch (e) {
+      // Optionally show error
     }
+    setLoadingLike(false);
   };
 
   if (!game) return null;
@@ -61,8 +95,9 @@ export default function GameDetails({ game, visible, onClose }: GameDetailsProps
                 style={styles.posterHeartButton}
                 onPress={isLiked ? handleUnlike : handleLike}
                 activeOpacity={0.7}
+                disabled={loadingLike}
               >
-                <Text style={{ fontSize: 28 }}>
+                <Text style={{ fontSize: 28, opacity: loadingLike ? 0.5 : 1 }}>
                   {isLiked ? '❤️' : '🤍'}
                 </Text>
               </TouchableOpacity>
