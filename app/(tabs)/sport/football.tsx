@@ -1,14 +1,17 @@
   // --- Render Stats Tab ---
-  const renderStats = () => (
+  import { API_KEY, COMPETITIONS } from "@/services/fotball_API";
+import { useUser } from "@clerk/clerk-expo";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import React, { useEffect, useRef, useState } from "react";
+import { db } from "../../../firebase";
+
+import { ActivityIndicator, Animated, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
+import { getTeamWithCrest, getWikipediaImageUrl, useFootballData } from "./footballdatafetcher";
+const renderStats = () => (
     <View style={styles.tabContent}>
       <Text style={styles.noDataText}>Stats tab content goes here.</Text>
     </View>
   );
-import { API_KEY, COMPETITIONS } from "@/services/fotball_API";
-import React, { useEffect, useRef, useState } from "react";
-
-import { ActivityIndicator, Animated, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
-import { getTeamWithCrest, getWikipediaImageUrl, useFootballData } from "./footballdatafetcher";
 
 const tabs = ["Home", "Matches", "Stats", "Favorite"];
 
@@ -29,8 +32,55 @@ export default function Football() {
   const [favoriteTab, setFavoriteTab] = useState<'team' | 'player'>('team');
   // --- Favorite Player State ---
   const [favoritePlayer, setFavoritePlayer] = useState<any>(null);
-  const [favoritePlayerId, setFavoritePlayerId] = useState<number | null>(44); 
+  const [favoritePlayerId, setFavoritePlayerId] = useState<number | null>(null); 
   const [loadingFavoritePlayer, setLoadingFavoritePlayer] = useState(false);
+
+  // Firebase user
+  const { user } = useUser();
+
+  // Fetch favoritePlayerId from Firebase on mount
+  useEffect(() => {
+    const fetchFavoritePlayerId = async () => {
+      if (!user?.primaryEmailAddress?.emailAddress) {
+        setFavoritePlayerId(44); // fallback default
+        return;
+      }
+      try {
+        const userDocRef = doc(db, "users", user.primaryEmailAddress.emailAddress);
+        const docSnap = await getDoc(userDocRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.favoritePlayerId) {
+            setFavoritePlayerId(data.favoritePlayerId);
+          } else {
+            setFavoritePlayerId(44); // default if not found
+          }
+        } else {
+          setFavoritePlayerId(44); // default if no doc
+        }
+      } catch (error) {
+        setFavoritePlayerId(44); // fallback on error
+      }
+    };
+    fetchFavoritePlayerId();
+  }, [user?.primaryEmailAddress?.emailAddress]);
+
+  // Save favoritePlayerId to Firebase when it changes
+  useEffect(() => {
+    const saveFavoritePlayerId = async () => {
+      if (!user?.primaryEmailAddress?.emailAddress || !favoritePlayerId) return;
+      try {
+        const userDocRef = doc(db, "users", user.primaryEmailAddress.emailAddress);
+        await setDoc(userDocRef, { favoritePlayerId }, { merge: true });
+      } catch (error) {
+        // Optionally show error
+        // Alert.alert("Error", "Failed to save favorite player");
+      }
+    };
+    if (favoritePlayerId) {
+      saveFavoritePlayerId();
+    }
+  }, [favoritePlayerId, user?.primaryEmailAddress?.emailAddress]);
 
   // Fetch player data by id
   async function fetchFavoritePlayer(playerId: number) {
@@ -279,6 +329,7 @@ export default function Football() {
     setShowSearchModal(false);
     setSearchQuery("");
     setFavoritePlayerId(player.id);
+    // favoritePlayerId will be saved to Firebase by the useEffect above
   };
 
   const selectTeam = (team: any) => {
