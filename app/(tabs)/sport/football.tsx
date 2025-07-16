@@ -1,22 +1,95 @@
-import { COMPETITIONS, STATS_OPTIONS } from "@/services/fotball_API";
+  // --- Render Stats Tab ---
+  const renderStats = () => (
+    <View style={styles.tabContent}>
+      <Text style={styles.noDataText}>Stats tab content goes here.</Text>
+    </View>
+  );
+import { API_KEY, COMPETITIONS } from "@/services/fotball_API";
 import React, { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { getTeamWithCrest, useFootballData } from "./footballdatafetcher";
 
-const tabs = ["Home", "Stats", "Matches", "Favorite"];
+import { ActivityIndicator, Animated, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
+import { getTeamWithCrest, getWikipediaImageUrl, useFootballData } from "./footballdatafetcher";
+
+const tabs = ["Home", "Matches", "Stats", "Favorite"];
 
 export default function Football() {
-  const [activeTab, setActiveTab] = useState<"Home" | "Stats" | "Matches" | "Favorite">("Home");
+  const [activeTab, setActiveTab] = useState<"Home" | "Matches" | "Stats" | "Favorite">("Home");
   const [statsLeftTrayOpen, setStatsLeftTrayOpen] = useState(false);
   const [matchesLeftTrayOpen, setMatchesLeftTrayOpen] = useState(false);
+  const statsTrayAnim = useRef(new Animated.Value(-220)).current;
+  const matchesTrayAnim = useRef(new Animated.Value(-220)).current;
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [allPlayerNames, setAllPlayerNames] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const debounceTimeout = useRef<number | null>(null);
 
+  // --- Favorite Section Tabs ---
+  const [favoriteTab, setFavoriteTab] = useState<'team' | 'player'>('team');
+  // --- Favorite Player State ---
+  const [favoritePlayer, setFavoritePlayer] = useState<any>(null);
+  const [favoritePlayerId, setFavoritePlayerId] = useState<number | null>(44); 
+  const [loadingFavoritePlayer, setLoadingFavoritePlayer] = useState(false);
+
+  // Fetch player data by id
+  async function fetchFavoritePlayer(playerId: number) {
+    setLoadingFavoritePlayer(true);
+    try {
+      const headers = new Headers();
+      headers.append('X-Auth-Token', API_KEY!);
+      const res = await fetch(`https://api.football-data.org/v4/persons/${playerId}`, {
+        headers
+      });
+      const data = await res.json();
+      // Try to fetch Wikipedia image
+      let wikiImage = null;
+      if (data?.name) {
+        wikiImage = await getWikipediaImageUrl(data.name);
+      }
+      setFavoritePlayer({ ...data, wikiImage });
+    } catch (err) {
+      setFavoritePlayer(null);
+    }
+    setLoadingFavoritePlayer(false);
+  }
+
+  useEffect(() => {
+    if (favoriteTab === 'player' && favoritePlayerId) {
+      fetchFavoritePlayer(favoritePlayerId);
+    }
+  }, [favoriteTab, favoritePlayerId]);
+
+
+  useEffect(() => {
+    try {
+      const playerNames = require("../../../assets/player_names/player_names.json");
+      setAllPlayerNames(playerNames);
+    } catch (e) {
+      setAllPlayerNames([]);
+    }
+  }, []);
+
   const onSearchInputChange = (query: string) => {
     setSearchQuery(query);
+    if (favoriteTab === 'player') {
+      if (!query || query.length < 2) {
+        setSearchResults([]);
+        return;
+      }
+      const lower = query.toLowerCase();
+      const filtered = allPlayerNames.filter((p: any) => {
+        if (!p || !p.name) return false;
+        return (
+          p.name.toLowerCase().includes(lower) ||
+          (p.firstName && p.firstName.toLowerCase().includes(lower)) ||
+          (p.lastName && p.lastName.toLowerCase().includes(lower))
+        );
+      });
+      setSearchResults(filtered.slice(0, 10));
+    } else {
+      setSearchResults([]); // will be set by debounce effect
+    }
   };
 
   const {
@@ -33,11 +106,11 @@ export default function Football() {
   }, [activeTab, statsCompetition, statsOption, matchesCompetition, favoriteTeams]);
 
   useEffect(() => {
+    if (favoriteTab === 'player') return; // handled in onSearchInputChange
     if (!searchQuery || searchQuery.length < 2) {
       setSearchResults([]);
       return;
     }
-
     if (debounceTimeout.current) {
       clearTimeout(debounceTimeout.current);
     }
@@ -47,13 +120,12 @@ export default function Football() {
       setSearchResults(teams);
       setIsSearching(false);
     }, 500);
-
     return () => {
       if (debounceTimeout.current) {
         clearTimeout(debounceTimeout.current);
       }
     };
-  }, [searchQuery]);
+  }, [searchQuery, favoriteTab]);
 
 
   const renderHome = () => (
@@ -79,236 +151,49 @@ export default function Football() {
     </View>
   );
 
-  const renderStats = () => (
-    <View style={styles.statsContainer}>
-      {!statsLeftTrayOpen ? (
-        <TouchableOpacity
-          style={styles.openTrayButton}
-          onPress={() => setStatsLeftTrayOpen(true)}
-        >
-          <Text style={styles.openButtonText}>☰</Text>
-        </TouchableOpacity>
-      ) : (
-        <View style={styles.leftTray}>
-          <TouchableOpacity
-            onPress={() => setStatsLeftTrayOpen(false)}
-            style={styles.closeButton}
-          >
-            <Text style={styles.closeButtonText}>◀</Text>
-          </TouchableOpacity>
-
-          <Text style={styles.sectionTitle}>Competitions</Text>
-          <View>
-            {COMPETITIONS.map((comp) => (
-              <TouchableOpacity
-                key={comp.id}
-                onPress={() => setStatsCompetition(comp)}
-                style={[
-                  styles.competitionButton,
-                  statsCompetition.id === comp.id && styles.activeCompetitionButton
-                ]}
-              >
-                <Text style={[
-                  styles.tabText,
-                  statsCompetition.id === comp.id && styles.activeTabText
-                ]}>
-                  {comp.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          <Text style={styles.sectionTitle}>Options</Text>
-          <View>
-            {STATS_OPTIONS.map((opt) => (
-              <TouchableOpacity
-                key={opt}
-                onPress={() => setStatsOption(opt)}
-                style={[
-                  styles.optionButton,
-                  statsOption === opt && styles.activeOptionButton
-                ]}
-              >
-                <Text style={[
-                  styles.tabText,
-                  statsOption === opt && styles.activeTabText
-                ]}>
-                  {opt}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-      )}
-
-      <View style={styles.statsContent}>
-        {loadingStats ? (
-          <ActivityIndicator size="large" color="#3B82F6" />
-        ) : statsData ? (
-          <ScrollView style={styles.scrollContainer}>
-            <Text style={styles.statsHeader}>
-              {statsCompetition.name} - {statsOption}
-            </Text>
-
-            {statsOption === "Standings" && (
-              <View style={styles.table}>
-                <View style={styles.tableRow}>
-                  <Text style={styles.tableHeader}></Text>
-                  <Text style={[styles.tableHeader, { flex: 7 }]}>Team</Text>
-                  <Text style={styles.tableHeader}>P</Text>
-                  <Text style={styles.tableHeader}>W</Text>
-                  <Text style={styles.tableHeader}>D</Text>
-                  <Text style={styles.tableHeader}>L</Text>
-                  <Text style={[styles.tableHeader, { flex: 2 }]}>GF/A</Text>
-                  <Text style={[styles.tableHeader, { flex: 1.25 }]}>Pts</Text>
-                </View>
-                {statsData.map((item: any, index: number) => {
-                  const key = item?.team?.id ?? item.position ?? index;
-                  return (
-                    <View key={key} style={styles.tableRow}>
-                      <Text style={styles.tableCell}>{item.position ?? "-"}</Text>
-                      <View style={{ flex: 7, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start' }}>
-                        {item.team?.crest && (
-                          <Image
-                            source={{ uri: item.team.crest }}
-                            style={{ width: 15, height: 15, marginRight: 4 }}
-                            resizeMode="contain"
-                          />
-                        )}
-                        <Text style={{ color: 'white', textAlign: 'left', paddingLeft: 0, marginLeft: 5, flexShrink: 1, fontSize: 12 }}>
-                          {getTeamWithCrest(item.team).name}
-                        </Text>
-                      </View>
-
-
-                      <Text style={styles.tableCell}>{item.played ?? "-"}</Text>
-                      <Text style={styles.tableCell}>{item.wins ?? "-"}</Text>
-                      <Text style={styles.tableCell}>{item.draws ?? "-"}</Text>
-                      <Text style={styles.tableCell}>{item.losses ?? "-"}</Text>
-                      <Text style={[styles.tableCell, { flex: 3 }]}>
-                        {item.goalsFor ?? "-"} / {item.goalsAgainst ?? "-"}
-                      </Text>
-                      <Text style={styles.tableCell}>{item.points ?? "-"}</Text>
-                    </View>
-                  );
-                })}
-              </View>
-            )}
-
-            {statsOption === "Team Stats" && (
-              statsData
-                .slice()
-                .sort((a: any, b: any) => {
-                  const nameA = (a.name ?? "").toLowerCase();
-                  const nameB = (b.name ?? "").toLowerCase();
-                  return nameA.localeCompare(nameB);
-                })
-                .map((team: any, index: number) => {
-                  const key = team?.id ?? team?.name ?? index;
-
-                  return (
-                    <View key={key} style={styles.teamCard}>
-                      <View style={{ flexDirection: "row", alignItems: "center" }}>
-                        {team.crest ? (
-                          <Image
-                            source={{ uri: team.crest }}
-                            style={{ width: 30, height: 30, marginRight: 8 }}
-                            resizeMode="contain"
-                          />
-                        ) : null}
-                        <Text style={styles.teamName}>{team.name ?? "N/A"}</Text>
-                      </View>
-                      <Text style={styles.teamDetail}>Venue: {team.venue ?? "N/A"}</Text>
-                      <Text style={styles.teamDetail}>Matches: {team.played ?? "N/A"}</Text>
-                      <Text style={styles.teamDetail}>Wins: {team.wins ?? "N/A"}</Text>
-                      <Text style={styles.teamDetail}>Draws: {team.draws ?? "N/A"}</Text>
-                      <Text style={styles.teamDetail}>Losses: {team.losses ?? "N/A"}</Text>
-                      <Text style={styles.teamDetail}>Goals Scored: {team.goalsScored ?? "N/A"}</Text>
-                      <Text style={styles.teamDetail}>Goals Conceded: {team.goalsConceded ?? "N/A"}</Text>
-                    </View>
-                  );
-                })
-            )}
-
-            {statsOption === "Top Scorer" && (
-              <View style={styles.table}>
-                <View style={styles.tableRow}>
-                  <Text style={[styles.tableHeader, { flex: 2 }]}>Player</Text>
-                  <Text style={[styles.tableHeader, { flex: 3 }]}>Team</Text>
-                  <Text style={styles.tableHeader}>Goals</Text>
-                </View>
-                {statsData.map((player: any, index: number) => {
-                  const key = player?.id ?? player?.name ?? index;
-
-                  return (
-                    <View key={key} style={styles.tableRow}>
-                      <Text style={[styles.tableCell, { flex: 2 }]}>{player.name ?? "N/A"}</Text>
-                      <View style={[styles.tableCell, { flex: 3, flexDirection: 'row', alignItems: 'center' }]}>
-                        {player.crest ? (
-                          <Image
-                            source={{ uri: player.crest }}
-                            style={{ width: 20, height: 20, marginRight: 6 }}
-                            resizeMode="contain"
-                          />
-                        ) : null}
-                        <Text style={styles.tableCell}>{typeof player.team === 'string' ? player.team : player.team?.name ?? "N/A"}</Text>
-                      </View>
-                      <Text style={styles.tableCell}>{player.goals ?? "-"}</Text>
-                    </View>
-                  );
-                })}
-              </View>
-            )}
-
-          </ScrollView>
-        ) : (
-          <Text style={styles.noDataText}>No stats data available</Text>
-        )}
-      </View>
-    </View>
-  );
-
   const renderMatches = () => (
     <View style={styles.matchesContainer}>
-      {!matchesLeftTrayOpen ? (
-        <TouchableOpacity
-          style={styles.openTrayButton}
-          onPress={() => setMatchesLeftTrayOpen(true)}
-        >
-          <Text style={styles.openButtonText}>☰</Text>
-        </TouchableOpacity>
-      ) : (
-        <View style={styles.leftTray}>
-          <TouchableOpacity
-            onPress={() => setMatchesLeftTrayOpen(false)}
-            style={styles.closeButton}
-          >
-            <Text style={styles.closeButtonText}>◀</Text>
-          </TouchableOpacity>
-
-          <Text style={styles.sectionTitle}>Competitions</Text>
-          <View>
-            {COMPETITIONS.map((comp) => (
-              <TouchableOpacity
-                key={comp.id}
-                onPress={() => setMatchesCompetition(comp)}
-                style={[
-                  styles.competitionButton,
-                  matchesCompetition.id === comp.id && styles.activeCompetitionButton
-                ]}
-              >
-                <Text style={[
-                  styles.tabText,
-                  matchesCompetition.id === comp.id && styles.activeTabText
-                ]}>
-                  {comp.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
+      <Modal
+        visible={matchesLeftTrayOpen}
+        transparent={true}
+        animationType="none"
+        onRequestClose={() => setMatchesLeftTrayOpen(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => {
+          Animated.timing(matchesTrayAnim, {
+            toValue: -220,
+            duration: 250,
+            useNativeDriver: false,
+          }).start(() => setMatchesLeftTrayOpen(false));
+        }}>
+          <View style={styles.outlayOverlay}>
+            <TouchableWithoutFeedback>
+              <Animated.View style={[styles.outlayTray, { transform: [{ translateX: matchesTrayAnim }] }]}> 
+                <Text style={styles.sectionTitle}>Competitions</Text>
+                <View>
+                  {COMPETITIONS.map((comp) => (
+                    <TouchableOpacity
+                      key={comp.id}
+                      onPress={() => setMatchesCompetition(comp)}
+                      style={[
+                        styles.competitionButton,
+                        matchesCompetition.id === comp.id && styles.activeCompetitionButton
+                      ]}
+                    >
+                      <Text style={[
+                        styles.tabText,
+                        matchesCompetition.id === comp.id && styles.activeTabText
+                      ]}>
+                        {comp.name}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </Animated.View>
+            </TouchableWithoutFeedback>
           </View>
-        </View>
-      )}
-
+        </TouchableWithoutFeedback>
+      </Modal>
       <View style={styles.matchesContent}>
         {loadingMatches ? (
           <ActivityIndicator size="large" color="#3B82F6" />
@@ -389,32 +274,55 @@ export default function Football() {
     </View>
   );
 
+
+  const selectPlayer = async (player: any) => {
+    setShowSearchModal(false);
+    setSearchQuery("");
+    setFavoritePlayerId(player.id);
+  };
+
   const selectTeam = (team: any) => {
     setFavoriteTeams([{ id: team.id, name: team.name }]);
     setShowSearchModal(false);
     setSearchQuery("");
   };
 
-  const renderFavorite = () => {
-    const favoriteTeamName = favoriteTeams[0]?.name;
-    const favoriteTeamStats = favoriteTeamsStats?.[favoriteTeamName ?? ""];
+  const favoriteTeamName = favoriteTeams[0]?.name;
+  const favoriteTeamStats = favoriteTeamsStats?.[favoriteTeamName ?? ""];
 
-    return (
-      <View style={styles.tabContent}>
-        <View style={styles.favoriteHeader}>
-          <Text style={styles.sectionTitle}>Favorite Team</Text>
-          <TouchableOpacity
-            onPress={() => setShowSearchModal(true)}
-            style={styles.addFavoriteBtn}
-          >
-            <Text style={styles.addButtonText}>
-              {favoriteTeams.length > 0 ? "Change Team" : "Add Team"}
-            </Text>
-          </TouchableOpacity>
-        </View>
+  const renderFavorite = () => (
+    <View style={styles.tabContent}>
+      {/* Tabs for Team/Player with Add/Change button on the right */}
+      <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: 12 }}>
+        <TouchableOpacity
+          style={[styles.favoriteTabButton, favoriteTab === 'team' && styles.activeFavoriteTabButton]}
+          onPress={() => setFavoriteTab('team')}
+        >
+          <Text style={[styles.favoriteTabText, favoriteTab === 'team' && styles.activeFavoriteTabText]}>Team</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.favoriteTabButton, favoriteTab === 'player' && styles.activeFavoriteTabButton]}
+          onPress={() => setFavoriteTab('player')}
+        >
+          <Text style={[styles.favoriteTabText, favoriteTab === 'player' && styles.activeFavoriteTabText]}>Player</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => {
+            setSearchQuery("");
+            setSearchResults([]);
+            setShowSearchModal(true);
+          }}
+          style={[styles.addFavoriteBtn, { marginLeft: 12 }]}
+        >
+          <Text style={styles.addButtonText}>
+            {favoriteTeams.length > 0 ? (favoriteTab === 'team' ? 'Change Team' : 'Change Player') : (favoriteTab === 'team' ? 'Add Team' : 'Add Player')}
+          </Text>
+        </TouchableOpacity>
+      </View>
 
-        <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
-          {!favoriteTeamName || !favoriteTeamStats?.details ? (
+      <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
+        {favoriteTab === 'team' ? (
+          !favoriteTeamName || !favoriteTeamStats?.details ? (
             <Text style={styles.noDataText}>
               Loading team info or no favorite team selected.
             </Text>
@@ -441,7 +349,7 @@ export default function Football() {
                 Coach: {favoriteTeamStats.details.coach || "N/A"}
               </Text>
 
-              <Text style={[styles.teamDetail, { marginTop: 10 }]}>
+              <Text style={[styles.teamDetail, { marginTop: 10 }]}> 
                 Competitions:
               </Text>
               {(favoriteTeamStats.details.competitions ?? []).map(
@@ -461,72 +369,172 @@ export default function Football() {
                 )
               )}
             </View>
-          )}
-        </ScrollView>
-
-        <Modal visible={showSearchModal} animationType="slide" transparent={false}>
-          <View style={styles.modalContainer}>
-            <View style={styles.searchBarContainer}>
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search for a team"
-                placeholderTextColor="gray"
-                value={searchQuery}
-                onChangeText={onSearchInputChange}
-                autoFocus={true}
+          )
+        ) : (
+          loadingFavoritePlayer ? (
+            <Text style={styles.noDataText}>Loading player info...</Text>
+          ) : !favoritePlayer ? (
+            <Text style={styles.noDataText}>No favorite player selected.</Text>
+          ) : (
+            <View style={styles.favoriteTeamCard}>
+              <Image
+                source={{ uri: favoritePlayer.wikiImage || favoritePlayer.currentTeam?.crest || "https://crests.football-data.org/66.png" }}
+                style={{ width: 120, height: 120, borderRadius: 60, marginBottom: 10 }}
+                resizeMode="cover"
               />
-              <TouchableOpacity
-                onPress={() => setShowSearchModal(false)}
-                style={styles.closeModalButton}
-              >
-                <Text style={styles.closeButtonText}>✕</Text>
-              </TouchableOpacity>
+              <Text style={styles.teamName}>{favoritePlayer.name || "N/A"}</Text>
+              <Text style={styles.teamDetail}>First Name: {favoritePlayer.firstName || "N/A"}</Text>
+              <Text style={styles.teamDetail}>Last Name: {favoritePlayer.lastName || "N/A"}</Text>
+              <Text style={styles.teamDetail}>Nationality: {favoritePlayer.nationality || "N/A"}</Text>
+              <Text style={styles.teamDetail}>Position: {favoritePlayer.position || "N/A"}</Text>
+              <Text style={styles.teamDetail}>Jersey Number: {favoritePlayer.shirtNumber ?? "N/A"}</Text>
+              <Text style={styles.teamDetail}>Date of Birth: {favoritePlayer.dateOfBirth || "N/A"}</Text>
+              <Text style={styles.teamDetail}>Current Club: {favoritePlayer.currentTeam?.name || "N/A"}</Text>
+              <Text style={styles.teamDetail}>Contract: {favoritePlayer.currentTeam?.contract?.start || "N/A"} - {favoritePlayer.currentTeam?.contract?.until || "N/A"}</Text>
+              <Text style={[styles.teamDetail, { marginTop: 10 }]}>Competitions:</Text>
+              {(favoritePlayer.currentTeam?.runningCompetitions ?? []).map(
+                (comp: any, index: number) => (
+                  <Text key={index} style={styles.teamDetail}>
+                    • {comp.name}
+                  </Text>
+                )
+              )}
             </View>
+          )
+        )}
+      </ScrollView>
 
-            {isSearching ? (
-              <ActivityIndicator size="large" color="#3B82F6" style={styles.loader} />
-            ) : searchResults.length === 0 && searchQuery.length > 1 ? (
-              <Text style={styles.noResultsText}>No teams found</Text>
-            ) : (
-              <ScrollView style={styles.searchResults}>
-                {searchResults.map((team) => (
-                  <TouchableOpacity
-                    key={`${team.id}-${team.name}`}
-                    onPress={() => selectTeam(team)}
-                    style={styles.searchResultItem}
-                  >
-                    <Text style={styles.noDataText}>{team.name}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            )}
+      <Modal visible={showSearchModal} animationType="slide" transparent={false}>
+        <View style={styles.modalContainer}>
+          <View style={styles.searchBarContainer}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder={favoriteTab === 'team' ? 'Search for a team' : 'Search for a player'}
+              placeholderTextColor="gray"
+              value={searchQuery}
+              onChangeText={onSearchInputChange}
+              autoFocus={true}
+            />
+            <TouchableOpacity
+              onPress={() => setShowSearchModal(false)}
+              style={styles.closeModalButton}
+            >
+              <Text style={styles.closeButtonText}>✕</Text>
+            </TouchableOpacity>
           </View>
-        </Modal>
-      </View>
-    );
+
+          {isSearching ? (
+            <ActivityIndicator size="large" color="#3B82F6" style={styles.loader} />
+          ) : searchResults.length === 0 && searchQuery.length > 1 ? (
+            <Text style={styles.noResultsText}>No {favoriteTab === 'team' ? 'teams' : 'players'} found</Text>
+          ) : (
+            <ScrollView style={styles.searchResults}>
+              {favoriteTab === 'player'
+                ? searchResults.map((player) => (
+                    <TouchableOpacity
+                      key={`${player.id}-${player.name}`}
+                      onPress={() => selectPlayer(player)}
+                      style={styles.searchResultItem}
+                    >
+                      <Text style={styles.noDataText}>{player.name}</Text>
+                    </TouchableOpacity>
+                  ))
+                : searchResults.map((team) => (
+                    <TouchableOpacity
+                      key={`${team.id}-${team.name}`}
+                      onPress={() => selectTeam(team)}
+                      style={styles.searchResultItem}
+                    >
+                      <Text style={styles.noDataText}>{team.name}</Text>
+                    </TouchableOpacity>
+                  ))}
+            </ScrollView>
+          )}
+        </View>
+      </Modal>
+    </View>
+  );
+  // --- Favorite Section Tab Styles ---
+  const favoriteTabStyles = {
+    favoriteTabButton: {
+      flex: 1,
+      paddingVertical: 8,
+      backgroundColor: '#1B2631',
+      borderRadius: 8,
+      marginHorizontal: 4,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: '#334155',
+    },
+    activeFavoriteTabButton: {
+      backgroundColor: '#fff',
+      borderColor: '#fff',
+    },
+    favoriteTabText: {
+      color: '#e2e8f0',
+      fontWeight: '500',
+      fontSize: 14,
+    },
+    activeFavoriteTabText: {
+      color: '#000',
+      fontWeight: '700',
+    },
   };
+  Object.assign(styles, favoriteTabStyles);
 
 
   return (
     <View style={styles.container}>
       <View style={styles.tabContainer}>
-        {tabs.map((tab) => (
-          <TouchableOpacity
-            key={tab}
-            onPress={() => setActiveTab(tab as any)}
-            style={[
-              styles.tabButton,
-              activeTab === tab && styles.activeTabButton
-            ]}
-          >
-            <Text style={[
-              styles.tabText,
-              activeTab === tab && styles.activeTabText
-            ]}>
-              {tab}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        <View style={{ flexDirection: 'row', alignItems: 'center', flexGrow: 1 }}>
+          {/* Show three lines button only for Stats or Matches tab, now on the left */}
+          {(activeTab === 'Stats' || activeTab === 'Matches') && (
+            <TouchableOpacity
+              style={[styles.openTrayButton, { position: 'relative', left: 0, right: 0, marginLeft: 8, marginRight: 8 }]}
+              onPress={() => {
+                if (activeTab === 'Stats') {
+                  setStatsLeftTrayOpen(true);
+                  Animated.timing(statsTrayAnim, {
+                    toValue: 0,
+                    duration: 250,
+                    useNativeDriver: false,
+                  }).start();
+                } else if (activeTab === 'Matches') {
+                  setMatchesLeftTrayOpen(true);
+                  Animated.timing(matchesTrayAnim, {
+                    toValue: 0,
+                    duration: 250,
+                    useNativeDriver: false,
+                  }).start();
+                }
+              }}
+            >
+              <Text style={styles.openButtonText}>☰</Text>
+            </TouchableOpacity>
+          )}
+          {/* Tabs */}
+          <View style={{ flexDirection: 'row', flex: 1 }}>
+            {tabs.map((tab) => (
+              <TouchableOpacity
+                key={tab}
+                onPress={() => setActiveTab(tab as any)}
+                style={[
+                  styles.tabButton,
+                  activeTab === tab && styles.activeTabButton,
+                  // Stretch tabs if three lines button is hidden
+                  (activeTab !== 'Stats' && activeTab !== 'Matches') && { flex: 1, minWidth: undefined }
+                ]}
+              >
+                <Text style={[
+                  styles.tabText,
+                  activeTab === tab && styles.activeTabText
+                ]}>
+                  {tab}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
       </View>
 
       <View style={styles.content}>
@@ -540,6 +548,29 @@ export default function Football() {
 }
 
 const styles = StyleSheet.create({
+  favoriteTabButton: {
+    flex: 1,
+    paddingVertical: 8,
+    backgroundColor: '#1B2631',
+    borderRadius: 8,
+    marginHorizontal: 4,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  activeFavoriteTabButton: {
+    backgroundColor: '#fff',
+    borderColor: '#fff',
+  },
+  favoriteTabText: {
+    color: '#e2e8f0',
+    fontWeight: '500',
+    fontSize: 14,
+  },
+  activeFavoriteTabText: {
+    color: '#000',
+    fontWeight: '700',
+  },
   container: {
     flex: 1,
     backgroundColor: '#000',
@@ -888,5 +919,24 @@ const styles = StyleSheet.create({
     color: '#cbd5e1',
     fontSize: 14,
     marginBottom: 4,
+  },
+  outlayOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'stretch',
+  },
+  outlayTray: {
+    width: 200,
+    backgroundColor: '#1B2631',
+    padding: 16,
+    paddingTop: 40,
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+    borderTopRightRadius: 16,
+    borderBottomRightRadius: 16,
   },
 });

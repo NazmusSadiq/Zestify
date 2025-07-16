@@ -1,3 +1,23 @@
+// Fetch player image from Wikipedia
+export async function getWikipediaImageUrl(playerName: string): Promise<string | null> {
+  try {
+    const url = `https://en.wikipedia.org/w/api.php?action=query&format=json&titles=${encodeURIComponent(playerName)}&prop=pageimages&pithumbsize=500&origin=*`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const pages = data?.query?.pages;
+    if (pages) {
+      for (const pageId in pages) {
+        const page = pages[pageId];
+        if (page.thumbnail && page.thumbnail.source) {
+          return page.thumbnail.source;
+        }
+      }
+    }
+    return null;
+  } catch (e) {
+    return null;
+  }
+}
 import {
   COMPETITIONS,
   fetchFromApi,
@@ -39,43 +59,83 @@ export function useFootballData() {
   const [favoriteTeamsStats, setFavoriteTeamsStats] = useState<any>(null);
   const [loadingFavStats, setLoadingFavStats] = useState(false);
 
-  // Load favorite teams from Firebase when component mounts
-  useEffect(() => {
-    const loadFavoriteTeams = async () => {
-      if (!user?.primaryEmailAddress?.emailAddress) return;
+  // Favorite player logic
+  const [favoritePlayerId, setFavoritePlayerId] = useState<number | null>(null);
+  const [favoritePlayerData, setFavoritePlayerData] = useState<any>(null);
+  const [loadingFavoritePlayer, setLoadingFavoritePlayer] = useState(false);
 
+  // Load favorite teams and player from Firebase when component mounts
+  useEffect(() => {
+    const loadFavorites = async () => {
+      if (!user?.primaryEmailAddress?.emailAddress) return;
       try {
         const userDocRef = doc(db, "users", user.primaryEmailAddress.emailAddress);
         const docSnap = await getDoc(userDocRef);
-        
-        if (docSnap.exists() && docSnap.data().favoriteTeams) {
-          setFavoriteTeams(docSnap.data().favoriteTeams);
-        }      } catch (error: any) {
-        console.error("Error loading favorite teams:", error);
-        Alert.alert("Error", "Failed to load favorite teams");
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.favoriteTeams) setFavoriteTeams(data.favoriteTeams);
+          if (data.favoritePlayerId) setFavoritePlayerId(data.favoritePlayerId);
+        }
+      } catch (error: any) {
+        console.error("Error loading favorites:", error);
+        Alert.alert("Error", "Failed to load favorites");
       }
     };
-
-    loadFavoriteTeams();
+    loadFavorites();
   }, [user?.primaryEmailAddress?.emailAddress]);
 
-  // Save favorite teams to Firebase whenever they change
+  // Save favorite teams and player to Firebase whenever they change
   useEffect(() => {
-    const saveFavoriteTeams = async () => {
+    const saveFavorites = async () => {
       if (!user?.primaryEmailAddress?.emailAddress) return;
-
       try {
         const userDocRef = doc(db, "users", user.primaryEmailAddress.emailAddress);
-        await setDoc(userDocRef, { favoriteTeams }, { merge: true });      } catch (error: any) {
-        console.error("Error saving favorite teams:", error);
-        Alert.alert("Error", "Failed to save favorite teams");
+        await setDoc(userDocRef, { favoriteTeams, favoritePlayerId }, { merge: true });
+      } catch (error: any) {
+        console.error("Error saving favorites:", error);
+        Alert.alert("Error", "Failed to save favorites");
       }
     };
-
-    if (favoriteTeams.length > 0) {
-      saveFavoriteTeams();
+    if (favoriteTeams.length > 0 || favoritePlayerId) {
+      saveFavorites();
     }
-  }, [favoriteTeams, user?.primaryEmailAddress?.emailAddress]);
+  }, [favoriteTeams, favoritePlayerId, user?.primaryEmailAddress?.emailAddress]);
+
+  // Fetch favorite player data when favoritePlayerId changes
+  useEffect(() => {
+    const fetchFavoritePlayerData = async () => {
+      if (!favoritePlayerId) {
+        setFavoritePlayerData(null);
+        return;
+      }
+      setLoadingFavoritePlayer(true);
+      try {
+        const data = await fetchFromApi(`players/${favoritePlayerId}`);
+        setFavoritePlayerData(data);
+      } catch (error) {
+        setFavoritePlayerData(null);
+      } finally {
+        setLoadingFavoritePlayer(false);
+      }
+    };
+    fetchFavoritePlayerData();
+  }, [favoritePlayerId]);
+  // Add favorite player (similar to addFavoriteTeam)
+  const addFavoritePlayer = async (playerName: string) => {
+    if (!playerName) return null;
+    try {
+      const data = await fetchFromApi("players", `?name=${encodeURIComponent(playerName)}`);
+      if (data?.error || !data.players || data.players.length === 0) {
+        Alert.alert("Player Error", "Player not found");
+        return null;
+      }
+      // Only allow one favorite player
+      return data.players[0].id;
+    } catch (error) {
+      Alert.alert("Search Error", "Failed to search for player");
+      return null;
+    }
+  };
 
   const fetchHomeMatches = async () => {
     setLoadingHome(true);
@@ -344,5 +404,12 @@ export function useFootballData() {
     fetchFavoriteStats,
     addFavoriteTeam,
     searchTeams,
+
+    // Favorite player
+    favoritePlayerId,
+    setFavoritePlayerId,
+    favoritePlayerData,
+    loadingFavoritePlayer,
+    addFavoritePlayer,
   };
 }

@@ -1,40 +1,48 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
   Image,
   Modal,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View
 } from "react-native";
 import { useCricketData } from "./cricketdatafetcher";
 
-const TABS = ["Matches", "Series", "Stats", "Favorite"];
+const TABS = ["Series", "Matches", "Stats", "Favorite"];
 const MATCH_CATEGORIES = [
+  "All Matches",
   "Current Matches",
-  "World Cup ODI",
-  "World Cup T20",
-  "IPL",
-  "BPL",
-  "Big Bash",
-  "CPL",
-  "T10"
+  "Upcoming Matches",
+  "International Matches",
+  "Test",
+  "ODI",
+  "T20"
 ];
+
+
 
 export default function Cricket() {
   const [activeTab, setActiveTab] = useState("Matches");
+  const [matchesLeftTrayOpen, setMatchesLeftTrayOpen] = useState(false);
+  const matchesTrayAnim = useRef(new Animated.Value(-220)).current;
   const [selectedMatch, setSelectedMatch] = useState<any>(null);
   const [matchDetail, setMatchDetail] = useState<any>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
+
 
   const {
     matchesData,
     loadingMatches,
     selectedCompetition,
     setSelectedCompetition,
-    getMatchScorecard
+    getMatchScorecard,
+    seriesData,
+    loadingSeries
   } = useCricketData();
 
   useEffect(() => {
@@ -47,18 +55,47 @@ export default function Cricket() {
     }
   }, [selectedMatch]);
 
-  const renderMatchCard = (match: any) => (
-    <TouchableOpacity key={match.id} style={styles.matchCard} onPress={() => setSelectedMatch(match)}>
-      <Text style={styles.matchTitle}>{match.name}</Text>
-      <Text style={styles.matchStatus}>{match.status}</Text>
-      <Text style={styles.matchDetail}>{match.date} | {match.venue}</Text>
-      {match.score?.map((s: any, idx: number) => (
-        <Text key={idx} style={styles.matchDetail}>
-          {s.inning}: {s.r}/{s.w} in {s.o} overs
-        </Text>
-      ))}
-    </TouchableOpacity>
-  );
+
+  const renderMatchCard = (match: any) => {
+    let matchType = (match.matchType || match.matchtype || '').toString().toUpperCase();
+    if (matchType === 'T20') matchType = 'T20';
+    else if (matchType === 'ODI') matchType = 'ODI';
+    else if (matchType === 'TEST') matchType = 'Test';
+    else matchType = '';
+
+    // Determine if match has started
+    const notStarted =
+      (typeof match.matchStarted === 'boolean' && match.matchStarted === false) ||
+      (typeof match.status === 'string' && match.status.toLowerCase().includes('not started'));
+
+    // Disable if not started or fantasyEnabled is false
+    const disabled = notStarted || match.fantasyEnabled === false;
+
+    return (
+      <TouchableOpacity
+        key={match.id || match.matchId}
+        style={styles.matchCard}
+        onPress={() => {
+          if (!disabled) setSelectedMatch(match);
+        }}
+        disabled={disabled}
+      >
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <Text style={styles.matchTitle}>{match.name || match.matchTitle || match.teams || 'Unknown Match'}</Text>
+          {match.fantasyEnabled === true && (
+            <Text style={styles.scorecardAvailable}>scorecard available</Text>
+          )}
+        </View>
+        <Text style={styles.matchStatus}>{match.status || match.matchType || ''}</Text>
+        <Text style={styles.matchDetail}>{match.date || match.dateTimeGMT || ''} {match.venue ? `| ${match.venue}` : ''}</Text>
+        {match.score?.map?.((s: any, idx: number) => (
+          <Text key={idx} style={styles.matchDetail}>
+            {s.inning}: {s.r}/{s.w} in {s.o} overs
+          </Text>
+        ))}
+      </TouchableOpacity>
+    );
+  };
 
   const renderMatchModal = () => (
     <Modal visible={!!selectedMatch} animationType="slide">
@@ -115,62 +152,139 @@ export default function Cricket() {
     </Modal>
   );
 
-  const renderMatchesTab = () => (
-    <View style={styles.tabContent}>
-      <View style={styles.leftTray}>
-        {MATCH_CATEGORIES.map((label) => (
-          <TouchableOpacity
-            key={label}
-            onPress={() => setSelectedCompetition(label)}
-            style={[
-              styles.trayItem,
-              selectedCompetition === label && styles.trayItemSelected
-            ]}
-          >
-            <Text
-              style={[
-                styles.trayItemText,
-                selectedCompetition === label && styles.trayItemTextSelected
-              ]}
-            >
-              {label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      <View style={styles.matchList}>
-        {loadingMatches ? (
-          <ActivityIndicator size="large" color="#3B82F6" />
-        ) : matchesData.length === 0 ? (
-          <Text style={styles.noDataText}>No matches found</Text>
-        ) : (
-          <ScrollView>{matchesData.map(renderMatchCard)}</ScrollView>
-        )}
-      </View>
-
-      {renderMatchModal()}
-    </View>
-  );
-
+  // Football-style tab bar and overlay button
   return (
     <View style={styles.container}>
       <View style={styles.tabContainer}>
-        {TABS.map((tab) => (
-          <TouchableOpacity
-            key={tab}
-            onPress={() => setActiveTab(tab)}
-            style={[styles.tabButton, activeTab === tab && styles.activeTabButton]}
-          >
-            <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
-              {tab}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        <View style={{ flexDirection: 'row', alignItems: 'center', flexGrow: 1 }}>
+          {/* Show three lines button only for Matches or Stats tab, now on the left */}
+          {(activeTab === 'Matches' || activeTab === 'Stats') && (
+            <TouchableOpacity
+              style={[styles.openTrayButton, { position: 'relative', left: 0, right: 0, marginLeft: 8, marginRight: 8 }]}
+              onPress={() => {
+                setMatchesLeftTrayOpen(true);
+                Animated.timing(matchesTrayAnim, {
+                  toValue: 0,
+                  duration: 250,
+                  useNativeDriver: false,
+                }).start();
+              }}
+            >
+              <Text style={styles.openButtonText}>☰</Text>
+            </TouchableOpacity>
+          )}
+          {/* Tabs */}
+          <View style={{ flexDirection: 'row', flex: 1 }}>
+            {TABS.map((tab) => (
+              <TouchableOpacity
+                key={tab}
+                onPress={() => setActiveTab(tab)}
+                style={[
+                  styles.tabButton,
+                  activeTab === tab && styles.activeTabButton,
+                  // Stretch tabs if three lines button is hidden
+                  (activeTab !== 'Matches' && activeTab !== 'Stats') && { flex: 1, minWidth: undefined }
+                ]}
+              >
+                <Text style={[
+                  styles.tabText,
+                  activeTab === tab && styles.activeTabText
+                ]}>
+                  {tab}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
       </View>
 
+      {/* Overlay Modal for match categories, football style */}
+      <Modal
+        visible={matchesLeftTrayOpen}
+        transparent={true}
+        animationType="none"
+        onRequestClose={() => setMatchesLeftTrayOpen(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => {
+          Animated.timing(matchesTrayAnim, {
+            toValue: -220,
+            duration: 250,
+            useNativeDriver: false,
+          }).start(() => setMatchesLeftTrayOpen(false));
+        }}>
+          <View style={styles.outlayOverlay}>
+            <TouchableWithoutFeedback>
+              <Animated.View style={[styles.outlayTray, { transform: [{ translateX: matchesTrayAnim }] }]}> 
+                <Text style={styles.sectionTitle}>Categories</Text>
+                <View>
+                  {MATCH_CATEGORIES.map((label) => (
+                    <TouchableOpacity
+                      key={label}
+                      onPress={() => {
+                        setSelectedCompetition(label);
+                        Animated.timing(matchesTrayAnim, {
+                          toValue: -220,
+                          duration: 250,
+                          useNativeDriver: false,
+                        }).start(() => setMatchesLeftTrayOpen(false));
+                      }}
+                      style={[
+                        styles.competitionButton,
+                        selectedCompetition === label && styles.activeCompetitionButton
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.tabText,
+                          selectedCompetition === label && styles.activeTabText
+                        ]}
+                      >
+                        {label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </Animated.View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+
       <View style={styles.content}>
-        {activeTab === "Matches" && renderMatchesTab()}
+        {activeTab === "Series" && (
+          <View style={styles.tabContent}>
+            {loadingSeries ? (
+              <ActivityIndicator size="large" color="#3B82F6" />
+            ) : seriesData.length === 0 ? (
+              <Text style={styles.noDataText}>No series found</Text>
+            ) : (
+              <ScrollView style={styles.scrollContainer}>
+                {seriesData.map((series: any) => (
+                  <View key={series.id || series.seriesId} style={styles.matchCard}>
+                    <Text style={styles.matchTitle}>{series.name || series.seriesName || 'Unknown Series'}</Text>
+                    <Text style={styles.matchDetail}>{series.startDate || series.startDateTime || ''} {series.venue ? `| ${series.venue}` : ''}</Text>
+                  </View>
+                ))}
+              </ScrollView>
+            )}
+          </View>
+        )}
+        {activeTab === "Matches" && (
+          <View style={styles.tabContent}>
+            <View style={styles.matchesContent}>
+              {loadingMatches ? (
+                <ActivityIndicator size="large" color="#3B82F6" />
+              ) : matchesData.length === 0 ? (
+                <Text style={styles.noDataText}>No matches found</Text>
+              ) : (
+                <ScrollView style={styles.scrollContainer}>
+                  {matchesData.map(renderMatchCard)}
+                </ScrollView>
+              )}
+            </View>
+            {renderMatchModal()}
+          </View>
+        )}
         {/* Other tabs remain the same */}
       </View>
     </View>
@@ -180,145 +294,239 @@ export default function Cricket() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#000" },
   tabContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    backgroundColor: "#1B2631",
-    paddingVertical: 10
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 0,
+    paddingVertical: 8,
+    marginTop: -10,
+    backgroundColor: '#000',
   },
   tabButton: {
-    padding: 10,
-    backgroundColor: "#1e293b",
-    borderRadius: 10
+    minWidth: 70,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#334155',
+    backgroundColor: '#1B2631',
+    marginHorizontal: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   activeTabButton: {
-    backgroundColor: "#fff"
+    backgroundColor: '#fff',
+    borderColor: '#fff',
   },
   tabText: {
-    color: "#fff",
-    fontSize: 14
+    color: '#e2e8f0',
+    fontWeight: '500',
+    fontSize: 12,
   },
   activeTabText: {
-    color: "#000",
-    fontWeight: "bold"
+    color: '#000',
+    fontWeight: '700',
   },
   content: {
     flex: 1,
-    flexDirection: "row"
+    backgroundColor: '#1B2631',
+    padding: 0,
+    height: '92%',
   },
   tabContent: {
     flex: 1,
-    flexDirection: "row"
+    padding: 10,
+    height: '92%',
+    flexDirection: 'row',
   },
-  leftTray: {
-    width: 120,
-    backgroundColor: "#0f172a",
-    paddingTop: 10
-  },
-  trayItem: {
-    paddingVertical: 10,
-    paddingHorizontal: 12
-  },
-  trayItemSelected: {
-    backgroundColor: "#3B82F6",
-    borderTopRightRadius: 10,
-    borderBottomRightRadius: 10
-  },
-  trayItemText: {
-    color: "#cbd5e1"
-  },
-  trayItemTextSelected: {
-    color: "#fff",
-    fontWeight: "bold"
-  },
-  matchList: {
+  scrollContainer: {
     flex: 1,
-    padding: 10
-  },
-  matchCard: {
-    backgroundColor: "#1e293b",
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 10
-  },
-  matchTitle: {
-    fontSize: 16,
-    color: "#fff",
-    fontWeight: "600"
-  },
-  matchStatus: {
-    color: "#facc15",
-    fontWeight: "500",
-    marginTop: 4
-  },
-  matchDetail: {
-    color: "#cbd5e1",
-    fontSize: 12,
-    marginTop: 2
+    height: '92%',
   },
   noDataText: {
-    color: "#94a3b8",
-    textAlign: "center",
-    marginTop: 20
+    color: '#94a3b8',
+    textAlign: 'center',
+    marginTop: 20,
+    fontSize: 16,
   },
+  matchCard: {
+    backgroundColor: '#0f172a',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#1e293b',
+  },
+  matchTitle: {
+    color: '#f8fafc',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+    flex: 1,
+    flexWrap: 'wrap',
+  },
+  scorecardAvailable: {
+    color: '#22c55e',
+    fontWeight: 'bold',
+    fontSize: 12,
+    marginLeft: 8,
+    alignSelf: 'flex-start',
+  },
+  matchStatus: {
+    color: '#facc15',
+    fontWeight: '500',
+    marginTop: 4,
+  },
+  matchDetail: {
+    color: '#cbd5e1',
+    fontSize: 14,
+  },
+  matchesContent: {
+    flex: 1,
+    padding: 5,
+    height: '92%',
+  },
+  // Modal and detail styles from football.tsx
   modalContainer: {
     flex: 1,
-    backgroundColor: "#0f172a",
-    padding: 15
+    backgroundColor: '#1B2631',
+    padding: 15,
   },
   closeButton: {
-    alignSelf: "flex-end",
-    padding: 10
+    backgroundColor: '#ef4444',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'flex-end',
+    marginBottom: 10,
   },
   closeText: {
-    color: "#3B82F6",
-    fontSize: 16
+    fontSize: 18,
+    color: '#fff',
+    fontWeight: '700',
   },
   modalTitle: {
+    color: '#f8fafc',
+    fontWeight: '700',
     fontSize: 18,
-    fontWeight: "700",
-    color: "#fff",
-    marginBottom: 4
+    marginBottom: 10,
+    textAlign: 'center',
+    marginVertical: 10,
   },
   modalSub: {
-    color: "#94a3b8",
-    fontSize: 12,
-    marginBottom: 4
-  },
-  flag: {
-    width: 32,
-    height: 20,
-    marginRight: 8
+    color: '#cbd5e1',
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 4,
   },
   teamRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 10
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+    justifyContent: 'center',
+  },
+  flag: {
+    width: 24,
+    height: 24,
+    resizeMode: 'contain',
+    marginHorizontal: 6,
+    transform: [{ translateY: -3 }],
   },
   teamName: {
-    color: "#f8fafc",
-    fontSize: 14
+    color: '#f8fafc',
+    fontSize: 14,
+    fontWeight: '700',
+    marginBottom: 0,
   },
   scoreLine: {
-    color: "#fbbf24",
+    color: '#fbbf24',
     fontSize: 14,
-    marginTop: 6
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginVertical: 2,
   },
   inningSection: {
-    marginTop: 16
+    backgroundColor: '#0f172a',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#1e293b',
   },
   inningTitle: {
-    color: "#f8fafc",
-    fontWeight: "700",
-    fontSize: 14,
-    marginBottom: 6
+    color: '#38bdf8',
+    fontWeight: '700',
+    fontSize: 15,
+    marginBottom: 6,
+    textAlign: 'center',
   },
   subHeading: {
-    color: "#94a3b8",
-    fontWeight: "600",
-    marginTop: 8
+    color: '#f8fafc',
+    fontWeight: '600',
+    fontSize: 13,
+    marginTop: 8,
+    marginBottom: 2,
   },
   playerStat: {
-    color: "#e2e8f0",
-    fontSize: 13
-  }
+    color: '#cbd5e1',
+    fontSize: 13,
+    marginLeft: 10,
+    marginBottom: 2,
+  },
+  openTrayButton: {
+    position: 'absolute',
+    top: 5,
+    left: 5,
+    zIndex: 10,
+    backgroundColor: '#fff',
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  openButtonText: {
+    color: '#000',
+    fontSize: 15,
+  },
+  outlayOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'stretch',
+  },
+  outlayTray: {
+    width: 200,
+    backgroundColor: '#1B2631',
+    padding: 16,
+    paddingTop: 40,
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+    borderTopRightRadius: 16,
+    borderBottomRightRadius: 16,
+  },
+  sectionTitle: {
+    color: '#FF0000',
+    fontWeight: '700',
+    fontSize: 14,
+    marginBottom: 10,
+    marginTop: 5,
+    textAlign: 'center',
+    alignSelf: 'center',
+  },
+  competitionButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+    borderRadius: 6,
+    marginBottom: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activeCompetitionButton: {
+    backgroundColor: '#fff',
+  },
 });
