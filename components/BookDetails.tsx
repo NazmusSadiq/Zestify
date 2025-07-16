@@ -1,6 +1,9 @@
-import React from 'react';
+import { useUser } from "@clerk/clerk-expo";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import React, { useEffect, useState } from 'react';
 import { Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Book } from '../services/book_API';
+import { db } from "../firebase";
+import type { Book } from '../services/book_API';
 
 interface BookDetailsProps {
   book: Book | null;
@@ -9,6 +12,62 @@ interface BookDetailsProps {
 }
 
 export default function BookDetails({ book, visible, onClose }: BookDetailsProps) {
+  const { user } = useUser();
+  const [isLiked, setIsLiked] = useState(false);
+  const [loadingLike, setLoadingLike] = useState(false);
+
+  // Use Google Books ID as unique identifier
+  const itemId = book?.id;
+
+  // Fetch like state from Firestore when itemId changes
+  useEffect(() => {
+    const fetchLike = async () => {
+      if (!user?.primaryEmailAddress?.emailAddress || !itemId) {
+        setIsLiked(false);
+        return;
+      }
+      try {
+        const booksDocRef = doc(db, user.primaryEmailAddress.emailAddress, "books");
+        const docSnap = await getDoc(booksDocRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setIsLiked(!!data[itemId]);
+        } else {
+          setIsLiked(false);
+        }
+      } catch (e) {
+        setIsLiked(false);
+      }
+    };
+    fetchLike();
+  }, [user?.primaryEmailAddress?.emailAddress, itemId]);
+
+  const handleLike = async () => {
+    if (!user?.primaryEmailAddress?.emailAddress || !itemId) return;
+    setLoadingLike(true);
+    try {
+      const booksDocRef = doc(db, user.primaryEmailAddress.emailAddress, "books");
+      await setDoc(booksDocRef, { [itemId]: true }, { merge: true });
+      setIsLiked(true);
+    } catch (e) {
+      // Optionally show error
+    }
+    setLoadingLike(false);
+  };
+
+  const handleUnlike = async () => {
+    if (!user?.primaryEmailAddress?.emailAddress || !itemId) return;
+    setLoadingLike(true);
+    try {
+      const booksDocRef = doc(db, user.primaryEmailAddress.emailAddress, "books");
+      await setDoc(booksDocRef, { [itemId]: false }, { merge: true });
+      setIsLiked(false);
+    } catch (e) {
+      // Optionally show error
+    }
+    setLoadingLike(false);
+  };
+
   if (!book) return null;
 
   return (
@@ -23,24 +82,33 @@ export default function BookDetails({ book, visible, onClose }: BookDetailsProps
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
             <Text style={styles.closeButtonText}>×</Text>
           </TouchableOpacity>
-
           <ScrollView style={styles.scrollView}>
-            <View style={styles.header}>
+            {/* Image at top, heart button at top right of image, then title below image */}
+            <View style={{ position: 'relative', alignItems: 'center', marginBottom: 16 }}>
               {book.volumeInfo.imageLinks?.thumbnail && (
                 <Image
                   source={{ uri: book.volumeInfo.imageLinks.thumbnail }}
                   style={styles.coverImage}
                 />
               )}
-              <View style={styles.titleContainer}>
-                <Text style={styles.title}>{book.volumeInfo.title}</Text>
-                {book.volumeInfo.authors && (
-                  <Text style={styles.author}>
-                    by {book.volumeInfo.authors.join(', ')}
-                  </Text>
-                )}
-              </View>
+              {/* Heart button at top right of image */}
+              <TouchableOpacity
+                style={styles.posterHeartButton}
+                onPress={isLiked ? handleUnlike : handleLike}
+                activeOpacity={0.7}
+                disabled={loadingLike}
+              >
+                <Text style={{ fontSize: 28, opacity: loadingLike ? 0.5 : 1 }}>
+                  {isLiked ? '❤️' : '🤍'}
+                </Text>
+              </TouchableOpacity>
             </View>
+            <Text style={styles.title}>{book.volumeInfo.title}</Text>
+            {book.volumeInfo.authors && (
+              <Text style={styles.author}>
+                by {book.volumeInfo.authors.join(', ')}
+              </Text>
+            )}
 
             <View style={styles.detailsContainer}>
               {book.volumeInfo.publishedDate && (
@@ -164,5 +232,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#fff',
     lineHeight: 20,
+  },
+  posterHeartButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    zIndex: 2,
   },
 }); 
