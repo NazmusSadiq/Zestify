@@ -1,17 +1,106 @@
-  // --- Render Stats Tab ---
-  import { API_KEY, COMPETITIONS } from "@/services/fotball_API";
+// --- Render Stats Tab ---
+import { API_KEY, COMPETITIONS, STATS_OPTIONS } from "@/services/fotball_API";
 import { useUser } from "@clerk/clerk-expo";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import React, { useEffect, useRef, useState } from "react";
 import { db } from "../../../firebase";
+import SPORTS_DATA from "../../../sportsdata.json";
 
-import { ActivityIndicator, Animated, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
+import { ActivityIndicator, Animated, Dimensions, Image, Modal, NativeScrollEvent, NativeSyntheticEvent, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import { getTeamWithCrest, getWikipediaImageUrl, useFootballData } from "./footballdatafetcher";
-const renderStats = () => (
-    <View style={styles.tabContent}>
-      <Text style={styles.noDataText}>Stats tab content goes here.</Text>
+
+// Transfer Card Component
+const TransferCard = ({ transfer }: { transfer: any }) => {
+  const [playerImage, setPlayerImage] = useState<string | null>(null);
+  const [fromTeamCrest, setFromTeamCrest] = useState<string | null>(null);
+  const [toTeamCrest, setToTeamCrest] = useState<string | null>(null);
+  
+  React.useEffect(() => {
+    const fetchPlayerImage = async () => {
+      if (transfer.playerName) {
+        try {
+          const imageUrl = await getWikipediaImageUrl(transfer.playerName);
+          setPlayerImage(imageUrl);
+        } catch (error) {
+          setPlayerImage(null);
+        }
+      }
+    };
+    fetchPlayerImage();
+  }, [transfer.playerName]);
+
+  React.useEffect(() => {
+    const fetchTeamCrests = async () => {
+      try {
+        // Fetch from team crest
+        if (transfer.fromTeamId) {
+          const headers = new Headers();
+          headers.append('X-Auth-Token', API_KEY!);
+          const fromTeamResponse = await fetch(`https://api.football-data.org/v4/teams/${transfer.fromTeamId}`, { headers });
+          const fromTeamData = await fromTeamResponse.json();
+          setFromTeamCrest(fromTeamData.crest || null);
+        }
+
+        // Fetch to team crest
+        if (transfer.toTeamId) {
+          const headers = new Headers();
+          headers.append('X-Auth-Token', API_KEY!);
+          const toTeamResponse = await fetch(`https://api.football-data.org/v4/teams/${transfer.toTeamId}`, { headers });
+          const toTeamData = await toTeamResponse.json();
+          setToTeamCrest(toTeamData.crest || null);
+        }
+      } catch (error) {
+        console.error('Error fetching team crests:', error);
+      }
+    };
+    
+    fetchTeamCrests();
+  }, [transfer.fromTeamId, transfer.toTeamId]);
+
+  return (
+    <View style={styles.transferCard}>
+      <View style={styles.compactTransferHeader}>
+        <Text style={styles.transferPlayerName}>{transfer.playerName}</Text>
+        <Text style={styles.transferDate}>{transfer.date}</Text>
+      </View>
+      <View style={styles.compactTransferBody}>
+        {playerImage && (
+          <Image 
+            source={{ uri: playerImage }} 
+            style={styles.playerImage}
+            resizeMode="cover"
+          />
+        )}
+        <View style={styles.compactTransferInfo}>
+          <View style={styles.compactTransferTeams}>
+            <View style={styles.transferTeamContainer}>
+              {fromTeamCrest && (
+                <Image 
+                  source={{ uri: fromTeamCrest }} 
+                  style={styles.transferTeamCrest}
+                  resizeMode="contain"
+                />
+              )}
+              <Text style={styles.transferTeamName}>{transfer.fromTeam}</Text>
+            </View>
+            <Text style={styles.transferArrow}>→</Text>
+            <View style={styles.transferTeamContainer}>
+              {toTeamCrest && (
+                <Image 
+                  source={{ uri: toTeamCrest }} 
+                  style={styles.transferTeamCrest}
+                  resizeMode="contain"
+                />
+              )}
+              <Text style={styles.transferTeamName}>{transfer.toTeam}</Text>
+            </View>
+            <Text style={styles.transferAmount}>{transfer.amount}</Text>
+          </View>
+        </View>
+      </View>
     </View>
   );
+};
 
 const tabs = ["Home", "Matches", "Stats", "Favorite"];
 
@@ -28,11 +117,24 @@ export default function Football() {
   const [isSearching, setIsSearching] = useState(false);
   const debounceTimeout = useRef<number | null>(null);
 
+  // --- Slideshow State Variables ---
+  const { width } = Dimensions.get("window");
+  const transferScrollRef = useRef<ScrollView>(null);
+  const transferScrollIndex = useRef(0);
+  const isManualScrolling = useRef(false);
+  const manualScrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const transferScrollX = useRef(new Animated.Value(0)).current;
+  
+  // Transfer card dimensions
+  const transferCardWidth = width ; // Full width minus padding
+  const transferCardMargin = 0; // No margin between cards now
+  const transferCardWidthWithMargin = transferCardWidth;
+
   // --- Favorite Section Tabs ---
   const [favoriteTab, setFavoriteTab] = useState<'team' | 'player'>('team');
   // --- Favorite Player State ---
   const [favoritePlayer, setFavoritePlayer] = useState<any>(null);
-  const [favoritePlayerId, setFavoritePlayerId] = useState<number | null>(null); 
+  const [favoritePlayerId, setFavoritePlayerId] = useState<number | null>(null);
   const [loadingFavoritePlayer, setLoadingFavoritePlayer] = useState(false);
 
   // Firebase user
@@ -177,25 +279,158 @@ export default function Football() {
     };
   }, [searchQuery, favoriteTab]);
 
+  // --- Transfer Slideshow Effects ---
+  useEffect(() => {
+    const transfers = (SPORTS_DATA as any).football?.transfers || [];
+    if (transfers.length > 0 && transferScrollRef.current) {
+      const offset = transfers.length * transferCardWidthWithMargin - 16;
+      transferScrollRef.current.scrollTo({ x: offset, animated: false });
+      transferScrollIndex.current = transfers.length;
+    }
+  }, []);
+
+  useEffect(() => {
+    const transfers = (SPORTS_DATA as any).football?.transfers || [];
+    if (transfers.length === 0) return;
+
+    const interval = setInterval(() => {
+      if (isManualScrolling.current) return;
+
+      transferScrollIndex.current++;
+
+      // Reset to middle when reaching the end
+      if (transferScrollIndex.current >= transfers.length * 2) {
+        transferScrollIndex.current = transfers.length;
+        transferScrollRef.current?.scrollTo({
+          x: transfers.length * transferCardWidthWithMargin - 16,
+          animated: false,
+        });
+      }
+
+      transferScrollRef.current?.scrollTo({
+        x: transferScrollIndex.current * transferCardWidthWithMargin - 16,
+        animated: true,
+      });
+    }, 3000); // Auto-scroll every 3 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Handle manual scrolling
+  const onTransferScrollBeginDrag = () => {
+    isManualScrolling.current = true;
+    if (manualScrollTimeout.current) {
+      clearTimeout(manualScrollTimeout.current);
+      manualScrollTimeout.current = null;
+    }
+  };
+
+  const onTransferScrollEndDrag = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const currentIndex = Math.round(offsetX / transferCardWidthWithMargin);
+    transferScrollIndex.current = currentIndex;
+
+    manualScrollTimeout.current = setTimeout(() => {
+      isManualScrolling.current = false;
+    }, 2000);
+  };
+
 
   const renderHome = () => (
     <View style={styles.tabContent}>
       {loadingHome ? (
         <ActivityIndicator size="large" color="#3B82F6" />
       ) : homeMatches.length === 0 ? (
-        <Text style={styles.noDataText}>No upcoming matches found</Text>
+        <Text style={styles.noDataText}>No matches found</Text>
       ) : (
         <ScrollView style={styles.scrollContainer}>
-          {homeMatches.map((match: any) => (
-            <View key={match.id} style={styles.matchCard}>
-              <Text style={styles.matchTitle}>
-                {match.homeTeam?.name || "Unknown"} vs {match.awayTeam?.name || "Unknown"}
-              </Text>
-              <Text style={styles.matchDetail}>
-                {match.utcDate ? new Date(match.utcDate).toLocaleString() : "Date not available"}
-              </Text>
-            </View>
-          ))}
+          {/* Matches Section */}
+          {homeMatches.map((match: any) => {
+            const { homeTeam, awayTeam, score, utcDate, status, competition, matchday } = match;
+            const home = getTeamWithCrest(homeTeam);
+            const away = getTeamWithCrest(awayTeam);
+            const matchDate = new Date(utcDate);
+            matchDate.setHours(matchDate.getHours() + 6);
+            const timeString = matchDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const isPlayed = status === "FINISHED" || status === "IN_PLAY" || status === "PAUSED";
+            return (
+              <View key={match.id} style={styles.homeMatchCard}>
+                <Text style={styles.metaText}>
+                  {(competition?.name === "Primera Division" ? "La Liga" : competition?.name) ?? 'Unknown'} - R{matchday}{isPlayed ? ` - ${timeString}` : ""}
+                </Text>
+                <View style={styles.teamRow}>
+                  {/* Centered time/score */}
+                  <View style={styles.centerTimeContainer}>
+                    {isPlayed ? (
+                      <Text style={styles.scoreText}>
+                        {score?.fullTime?.home ?? '-'} - {score?.fullTime?.away ?? '-'}
+                      </Text>
+                    ) : (
+                      <Text style={styles.matchTime}>{timeString}</Text>
+                    )}
+                  </View>
+                  
+                  {/* Left team - positioned at fixed distance from center */}
+                  <View style={styles.leftTeamContainer}>
+                    <Text style={styles.teamName}>{home.name}</Text>
+                    {home.crest && <Image source={{ uri: home.crest }} style={styles.crest} />}
+                  </View>
+                  
+                  {/* Right team - positioned at fixed distance from center */}
+                  <View style={styles.rightTeamContainer}>
+                    {away.crest && <Image source={{ uri: away.crest }} style={styles.crest} />}
+                    <Text style={styles.teamName}>{away.name}</Text>
+                  </View>
+                </View>
+              </View>
+            );
+          })}
+
+          {/* Latest Transfers Section */}
+          <View style={[styles.sectionContainer, { marginTop: 2 }]}>
+            <Text style={styles.sectionTitle}>Latest Transfers</Text>
+            <Animated.ScrollView
+              ref={transferScrollRef}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.transferScrollContainer}
+              scrollEventThrottle={16}
+              snapToInterval={transferCardWidthWithMargin}
+              decelerationRate="fast"
+              onScroll={Animated.event(
+                [{ nativeEvent: { contentOffset: { x: transferScrollX } } }],
+                { useNativeDriver: false }
+              )}
+              onScrollBeginDrag={onTransferScrollBeginDrag}
+              onScrollEndDrag={onTransferScrollEndDrag}
+            >
+              {(() => {
+                const transfers = (SPORTS_DATA as any).football?.transfers || [];
+                const tripledTransfers = [...transfers, ...transfers, ...transfers];
+                
+                return tripledTransfers.map((transfer, index) => (
+                  <View
+                    key={`${transfer.id}_${index}`}
+                    style={[styles.transferCardWrapper, { width: transferCardWidth }]}
+                  >
+                    <TransferCard transfer={transfer} />
+                  </View>
+                ));
+              })()}
+            </Animated.ScrollView>
+          </View>
+
+          {/* Latest Updates Section */}
+          <View style={[styles.sectionContainer, { marginTop: 2, marginBottom: 20 }]}>
+            <Text style={styles.sectionTitle}>Latest Updates</Text>
+            <ScrollView style={styles.updatesBox} showsVerticalScrollIndicator={false}>
+              {(SPORTS_DATA as any).football?.headlines?.map((headline: any) => (
+                <Text key={headline.id} style={styles.updateTitle}>
+                  {headline.title}
+                </Text>
+              )) || []}
+            </ScrollView>
+          </View>
         </ScrollView>
       )}
     </View>
@@ -218,7 +453,7 @@ export default function Football() {
         }}>
           <View style={styles.outlayOverlay}>
             <TouchableWithoutFeedback>
-              <Animated.View style={[styles.outlayTray, { transform: [{ translateX: matchesTrayAnim }] }]}> 
+              <Animated.View style={[styles.outlayTray, { transform: [{ translateX: matchesTrayAnim }] }]}>
                 <Text style={styles.sectionTitle}>Competitions</Text>
                 <View>
                   {COMPETITIONS.map((comp) => (
@@ -292,24 +527,29 @@ export default function Football() {
               return (
                 <View key={match.id} style={styles.matchCard}>
                   <Text style={styles.metaText}>
-                    {competition?.name ?? 'Unknown'} - R{matchday}{isPlayed ? ` - ${timeString}` : ""}
+                    {(competition?.name === "Primera Division" ? "La Liga" : competition?.name) ?? 'Unknown'} - R{matchday}{isPlayed ? ` - ${timeString}` : ""}
                   </Text>
 
                   <View style={styles.teamRow}>
-                    <View style={styles.teamContainer}>
+                    {/* Centered time/score */}
+                    <View style={styles.centerTimeContainer}>
+                      {isPlayed ? (
+                        <Text style={styles.scoreText}>
+                          {score.fullTime.home ?? '-'} - {score.fullTime.away ?? '-'}
+                        </Text>
+                      ) : (
+                        <Text style={styles.matchTime}>{timeString}</Text>
+                      )}
+                    </View>
+                    
+                    {/* Left team - positioned at fixed distance from center */}
+                    <View style={styles.leftTeamContainer}>
                       <Text style={styles.teamName}>{home.name}</Text>
                       {home.crest && <Image source={{ uri: home.crest }} style={styles.crest} />}
                     </View>
-
-                    {isPlayed ? (
-                      <Text style={styles.scoreText}>
-                        {score.fullTime.home ?? '-'} - {score.fullTime.away ?? '-'}
-                      </Text>
-                    ) : (
-                      <Text style={styles.matchTime}>{timeString}</Text>
-                    )}
-
-                    <View style={styles.teamContainer}>
+                    
+                    {/* Right team - positioned at fixed distance from center */}
+                    <View style={styles.rightTeamContainer}>
                       {away.crest && <Image source={{ uri: away.crest }} style={styles.crest} />}
                       <Text style={styles.teamName}>{away.name}</Text>
                     </View>
@@ -324,6 +564,195 @@ export default function Football() {
     </View>
   );
 
+  const renderStats = () => (
+    <View style={styles.statsContainer}>
+      <Modal
+        visible={statsLeftTrayOpen}
+        transparent={true}
+        animationType="none"
+        onRequestClose={() => setStatsLeftTrayOpen(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => {
+          Animated.timing(statsTrayAnim, {
+            toValue: -220,
+            duration: 250,
+            useNativeDriver: false,
+          }).start(() => setStatsLeftTrayOpen(false));
+        }}>
+          <View style={styles.outlayOverlay}>
+            <TouchableWithoutFeedback>
+              <Animated.View style={[styles.outlayTray, { transform: [{ translateX: statsTrayAnim }] }]}> 
+                <Text style={styles.sectionTitle}>Competitions</Text>
+                <View>
+                  {COMPETITIONS.map((comp) => (
+                    <TouchableOpacity
+                      key={comp.id}
+                      onPress={() => setStatsCompetition(comp)}
+                      style={[
+                        styles.competitionButton,
+                        statsCompetition.id === comp.id && styles.activeCompetitionButton
+                      ]}
+                    >
+                      <Text style={[
+                        styles.tabText,
+                        statsCompetition.id === comp.id && styles.activeTabText
+                      ]}>
+                        {comp.name}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <Text style={styles.sectionTitle}>Options</Text>
+                <View>
+                  {STATS_OPTIONS.map((opt) => (
+                    <TouchableOpacity
+                      key={opt}
+                      onPress={() => setStatsOption(opt)}
+                      style={[
+                        styles.optionButton,
+                        statsOption === opt && styles.activeOptionButton
+                      ]}
+                    >
+                      <Text style={[
+                        styles.tabText,
+                        statsOption === opt && styles.activeTabText
+                      ]}>
+                        {opt}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </Animated.View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+      <View style={styles.statsContent}>
+        {loadingStats ? (
+          <ActivityIndicator size="large" color="#3B82F6" />
+        ) : statsData ? (
+          <ScrollView style={styles.scrollContainer}>
+            <Text style={styles.statsHeader}>
+              {statsCompetition.name} - {statsOption}
+            </Text>
+
+            {statsOption === "Standings" && (
+              <View style={styles.table}>
+                <View style={styles.tableRow}>
+                  <Text style={styles.tableHeader}></Text>
+                  <Text style={[styles.tableHeader, { flex: 7 }]}>Team</Text>
+                  <Text style={styles.tableHeader}>P</Text>
+                  <Text style={styles.tableHeader}>W</Text>
+                  <Text style={styles.tableHeader}>D</Text>
+                  <Text style={styles.tableHeader}>L</Text>
+                  <Text style={[styles.tableHeader, { flex: 2 }]}>GF/A</Text>
+                  <Text style={[styles.tableHeader, { flex: 1.25 }]}>Pts</Text>
+                </View>
+                {statsData.map((item: any, index: number) => {
+                  const key = item?.team?.id ?? item.position ?? index;
+                  return (
+                    <View key={key} style={styles.tableRow}>
+                      <Text style={styles.tableCell}>{item.position ?? "-"}</Text>
+                      <View style={{ flex: 7, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start' }}>
+                        {item.team?.crest && (
+                          <Image
+                            source={{ uri: item.team.crest }}
+                            style={{ width: 15, height: 15, marginRight: 4 }}
+                            resizeMode="contain"
+                          />
+                        )}
+                        <Text style={{ color: 'white', textAlign: 'left', paddingLeft: 0, marginLeft: 5, flexShrink: 1, fontSize: 12 }}>
+                          {getTeamWithCrest(item.team).name}
+                        </Text>
+                      </View>
+
+                      <Text style={styles.tableCell}>{item.played ?? "-"}</Text>
+                      <Text style={styles.tableCell}>{item.wins ?? "-"}</Text>
+                      <Text style={styles.tableCell}>{item.draws ?? "-"}</Text>
+                      <Text style={styles.tableCell}>{item.losses ?? "-"}</Text>
+                      <Text style={[styles.tableCell, { flex: 3 }]}>
+                        {item.goalsFor ?? "-"} / {item.goalsAgainst ?? "-"}
+                      </Text>
+                      <Text style={styles.tableCell}>{item.points ?? "-"}</Text>
+                    </View>
+                  );
+                })}
+              </View>
+            )}
+
+            {statsOption === "Team Stats" && (
+              statsData
+                .slice()
+                .sort((a: any, b: any) => {
+                  const nameA = (a.name ?? "").toLowerCase();
+                  const nameB = (b.name ?? "").toLowerCase();
+                  return nameA.localeCompare(nameB);
+                })
+                .map((team: any, index: number) => {
+                  const key = team?.id ?? team?.name ?? index;
+
+                  return (
+                    <View key={key} style={styles.teamCard}>
+                      <View style={{ flexDirection: "row", alignItems: "center" }}>
+                        {team.crest ? (
+                          <Image
+                            source={{ uri: team.crest }}
+                            style={{ width: 30, height: 30, marginRight: 8 }}
+                            resizeMode="contain"
+                          />
+                        ) : null}
+                        <Text style={styles.teamName}>{team.name ?? "N/A"}</Text>
+                      </View>
+                      <Text style={styles.teamDetail}>Venue: {team.venue ?? "N/A"}</Text>
+                      <Text style={styles.teamDetail}>Matches: {team.played ?? "N/A"}</Text>
+                      <Text style={styles.teamDetail}>Wins: {team.wins ?? "N/A"}</Text>
+                      <Text style={styles.teamDetail}>Draws: {team.draws ?? "N/A"}</Text>
+                      <Text style={styles.teamDetail}>Losses: {team.losses ?? "N/A"}</Text>
+                      <Text style={styles.teamDetail}>Goals Scored: {team.goalsScored ?? "N/A"}</Text>
+                      <Text style={styles.teamDetail}>Goals Conceded: {team.goalsConceded ?? "N/A"}</Text>
+                    </View>
+                  );
+                })
+            )}
+
+            {statsOption === "Top Scorer" && (
+              <View style={styles.table}>
+                <View style={styles.tableRow}>
+                  <Text style={[styles.tableHeader, { flex: 2 }]}>Player</Text>
+                  <Text style={[styles.tableHeader, { flex: 3 }]}>Team</Text>
+                  <Text style={styles.tableHeader}>Goals</Text>
+                </View>
+                {statsData.map((player: any, index: number) => {
+                  const key = player?.id ?? player?.name ?? index;
+
+                  return (
+                    <View key={key} style={styles.tableRow}>
+                      <Text style={[styles.tableCell, { flex: 2 }]}>{player.name ?? "N/A"}</Text>
+                      <View style={[styles.tableCell, { flex: 3, flexDirection: 'row', alignItems: 'center' }]}>
+                        {player.crest ? (
+                          <Image
+                            source={{ uri: player.crest }}
+                            style={{ width: 20, height: 20, marginRight: 6 }}
+                            resizeMode="contain"
+                          />
+                        ) : null}
+                        <Text style={styles.tableCell}>{typeof player.team === 'string' ? player.team : player.team?.name ?? "N/A"}</Text>
+                      </View>
+                      <Text style={styles.tableCell}>{player.goals ?? "-"}</Text>
+                    </View>
+                  );
+                })}
+              </View>
+            )}
+
+          </ScrollView>
+        ) : (
+          <Text style={styles.noDataText}>No stats data available</Text>
+        )}
+      </View>
+    </View>
+  );
 
   const selectPlayer = async (player: any) => {
     setShowSearchModal(false);
@@ -400,15 +829,18 @@ export default function Football() {
                 Coach: {favoriteTeamStats.details.coach || "N/A"}
               </Text>
 
-              <Text style={[styles.teamDetail, { marginTop: 10 }]}> 
+              <Text style={[styles.teamDetail, { marginTop: 10 }]}>
                 Competitions:
               </Text>
               {(favoriteTeamStats.details.competitions ?? []).map(
-                (comp: string, index: number) => (
-                  <Text key={index} style={styles.teamDetail}>
-                    • {comp}
-                  </Text>
-                )
+                (comp: string, index: number) => {
+                  const displayName = comp === "Primera Division" ? "La Liga" : comp;
+                  return (
+                    <Text key={index} style={styles.teamDetail}>
+                      • {displayName}
+                    </Text>
+                  );
+                }
               )}
 
               <Text style={[styles.teamDetail, { marginTop: 10 }]}>Squad:</Text>
@@ -444,11 +876,14 @@ export default function Football() {
               <Text style={styles.teamDetail}>Contract: {favoritePlayer.currentTeam?.contract?.start || "N/A"} - {favoritePlayer.currentTeam?.contract?.until || "N/A"}</Text>
               <Text style={[styles.teamDetail, { marginTop: 10 }]}>Competitions:</Text>
               {(favoritePlayer.currentTeam?.runningCompetitions ?? []).map(
-                (comp: any, index: number) => (
-                  <Text key={index} style={styles.teamDetail}>
-                    • {comp.name}
-                  </Text>
-                )
+                (comp: any, index: number) => {
+                  const displayName = comp.name === "Primera Division" ? "La Liga" : comp.name;
+                  return (
+                    <Text key={index} style={styles.teamDetail}>
+                      • {displayName}
+                    </Text>
+                  );
+                }
               )}
             </View>
           )
@@ -482,23 +917,23 @@ export default function Football() {
             <ScrollView style={styles.searchResults}>
               {favoriteTab === 'player'
                 ? searchResults.map((player) => (
-                    <TouchableOpacity
-                      key={`${player.id}-${player.name}`}
-                      onPress={() => selectPlayer(player)}
-                      style={styles.searchResultItem}
-                    >
-                      <Text style={styles.noDataText}>{player.name}</Text>
-                    </TouchableOpacity>
-                  ))
+                  <TouchableOpacity
+                    key={`${player.id}-${player.name}`}
+                    onPress={() => selectPlayer(player)}
+                    style={styles.searchResultItem}
+                  >
+                    <Text style={styles.noDataText}>{player.name}</Text>
+                  </TouchableOpacity>
+                ))
                 : searchResults.map((team) => (
-                    <TouchableOpacity
-                      key={`${team.id}-${team.name}`}
-                      onPress={() => selectTeam(team)}
-                      style={styles.searchResultItem}
-                    >
-                      <Text style={styles.noDataText}>{team.name}</Text>
-                    </TouchableOpacity>
-                  ))}
+                  <TouchableOpacity
+                    key={`${team.id}-${team.name}`}
+                    onPress={() => selectTeam(team)}
+                    style={styles.searchResultItem}
+                  >
+                    <Text style={styles.noDataText}>{team.name}</Text>
+                  </TouchableOpacity>
+                ))}
             </ScrollView>
           )}
         </View>
@@ -686,7 +1121,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#0f172a',
     borderRadius: 8,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#1e293b',
+  },
+  homeMatchCard: {
+    backgroundColor: '#0f172a',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 6,
     borderWidth: 1,
     borderColor: '#1e293b',
   },
@@ -709,7 +1152,34 @@ const styles = StyleSheet.create({
   teamRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    position: 'relative',
+    justifyContent: 'center',
+    minHeight: 40, // Ensure enough space for positioning
+  },
+
+  centerTimeContainer: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+    left: '50%',
+    transform: [{ translateX: -30 }], // Adjust based on expected width of time/score
+    zIndex: 2,
+  },
+
+  leftTeamContainer: {
+    position: 'absolute',
+    right: '50%',
+    marginRight: 40, 
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+
+  rightTeamContainer: {
+    position: 'absolute',
+    left: '50%',
+    marginLeft: 40, 
+    alignItems: 'center',
+    flexDirection: 'row',
   },
 
   teamContainer: {
@@ -777,15 +1247,16 @@ const styles = StyleSheet.create({
   },
   scoreText: {
     color: '#fbbf24',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     transform: [{ translateY: -3 }],
   },
 
   matchTime: {
     color: '#38bdf8',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
+    transform: [{ translateY: -3 }],
   },
 
   eventsContainer: {
@@ -815,7 +1286,7 @@ const styles = StyleSheet.create({
     color: '#FF0000',
     fontWeight: '700',
     fontSize: 14,
-    marginBottom: 10,
+    marginBottom: 6,
     marginTop: 5,
     textAlign: 'center',
     alignSelf: 'center',
@@ -891,9 +1362,12 @@ const styles = StyleSheet.create({
   },
   teamName: {
     color: '#f8fafc',
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '700',
     marginBottom: 10,
+    maxWidth: 100,
+    textAlign: 'center',
+    flexWrap: 'wrap',
   },
   teamStats: {
     color: '#cbd5e1',
@@ -901,7 +1375,7 @@ const styles = StyleSheet.create({
   },
   openTrayButton: {
     position: 'absolute',
-    top: 5,
+    top: 0,
     left: 5,
     zIndex: 10,
     backgroundColor: '#fff',
@@ -989,5 +1463,151 @@ const styles = StyleSheet.create({
     elevation: 8,
     borderTopRightRadius: 16,
     borderBottomRightRadius: 16,
+  },
+  // New styles for Latest Transfers and Updates sections
+  sectionContainer: {
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  transferCard: {
+    backgroundColor: '#0f172a',
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#1e293b',
+    marginBottom: 8,
+  },
+  transferHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  transferPlayerName: {
+    color: '#f8fafc',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  transferDate: {
+    color: '#94a3b8',
+    fontSize: 12,
+  },
+  transferDetails: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  transferTeam: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  transferFromTo: {
+    color: '#94a3b8',
+    fontSize: 12,
+    marginBottom: 4,
+  },
+  transferTeamName: {
+    color: '#f8fafc',
+    fontSize: 11,
+    fontWeight: '600',
+    maxWidth: 60,
+    textAlign: 'center',
+  },
+  transferArrow: {
+    color: '#3B82F6',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginHorizontal: 8,
+  },
+  transferAmount: {
+    color: '#22c55e',
+    fontSize: 11,
+    fontWeight: '600',
+    textAlign: 'center',
+    maxWidth: 60,
+  },
+  // Compact Transfer Card Styles
+  compactTransferHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  compactTransferBody: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  playerImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 12,
+    backgroundColor: '#1e293b',
+  },
+  compactTransferInfo: {
+    flex: 1,
+  },
+  compactTransferTeams: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  transferTeamContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+  },
+  transferTeamCrest: {
+    width: 26,
+    height: 26,
+    marginRight: 4,
+  },
+  updatesContainer: {
+    marginTop: 4,
+  },
+  updatesBox: {
+    backgroundColor: '#0f172a',
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#1e293b',
+    marginTop: 4,
+    marginBottom: 40,
+  },
+  updateCard: {
+    backgroundColor: '#1e293b',
+    borderRadius: 6,
+    padding: 10,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  updateTitle: {
+    color: '#f8fafc',
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 8,
+    lineHeight: 18,
+  },
+  updateContent: {
+    color: '#cbd5e1',
+    fontSize: 12,
+    lineHeight: 16,
+    marginBottom: 8,
+  },
+  updateTime: {
+    color: '#94a3b8',
+    fontSize: 11,
+    textAlign: 'right',
+  },
+  transferScrollContainer: {
+    height: 120,
+    marginBottom: 12,
+    paddingHorizontal: 16,
+  },
+  transferCardWrapper: {
+    // Container for each transfer card
   },
 });

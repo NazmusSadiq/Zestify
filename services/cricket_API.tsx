@@ -35,3 +35,11 @@ export async function fetchCricketApi(endpoint: string, params = "") {
 export async function fetchMatchScorecard(matchId: string) {
   return fetchCricketApi("match_scorecard", `&id=${matchId}`);
 }
+
+export async function fetchSeriesInfo(seriesId: string) {
+  return fetchCricketApi("series_info", `&id=${seriesId}`);
+}
+
+export async function fetchPlayerInfo(playerId: number) {
+  return fetchCricketApi("players_info", `&id=${playerId}`);
+}

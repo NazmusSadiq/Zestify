@@ -1,9 +1,11 @@
-import { fetchCricketApi, fetchMatchScorecard } from "@/services/cricket_API";
+import { fetchCricketApi, fetchMatchScorecard, fetchSeriesInfo } from "@/services/cricket_API";
 import * as FileSystem from 'expo-file-system';
 import { useEffect, useState } from "react";
 import { Alert } from "react-native";
 // Local file path for storing country flags
 const FLAGS_FILE_PATH = FileSystem.documentDirectory + "cricket_flags.json";
+// Local file path for storing cricket players
+const PLAYERS_FILE_PATH = FileSystem.documentDirectory + "cricket_players.json";
 
 // Fetch and cache all country flags
 export async function fetchAndCacheCountryFlags(apiKey: string) {
@@ -35,6 +37,40 @@ export async function getCountryFlags(apiKey: string) {
   } catch (e) {
     // On error, try to fetch and cache again
     return await fetchAndCacheCountryFlags(apiKey);
+  }
+}
+
+// Fetch and cache all cricket players
+export async function fetchAndCacheCricketPlayers(apiKey: string) {
+  const url = `https://api.cricapi.com/v1/players?apikey=${apiKey}&offset=0`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+  const json = await res.json();
+  if (json.status !== 'success' || !Array.isArray(json.data)) throw new Error(json.message || 'Failed to fetch players');
+  // Store only id, name, and other relevant fields
+  const players = json.data.map((p: any) => ({
+    id: p.id,
+    name: p.name,
+    country: p.country,
+    // Add other fields as needed
+  }));
+  await FileSystem.writeAsStringAsync(PLAYERS_FILE_PATH, JSON.stringify(players));
+  return players;
+}
+
+// Get cricket players from local file (or fetch/cache if not present)
+export async function getCricketPlayers(apiKey: string) {
+  try {
+    const fileInfo = await FileSystem.getInfoAsync(PLAYERS_FILE_PATH);
+    if (fileInfo.exists) {
+      const jsonStr = await FileSystem.readAsStringAsync(PLAYERS_FILE_PATH);
+      return JSON.parse(jsonStr);
+    } else {
+      return await fetchAndCacheCricketPlayers(apiKey);
+    }
+  } catch (e) {
+    // On error, try to fetch and cache again
+    return await fetchAndCacheCricketPlayers(apiKey);
   }
 }
 
@@ -291,6 +327,15 @@ const CRICKET_COUNTRIES = [
     }
   };
 
+  const getSeriesInfo = async (seriesId: string) => {
+    try {
+      const data = await fetchSeriesInfo(seriesId);
+      return data;
+    } catch (err) {
+      return { error: true };
+    }
+  };
+
 
 
   return {
@@ -321,5 +366,6 @@ const CRICKET_COUNTRIES = [
     setSelectedCompetition,
 
     getMatchScorecard,
+    getSeriesInfo,
   };
 }

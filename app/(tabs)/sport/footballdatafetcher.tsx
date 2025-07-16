@@ -30,7 +30,12 @@ import { Alert } from "react-native";
 import { db } from "../../../firebase";
 
 export const getTeamWithCrest = (team: any) => {
-  const name = typeof team === "string" ? team : team?.shortName ?? team?.name ?? "N/A";
+  let name = typeof team === "string" ? team : team?.shortName ?? team?.name ?? "N/A";
+  
+  if (name && name.toLowerCase().includes("wolverhampton")) {
+    name = "Wolves";
+  }
+  
   const crest = team?.crest ?? team?.logo ?? team?.crestUrl ?? null;
 
   return {
@@ -140,14 +145,51 @@ export function useFootballData() {
   const fetchHomeMatches = async () => {
     setLoadingHome(true);
     try {
-      const data = await fetchFromApi("matches", "?status=SCHEDULED&limit=5");
+      // Get favorite team ID, default to 86 if not set
+      const teamId = (favoriteTeams && favoriteTeams.length > 0 && favoriteTeams[0].id) ? favoriteTeams[0].id : 86;
+      // Fetch all matches for the favorite team (both finished and scheduled)
+      const data = await fetchFromApi(`teams/${teamId}/matches`);
       if (data?.error) {
         Alert.alert("API Error", data.error);
+        setHomeMatches([]);
         return;
       }
-      setHomeMatches(data.matches || []);
+      let matches = data.matches || [];
+      // Sort by date ascending
+      matches.sort((a: any, b: any) => new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime());
+
+      // Find the most recent match in the last 7 days (finished)
+      const now = new Date();
+      const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const recentMatch = [...matches].reverse().find((m: any) => m.status === "FINISHED" && new Date(m.utcDate) >= oneWeekAgo && new Date(m.utcDate) <= now);
+
+      // Find the next scheduled match
+      const nextMatch = matches.find((m: any) => m.status === "SCHEDULED" && new Date(m.utcDate) > now);
+
+      let selectedMatches: any[] = [];
+      if (recentMatch && nextMatch) {
+        selectedMatches = [recentMatch, nextMatch];
+      } else if (recentMatch) {
+        // If no next match, show recent and next closest (future or past)
+        const nextClosest = matches.find((m: any) => m.id !== recentMatch.id && new Date(m.utcDate) > now);
+        if (nextClosest) {
+          selectedMatches = [recentMatch, nextClosest];
+        } else {
+          // Just show recent match
+          selectedMatches = [recentMatch];
+        }
+      } else if (nextMatch) {
+        // If no recent, show next two scheduled
+        const next2 = matches.filter((m: any) => m.status === "SCHEDULED" && new Date(m.utcDate) > now).slice(0, 2);
+        selectedMatches = next2;
+      } else {
+        // Fallback: show last two matches
+        selectedMatches = matches.slice(-2);
+      }
+      setHomeMatches(selectedMatches);
     } catch (error) {
       Alert.alert("Fetch Error", "Failed to fetch home matches");
+      setHomeMatches([]);
     } finally {
       setLoadingHome(false);
     }
