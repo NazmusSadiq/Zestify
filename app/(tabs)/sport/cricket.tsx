@@ -1,4 +1,3 @@
-import { fetchPlayerInfo } from "@/services/cricket_API";
 import { useUser } from "@clerk/clerk-expo";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import React, { useEffect, useRef, useState } from "react";
@@ -17,7 +16,7 @@ import {
 } from "react-native";
 import { db } from "../../../firebase";
 import SPORTS_DATA from "../../../sportsdata.json";
-import { getCricketPlayers, useCricketData } from "./cricketdatafetcher";
+import { useCricketData } from "./cricketdatafetcher";
 
 // Helper function to get team stats by name
 const getTeamStatsFromJSON = (teamName: string) => {
@@ -32,8 +31,7 @@ const getTeamStatsFromJSON = (teamName: string) => {
 
 // Helper function to calculate win percentage
 
-const TABS = ["Series", "Matches", "Stats", "Favorite"];
-const CRICKET_API_KEY = "7569feab-f4af-4cb3-9817-4ab14f48e98b";
+const TABS = ["Series", "Matches", "Teams", "Players"];
 const CRICKET_COUNTRIES = Object.keys((SPORTS_DATA as any).cricket);
 const MATCH_CATEGORIES = [
   "All Matches",
@@ -62,12 +60,115 @@ export default function Cricket() {
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [allPlayerNames, setAllPlayerNames] = useState<any[]>([]);
+  const [allCricketerNames, setAllCricketerNames] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [favoritePlayer, setFavoritePlayer] = useState<any>(null);
-  const [favoritePlayerId, setFavoritePlayerId] = useState<number | null>(null);
+  const [favoritePlayerName, setFavoritePlayerName] = useState<string | null>(null);
   const [loadingFavoritePlayer, setLoadingFavoritePlayer] = useState(false);
   const debounceTimeout = useRef<number | null>(null);
+
+  const calculateAge = (dateOfBirth: string): number => {
+    const birthDate = new Date(dateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+
+    return age;
+  };
+
+  const extractFirstLastName = (fullName: string): { firstName: string; lastName: string } => {
+    const nameParts = fullName.trim().split(' ');
+    if (nameParts.length === 1) {
+      return { firstName: nameParts[0], lastName: "" };
+    }
+    return {
+      firstName: nameParts[0],
+      lastName: nameParts.slice(1).join(' ')
+    };
+  };
+
+  // Import the Wikipedia function from football (we'll use the same function)
+  const getWikipediaImageUrl = async (searchTerm: string): Promise<string | null> => {
+    // Try multiple search variations for cricket players
+    const searchVariations = [
+      `${searchTerm} cricket`,
+      `${searchTerm} cricketer`,
+      `${searchTerm} _(cricketer)`,
+      searchTerm
+    ];
+
+    for (const searchQuery of searchVariations) {
+      try {
+        const url = `https://en.wikipedia.org/w/api.php?action=query&format=json&titles=${encodeURIComponent(searchQuery)}&prop=pageimages&pithumbsize=500&origin=*`;
+        const res = await fetch(url);
+        const data = await res.json();
+        const pages = data?.query?.pages;
+        if (pages) {
+          for (const pageId in pages) {
+            const page = pages[pageId];
+            if (page.thumbnail && page.thumbnail.source) {
+              return page.thumbnail.source;
+            }
+          }
+        }
+      } catch (e) {
+        console.log('Error searching for', searchQuery, ':', e);
+      }
+    }
+    return null;
+  };
+
+  // Enhanced function specifically for country flags
+  const getCountryFlagUrl = async (countryName: string): Promise<string | null> => {
+    const searchTerms = [
+      `Flag of ${countryName}`,
+      `${countryName} flag`,
+      `${countryName}`,
+      `Flag_of_${countryName.replace(/\s+/g, '_')}`
+    ];
+
+    for (const searchTerm of searchTerms) {
+      const flagUrl = await getWikipediaImageUrl(searchTerm);
+      if (flagUrl) {
+        return flagUrl;
+      }
+    }
+    return null;
+  };
+
+  // State for country flag and player image
+  const [countryFlag, setCountryFlag] = useState<string | null>(null);
+  const [playerImage, setPlayerImage] = useState<string | null>(null);
+
+  // Fetch country flag when favorite player changes or component loads
+  useEffect(() => {
+    const fetchCountryFlag = async () => {
+      const currentCountry = favoritePlayer?.country;
+      if (currentCountry) {
+        const flagUrl = await getCountryFlagUrl(currentCountry);
+        setCountryFlag(flagUrl);
+      }
+    };
+
+    fetchCountryFlag();
+  }, [favoritePlayer]);
+
+  // Fetch player image when favorite player changes or component loads
+  useEffect(() => {
+    const fetchPlayerImage = async () => {
+      const currentPlayerName = favoritePlayer?.name;
+      if (currentPlayerName) {
+        const imageUrl = await getWikipediaImageUrl(currentPlayerName);
+        setPlayerImage(imageUrl);
+      }
+    };
+
+    fetchPlayerImage();
+  }, [favoritePlayer]);
 
   // Stats section state
   const [showStatsSearchModal, setShowStatsSearchModal] = useState(false);
@@ -122,25 +223,31 @@ export default function Cricket() {
     }
   }, [activeTab]);
 
-  // Load cricket player names for search
+  // Load cricket player names for search from local JSON file
   useEffect(() => {
-    const loadCricketPlayers = async () => {
-      try {
-        const cricketPlayers = await getCricketPlayers(CRICKET_API_KEY);
-        setAllPlayerNames(cricketPlayers);
-      } catch (e) {
-        console.error("Error loading cricket players:", e);
-        setAllPlayerNames([]);
+    try {
+      const cricketerNames = require("../../../cricketer_names.json");
+      const playerArray = Array.isArray(cricketerNames) ? cricketerNames : [];
+      setAllCricketerNames(playerArray);
+      
+      // Set default player to "Najmul Hossain Shanto" if no favorite is set
+      if (!favoritePlayerName && playerArray.length > 0) {
+        const defaultPlayer = playerArray.find((p: any) => p.name === "Najmul Hossain Shanto");
+        if (defaultPlayer) {
+          setFavoritePlayerName("Najmul Hossain Shanto");
+        }
       }
-    };
-    loadCricketPlayers();
+    } catch (e) {
+      console.error("Error loading cricketer names:", e);
+      setAllCricketerNames([]);
+    }
   }, []);
 
-  // Fetch favoritePlayerId from Firebase on mount
+  // Fetch favoritePlayerName from Firebase on mount
   useEffect(() => {
-    const fetchFavoritePlayerId = async () => {
+    const fetchFavoritePlayerName = async () => {
       if (!user?.primaryEmailAddress?.emailAddress) {
-        setFavoritePlayerId(44); // fallback default
+        setFavoritePlayerName("Najmul Hossain Shanto"); // fallback default
         return;
       }
       try {
@@ -148,43 +255,43 @@ export default function Cricket() {
         const docSnap = await getDoc(userDocRef);
         if (docSnap.exists()) {
           const data = docSnap.data();
-          if (data.favoritePlayerId) {
-            setFavoritePlayerId(data.favoritePlayerId);
+          if (data.favoritePlayerName) {
+            setFavoritePlayerName(data.favoritePlayerName);
           } else {
-            setFavoritePlayerId(44); // default if not found
+            setFavoritePlayerName("Najmul Hossain Shanto"); // default if not found
           }
         } else {
-          setFavoritePlayerId(44); // default if no doc
+          setFavoritePlayerName("Najmul Hossain Shanto"); // default if no doc
         }
       } catch (error) {
-        setFavoritePlayerId(44); // fallback on error
+        setFavoritePlayerName("Najmul Hossain Shanto"); // fallback on error
       }
     };
-    fetchFavoritePlayerId();
+    fetchFavoritePlayerName();
   }, [user?.primaryEmailAddress?.emailAddress]);
 
-  // Save favoritePlayerId to Firebase when it changes
+  // Save favoritePlayerName to Firebase when it changes
   useEffect(() => {
-    const saveFavoritePlayerId = async () => {
-      if (!user?.primaryEmailAddress?.emailAddress || !favoritePlayerId) return;
+    const saveFavoritePlayerName = async () => {
+      if (!user?.primaryEmailAddress?.emailAddress || !favoritePlayerName) return;
       try {
         const userDocRef = doc(db, "users", user.primaryEmailAddress.emailAddress);
-        await setDoc(userDocRef, { favoritePlayerId }, { merge: true });
+        await setDoc(userDocRef, { favoritePlayerName }, { merge: true });
       } catch (error) {
         console.error("Error saving favorite player:", error);
       }
     };
-    if (favoritePlayerId) {
-      saveFavoritePlayerId();
+    if (favoritePlayerName) {
+      saveFavoritePlayerName();
     }
-  }, [favoritePlayerId, user?.primaryEmailAddress?.emailAddress]);
+  }, [favoritePlayerName, user?.primaryEmailAddress?.emailAddress]);
 
-  // Fetch player data when favoritePlayerId changes
+  // Fetch player data when favoritePlayerName changes
   useEffect(() => {
-    if (favoritePlayerId) {
-      fetchFavoritePlayer(favoritePlayerId);
+    if (favoritePlayerName && allCricketerNames.length > 0) {
+      fetchFavoritePlayer(favoritePlayerName);
     }
-  }, [favoritePlayerId]);
+  }, [favoritePlayerName, allCricketerNames]);
 
   // Load Bangladesh data by default for stats
   useEffect(() => {
@@ -193,52 +300,66 @@ export default function Cricket() {
     }
   }, []);
 
-  // Fetch player data by id using cricket API
-  async function fetchFavoritePlayer(playerId: number) {
+  // Fetch player data from local JSON file
+  function fetchFavoritePlayer(playerName: string) {
     setLoadingFavoritePlayer(true);
     try {
-      const playerData = await fetchPlayerInfo(playerId);
+      // Find player by name in the local cricketer names JSON
+      const player = allCricketerNames.find((p: any) => p.name === playerName);
 
-      if (playerData && !playerData.error) {
+      if (player) {
         setFavoritePlayer({
-          id: playerData.id,
-          name: playerData.name || "Unknown",
-          nationality: playerData.country || "Unknown",
-          battingStyle: playerData.battingStyle || "Unknown",
-          bowlingStyle: playerData.bowlingStyle || "Unknown",
-          role: playerData.role || "Unknown",
-          team: playerData.currentTeam || "Unknown"
+          name: player.name || "Unknown",
+          country: player.country || "Unknown",
+          nationality: player.country || "Unknown",
+          battingStyle: player.battingStyle || "Unknown",
+          bowlingStyle: player.bowlingStyle || "Unknown",
+          role: player.role || "Unknown",
+          placeOfBirth: player.placeOfBirth || "Unknown",
+          dateOfBirth: player.dateOfBirth || null
         });
       } else {
         setFavoritePlayer(null);
       }
     } catch (err) {
-      console.error("Error fetching favorite player:", err);
+      console.error("Error finding favorite player in local data:", err);
       setFavoritePlayer(null);
     }
     setLoadingFavoritePlayer(false);
   }
 
-  // Handle search input change with debounce
+  // Handle search input change with local filtering
   const onSearchInputChange = (query: string) => {
     setSearchQuery(query);
     if (!query || query.length < 2) {
       setSearchResults([]);
       return;
     }
+    
     const lower = query.toLowerCase();
-    const filtered = allPlayerNames.filter((p: any) => {
+    const filtered = allCricketerNames.filter((p: any) => {
       if (!p || !p.name) return false;
       return p.name.toLowerCase().includes(lower);
     });
+
+    
     setSearchResults(filtered.slice(0, 10));
   };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
+      }
+    };
+  }, []);
 
   // Select a player from search results
   const selectPlayer = async (player: any) => {
     setShowSearchModal(false);
     setSearchQuery("");
-    setFavoritePlayerId(player.id);
+    setFavoritePlayerName(player.name);
   };
 
   // Stats search functions
@@ -580,19 +701,18 @@ export default function Cricket() {
   // Render favorite section (similar to football but player-only)
   const renderFavorite = () => (
     <View style={styles.tabContent}>
-      {/* Header with Change Player button - positioned like football */}
-      <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: 12 }}>
-        <View style={{ flex: 1 }} />
+      {/* Header with Change Player button - positioned at top right */}
+      <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', marginBottom: 12 }}>
         <TouchableOpacity
           onPress={() => {
             setSearchQuery("");
             setSearchResults([]);
             setShowSearchModal(true);
           }}
-          style={[styles.addFavoriteBtn, { marginLeft: 12 }]}
+          style={styles.addFavoriteBtn}
         >
           <Text style={styles.addButtonText}>
-            {favoritePlayer ? 'Change Player' : 'Add Player'}
+            Change Player
           </Text>
         </TouchableOpacity>
       </View>
@@ -600,17 +720,69 @@ export default function Cricket() {
       <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
         {loadingFavoritePlayer ? (
           <Text style={styles.noDataText}>Loading player info...</Text>
-        ) : !favoritePlayer ? (
-          <Text style={styles.noDataText}>No favorite player selected.</Text>
         ) : (
           <View style={styles.favoritePlayerCard}>
-            <Text style={styles.playerName}>{favoritePlayer.name || "N/A"}</Text>
-            <Text style={styles.playerDetail}>Player ID: {favoritePlayer.id || "N/A"}</Text>
-            <Text style={styles.playerDetail}>Nationality: {favoritePlayer.nationality || "N/A"}</Text>
-            <Text style={styles.playerDetail}>Batting Style: {favoritePlayer.battingStyle || "N/A"}</Text>
-            <Text style={styles.playerDetail}>Bowling Style: {favoritePlayer.bowlingStyle || "N/A"}</Text>
-            <Text style={styles.playerDetail}>Role: {favoritePlayer.role || "N/A"}</Text>
-            <Text style={styles.playerDetail}>Team: {favoritePlayer.team || "N/A"}</Text>
+            <Image
+              source={{
+                uri: (() => {
+                  return (favoritePlayer?.image || playerImage) || "https://via.placeholder.com/120x120?text=Player";
+                })()
+              }}
+              style={{ width: 120, height: 120, borderRadius: 60, marginBottom: 10 }}
+              resizeMode="cover"
+            />
+
+            <Text style={[styles.teamName, { fontWeight: 'bold' }]}>
+              {favoritePlayer?.name || "N/A"}
+            </Text>
+
+            {/* First Name */}
+            <Text style={styles.playerDetail}>
+              First Name: {extractFirstLastName(favoritePlayer?.name || "").firstName || "N/A"}
+            </Text>
+
+            {/* Last Name */}
+            <Text style={styles.playerDetail}>
+              Last Name: {extractFirstLastName(favoritePlayer?.name || "").lastName || "N/A"}
+            </Text>
+
+            {/* Age */}
+            <Text style={styles.playerDetail}>
+              Age: {favoritePlayer?.dateOfBirth ?
+                `${calculateAge(favoritePlayer.dateOfBirth)} years` : "N/A"}
+            </Text>
+
+            {/* Date of Birth */}
+            <Text style={styles.playerDetail}>
+              Date of Birth: {favoritePlayer?.dateOfBirth ?
+                new Date(favoritePlayer.dateOfBirth).toLocaleDateString() : "N/A"}
+            </Text>
+
+            <Text style={styles.playerDetail}>
+              Role: {favoritePlayer?.role || "N/A"}
+            </Text>
+            <Text style={styles.playerDetail}>
+              Batting Style: {favoritePlayer?.battingStyle || "N/A"}
+            </Text>
+            <Text style={styles.playerDetail}>
+              Bowling Style: {favoritePlayer?.bowlingStyle || "N/A"}
+            </Text>
+            <Text style={styles.playerDetail}>
+              Place of Birth: {favoritePlayer?.placeOfBirth || "N/A"}
+            </Text>
+
+            {/* Country with flag */}
+            <View style={styles.countryContainer}>
+              <Text style={styles.playerDetail}>
+                Country: {favoritePlayer?.country || "N/A"}
+              </Text>
+              {countryFlag && (
+                <Image
+                  source={{ uri: countryFlag }}
+                  style={styles.countryFlag}
+                />
+              )}
+            </View>
           </View>
         )}
       </ScrollView>
@@ -641,13 +813,16 @@ export default function Cricket() {
             <Text style={styles.noResultsText}>No players found</Text>
           ) : (
             <ScrollView style={styles.searchResults}>
-              {searchResults.map((player) => (
+              {searchResults.map((player, index) => (
                 <TouchableOpacity
-                  key={`${player.id}-${player.name}`}
+                  key={`${index}-${player.name}`}
                   onPress={() => selectPlayer(player)}
                   style={styles.searchResultItem}
                 >
                   <Text style={styles.searchResultText}>{player.name}</Text>
+                  <Text style={[styles.searchResultText, { fontSize: 12, color: '#94a3b8' }]}>
+                    {player.country} - {player.role}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -683,7 +858,7 @@ export default function Cricket() {
                   setStatsSearchResults([]);
                   setShowStatsSearchModal(true);
                 }}
-                style={[styles.changeTeamBtn, { marginRight: -10 },{ marginLeft: 10 }]}
+                style={[styles.changeTeamBtn, { marginRight: -10 }, { marginLeft: 10 }]}
               >
                 <Text style={styles.changeTeamText}>Change Team</Text>
               </TouchableOpacity>
@@ -949,7 +1124,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 10,
     height: '92%',
-    flexDirection: 'row',
   },
   scrollContainer: {
     flex: 1,
@@ -1472,5 +1646,16 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginBottom: 3,
     paddingLeft: 4,
+  },
+  countryContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 5,
+  },
+  countryFlag: {
+    width: 20,
+    height: 15,
+    marginLeft: 8,
+    borderRadius: 2,
   },
 });

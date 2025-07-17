@@ -1,0 +1,2207 @@
+[
+  {
+    "name": "Steve Smith",
+    "dateOfBirth": "1989-06-02T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Leg Break",
+    "placeOfBirth": "Sydney, New South Wales",
+    "country": "Australia"
+  },
+  {
+    "name": "Travis Head",
+    "dateOfBirth": "1993-12-29T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Adelaide, South Australia",
+    "country": "Australia"
+  },
+  {
+    "name": "Cameron Green",
+    "dateOfBirth": "1999-06-03T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast Medium",
+    "placeOfBirth": "Perth, Western Australia",
+    "country": "Australia"
+  },
+  {
+    "name": "David Warner",
+    "dateOfBirth": "1986-10-27T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Leg Break",
+    "placeOfBirth": "Paddington, New South Wales",
+    "country": "Australia"
+  },
+  {
+    "name": "Marnus Labuschagne",
+    "dateOfBirth": "1994-06-22T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium, Leg Break",
+    "placeOfBirth": "Christchurch, New Zealand",
+    "country": "Australia"
+  },
+  {
+    "name": "Matthew Short",
+    "dateOfBirth": "1995-11-08T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Ballarat, Victoria",
+    "country": "Australia"
+  },
+  {
+    "name": "Alex Carey",
+    "dateOfBirth": "1991-08-27T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Fast Seam",
+    "placeOfBirth": "Loxton, South Australia",
+    "country": "Australia"
+  },
+  {
+    "name": "Josh Inglis",
+    "dateOfBirth": "1995-03-04T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "None",
+    "placeOfBirth": "Leeds, England",
+    "country": "Australia"
+  },
+  {
+    "name": "Glenn Maxwell",
+    "dateOfBirth": "1988-10-14T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Kew, Victoria",
+    "country": "Australia"
+  },
+  {
+    "name": "Aaron Hardie",
+    "dateOfBirth": "1999-05-17T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium Fast",
+    "placeOfBirth": "Perth, Western Australia",
+    "country": "Australia"
+  },
+  {
+    "name": "Mitchell Marsh",
+    "dateOfBirth": "1991-10-20T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium",
+    "placeOfBirth": "Perth, Western Australia",
+    "country": "Australia"
+  },
+  {
+    "name": "Pat Cummins",
+    "dateOfBirth": "1993-05-08T00:00:00",
+    "role": "Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast",
+    "placeOfBirth": "Westmead, New South Wales",
+    "country": "Australia"
+  },
+  {
+    "name": "Josh Hazlewood",
+    "dateOfBirth": "1991-01-08T00:00:00",
+    "role": "Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast Medium",
+    "placeOfBirth": "Tamworth, New South Wales",
+    "country": "Australia"
+  },
+  {
+    "name": "Mitchell Starc",
+    "dateOfBirth": "1990-01-30T00:00:00",
+    "role": "Bowler",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Left-arm Fast",
+    "placeOfBirth": "Baulkham Hills, New South Wales",
+    "country": "Australia"
+  },
+  {
+    "name": "Sean Abbott",
+    "dateOfBirth": "1992-10-29T00:00:00",
+    "role": "Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast Medium",
+    "placeOfBirth": "Penrith, New South Wales",
+    "country": "Australia"
+  },
+  {
+    "name": "Ben Dwarshuis",
+    "dateOfBirth": "1995-08-30T00:00:00",
+    "role": "Bowler",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Left-arm Fast Medium",
+    "placeOfBirth": "Bankstown, New South Wales",
+    "country": "Australia"
+  },
+  {
+    "name": "Nathan Ellis",
+    "dateOfBirth": "1994-09-22T00:00:00",
+    "role": "Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast Medium",
+    "placeOfBirth": "Greenacre, New South Wales",
+    "country": "Australia"
+  },
+  {
+    "name": "Spencer Johnson",
+    "dateOfBirth": "1995-12-16T00:00:00",
+    "role": "Bowler",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Left-arm Fast",
+    "placeOfBirth": "Adelaide, South Australia",
+    "country": "Australia"
+  },
+  {
+    "name": "Adam Zampa",
+    "dateOfBirth": "1992-03-31T00:00:00",
+    "role": "Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Leg Break",
+    "placeOfBirth": "Shellharbour, New South Wales",
+    "country": "Australia"
+  },
+  {
+    "name": "Tanveer Sangha",
+    "dateOfBirth": "2001-11-26T00:00:00",
+    "role": "Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Leg Break",
+    "placeOfBirth": "Blacktown, New South Wales",
+    "country": "Australia"
+  },
+  {
+    "name": "Cooper Connolly",
+    "dateOfBirth": "2003-08-22T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Slow Left-arm Orthodox",
+    "placeOfBirth": "Perth, Western Australia",
+    "country": "Australia"
+  },
+  {
+    "name": "Sam Konstas",
+    "dateOfBirth": "2005-01-21T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Sydney, New South Wales",
+    "country": "Australia"
+  },
+  {
+    "name": "Matthew Kuhnemann",
+    "dateOfBirth": "1997-01-20T00:00:00",
+    "role": "Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Slow Left-arm Orthodox",
+    "placeOfBirth": "Brisbane, Queensland",
+    "country": "Australia"
+  },
+  {
+    "name": "Beau Webster",
+    "dateOfBirth": "1993-12-01T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium",
+    "placeOfBirth": "Hobart, Tasmania",
+    "country": "Australia"
+  },
+  {
+    "name": "Najmul Hossain Shanto",
+    "dateOfBirth": "1998-02-25T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Rajshahi, Bangladesh",
+    "country": "Bangladesh"
+  },
+  {
+    "name": "Litton Das",
+    "dateOfBirth": "1994-10-13T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Khulna, Bangladesh",
+    "country": "Bangladesh"
+  },
+  {
+    "name": "Mohammad Naim Sheikh",
+    "dateOfBirth": "1999-09-04T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Dhaka, Bangladesh",
+    "country": "Bangladesh"
+  },
+  {
+    "name": "Towhid Hridoy",
+    "dateOfBirth": "2000-04-01T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Gaibandha, Bangladesh",
+    "country": "Bangladesh"
+  },
+  {
+    "name": "Parvez Hossain Emon",
+    "dateOfBirth": "2002-01-10T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Dhaka, Bangladesh",
+    "country": "Bangladesh"
+  },
+  {
+    "name": "Tanzid Hasan Tamim",
+    "dateOfBirth": "2001-10-15T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Dhaka, Bangladesh",
+    "country": "Bangladesh"
+  },
+  {
+    "name": "Soumya Sarkar",
+    "dateOfBirth": "1993-02-25T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Medium Fast",
+    "placeOfBirth": "Satkhira, Bangladesh",
+    "country": "Bangladesh"
+  },
+  {
+    "name": "Mushfiqur Rahim",
+    "dateOfBirth": "1987-05-09T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Bogura, Bangladesh",
+    "country": "Bangladesh"
+  },
+  {
+    "name": "Mahmudullah Riyad",
+    "dateOfBirth": "1986-02-04T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Mymensingh, Bangladesh",
+    "country": "Bangladesh"
+  },
+  {
+    "name": "Mehidy Hasan Miraz",
+    "dateOfBirth": "1997-10-25T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Cumilla, Bangladesh",
+    "country": "Bangladesh"
+  },
+  {
+    "name": "Shakib Al Hasan",
+    "dateOfBirth": "1987-03-24T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Left-arm Orthodox",
+    "placeOfBirth": "Magura, Bangladesh",
+    "country": "Bangladesh"
+  },
+  {
+    "name": "Taskin Ahmed",
+    "dateOfBirth": "1995-04-03T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast",
+    "placeOfBirth": "Dhaka, Bangladesh",
+    "country": "Bangladesh"
+  },
+  {
+    "name": "Mustafizur Rahman",
+    "dateOfBirth": "1995-09-06T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Left-arm Fast Medium",
+    "placeOfBirth": "Satkhira, Bangladesh",
+    "country": "Bangladesh"
+  },
+  {
+    "name": "Shoriful Islam",
+    "dateOfBirth": "2001-08-03T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Left-arm Fast Medium",
+    "placeOfBirth": "Rajshahi, Bangladesh",
+    "country": "Bangladesh"
+  },
+  {
+    "name": "Tanzim Hasan Sakib",
+    "dateOfBirth": "2002-10-13T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Slow Left-arm Orthodox",
+    "placeOfBirth": "Dhaka, Bangladesh",
+    "country": "Bangladesh"
+  },
+  {
+    "name": "Rishad Hossain",
+    "dateOfBirth": "2002-10-15T00:00:00",
+    "role": "Spin Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Leg Break",
+    "placeOfBirth": "Sylhet, Bangladesh",
+    "country": "Bangladesh"
+  },
+  {
+    "name": "Nasum Ahmed",
+    "dateOfBirth": "1994-02-05T00:00:00",
+    "role": "Spin Bowler",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Left-arm Orthodox",
+    "placeOfBirth": "Brahmanbaria, Bangladesh",
+    "country": "Bangladesh"
+  },
+  {
+    "name": "Mohammad Saifuddin",
+    "dateOfBirth": "1996-12-01T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast Medium",
+    "placeOfBirth": "Khulna, Bangladesh",
+    "country": "Bangladesh"
+  },
+  {
+    "name": "Ebadot Hossain",
+    "dateOfBirth": "1994-06-07T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast Medium",
+    "placeOfBirth": "Dhaka, Bangladesh",
+    "country": "Bangladesh"
+  },
+  {
+    "name": "Taijul Islam",
+    "dateOfBirth": "1990-03-07T00:00:00",
+    "role": "Spin Bowler",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Slow Left-arm Orthodox",
+    "placeOfBirth": "Khulna, Bangladesh",
+    "country": "Bangladesh"
+  },
+  {
+    "name": "Tanvir Islam",
+    "dateOfBirth": "1992-03-13T00:00:00",
+    "role": "Spin Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Slow Left-arm Orthodox",
+    "placeOfBirth": "Dhaka, Bangladesh",
+    "country": "Bangladesh"
+  },
+  {
+    "name": "Mahedi Hasan",
+    "dateOfBirth": "1994-10-12T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Magura, Bangladesh",
+    "country": "Bangladesh"
+  },
+  {
+    "name": "Shamim Hossain Patwari",
+    "dateOfBirth": "2000-09-25T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Leg Break",
+    "placeOfBirth": "Bagerhat, Bangladesh",
+    "country": "Bangladesh"
+  },
+  {
+    "name": "Jaker Ali Anik",
+    "dateOfBirth": "2002-11-01T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "None",
+    "placeOfBirth": "Chittagong, Bangladesh",
+    "country": "Bangladesh"
+  },
+  {
+    "name": "Rohit Sharma",
+    "dateOfBirth": "1987-04-30T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Nagpur, Maharashtra",
+    "country": "India"
+  },
+  {
+    "name": "Shubman Gill",
+    "dateOfBirth": "1999-09-05T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Ferozepur, Punjab",
+    "country": "India"
+  },
+  {
+    "name": "Virat Kohli",
+    "dateOfBirth": "1988-11-05T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium",
+    "placeOfBirth": "Delhi, India",
+    "country": "India"
+  },
+  {
+    "name": "Shreyas Iyer",
+    "dateOfBirth": "1994-12-06T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Leg Break",
+    "placeOfBirth": "Mumbai, Maharashtra",
+    "country": "India"
+  },
+  {
+    "name": "KL Rahul",
+    "dateOfBirth": "1992-04-18T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "None",
+    "placeOfBirth": "Bangalore, Karnataka",
+    "country": "India"
+  },
+  {
+    "name": "Rishabh Pant",
+    "dateOfBirth": "1997-10-04T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "None",
+    "placeOfBirth": "Roorkee, Uttarakhand",
+    "country": "India"
+  },
+  {
+    "name": "Hardik Pandya",
+    "dateOfBirth": "1993-10-11T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium Fast",
+    "placeOfBirth": "Mumbai, Maharashtra",
+    "country": "India"
+  },
+  {
+    "name": "Ravindra Jadeja",
+    "dateOfBirth": "1988-12-06T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Slow Left-arm Orthodox",
+    "placeOfBirth": "Saurashtra, Gujarat",
+    "country": "India"
+  },
+  {
+    "name": "Axar Patel",
+    "dateOfBirth": "1994-01-20T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Slow Left-arm Orthodox",
+    "placeOfBirth": "Anand, Gujarat",
+    "country": "India"
+  },
+  {
+    "name": "Washington Sundar",
+    "dateOfBirth": "1999-10-05T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Chennai, Tamil Nadu",
+    "country": "India"
+  },
+  {
+    "name": "Mohammed Shami",
+    "dateOfBirth": "1988-09-03T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast Medium",
+    "placeOfBirth": "Amroha, Uttar Pradesh",
+    "country": "India"
+  },
+  {
+    "name": "Arshdeep Singh",
+    "dateOfBirth": "1999-02-05T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Left-arm Medium Fast",
+    "placeOfBirth": "Muktsar, Punjab",
+    "country": "India"
+  },
+  {
+    "name": "Kuldeep Yadav",
+    "dateOfBirth": "1994-12-14T00:00:00",
+    "role": "Spin Bowler",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Left-arm Wrist Spin",
+    "placeOfBirth": "Kanpur, Uttar Pradesh",
+    "country": "India"
+  },
+  {
+    "name": "Varun Chakravarthy",
+    "dateOfBirth": "1991-02-29T00:00:00",
+    "role": "Spin Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Leg Break Googly",
+    "placeOfBirth": "Kolkata, West Bengal",
+    "country": "India"
+  },
+  {
+    "name": "Harshit Rana",
+    "dateOfBirth": "2002-01-15T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast Medium",
+    "placeOfBirth": "Delhi, India",
+    "country": "India"
+  },
+  {
+    "name": "Yashasvi Jaiswal",
+    "dateOfBirth": "2003-01-28T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Leg Break",
+    "placeOfBirth": "Mumbai, Maharashtra",
+    "country": "India"
+  },
+  {
+    "name": "Sai Sudharsan",
+    "dateOfBirth": "2004-06-19T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Chennai, Tamil Nadu",
+    "country": "India"
+  },
+  {
+    "name": "Karun Nair",
+    "dateOfBirth": "1991-12-06T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Jamshedpur, Jharkhand",
+    "country": "India"
+  },
+  {
+    "name": "Shardul Thakur",
+    "dateOfBirth": "1991-10-16T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium Fast",
+    "placeOfBirth": "Palghar, Maharashtra",
+    "country": "India"
+  },
+  {
+    "name": "Jasprit Bumrah",
+    "dateOfBirth": "1993-12-06T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast",
+    "placeOfBirth": "Ahmedabad, Gujarat",
+    "country": "India"
+  },
+  {
+    "name": "Mohammed Siraj",
+    "dateOfBirth": "1994-03-13T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast Medium",
+    "placeOfBirth": "Hyderabad, Telangana",
+    "country": "India"
+  },
+  {
+    "name": "Devdutt Padikkal",
+    "dateOfBirth": "2000-07-07T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "None",
+    "placeOfBirth": "Kodagu, Karnataka",
+    "country": "India"
+  },
+  {
+    "name": "Washington Sundar",
+    "dateOfBirth": "1999-10-05T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Chennai, Tamil Nadu",
+    "country": "India"
+  },
+  {
+    "name": "Ravi Bishnoi",
+    "dateOfBirth": "2000-09-05T00:00:00",
+    "role": "Spin Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Leg Break",
+    "placeOfBirth": "Firozpur, Punjab",
+    "country": "India"
+  },
+  {
+    "name": "Mohammad Rizwan",
+    "dateOfBirth": "1992-06-01T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium",
+    "placeOfBirth": "Peshawar, Pakistan",
+    "country": "Pakistan"
+  },
+  {
+    "name": "Salman Ali Agha",
+    "dateOfBirth": "1996-07-01T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Multan, Pakistan",
+    "country": "Pakistan"
+  },
+  {
+    "name": "Shaheen Shah Afridi",
+    "dateOfBirth": "2000-04-06T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Left-arm Fast",
+    "placeOfBirth": "Faisalabad, Pakistan",
+    "country": "Pakistan"
+  },
+  {
+    "name": "Abrar Ahmed",
+    "dateOfBirth": "2000-10-25T00:00:00",
+    "role": "Spin Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Leg Break",
+    "placeOfBirth": "Karachi, Pakistan",
+    "country": "Pakistan"
+  },
+  {
+    "name": "Faheem Ashraf",
+    "dateOfBirth": "1990-05-14T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Medium Fast",
+    "placeOfBirth": "Sargodha, Pakistan",
+    "country": "Pakistan"
+  },
+  {
+    "name": "Babar Azam",
+    "dateOfBirth": "1994-10-15T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Lahore, Pakistan",
+    "country": "Pakistan"
+  },
+  {
+    "name": "Kamran Ghulam",
+    "dateOfBirth": "1995-05-01T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Slow Left-arm Orthodox",
+    "placeOfBirth": "Swat/Multan Region, Pakistan",
+    "country": "Pakistan"
+  },
+  {
+    "name": "Mohammad Hasnain",
+    "dateOfBirth": "2000-04-05T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast",
+    "placeOfBirth": "Hyderabad, Pakistan",
+    "country": "Pakistan"
+  },
+  {
+    "name": "Usman Khan",
+    "dateOfBirth": "1995-01-01T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Bahawalpur Region, Pakistan",
+    "country": "Pakistan"
+  },
+  {
+    "name": "Haris Rauf",
+    "dateOfBirth": "1993-11-07T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast",
+    "placeOfBirth": "Gujranwala, Pakistan",
+    "country": "Pakistan"
+  },
+  {
+    "name": "Khushdil Shah",
+    "dateOfBirth": "1995-10-14T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Slow Left-arm Orthodox",
+    "placeOfBirth": "Multan, Pakistan",
+    "country": "Pakistan"
+  },
+  {
+    "name": "Naseem Shah",
+    "dateOfBirth": "2003-02-15T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast",
+    "placeOfBirth": "Malakand, Pakistan",
+    "country": "Pakistan"
+  },
+  {
+    "name": "Saud Shakeel",
+    "dateOfBirth": "1995-09-05T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Slow Left-arm Orthodox",
+    "placeOfBirth": "Karachi, Sindh",
+    "country": "Pakistan"
+  },
+  {
+    "name": "Tayyab Tahir",
+    "dateOfBirth": "1998-11-01T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Leg Break",
+    "placeOfBirth": "Lahore, Pakistan",
+    "country": "Pakistan"
+  },
+  {
+    "name": "Imam-ul-Haq",
+    "dateOfBirth": "1995-12-22T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Leg Break",
+    "placeOfBirth": "Lahore, Pakistan",
+    "country": "Pakistan"
+  },
+  {
+    "name": "Fakhar Zaman",
+    "dateOfBirth": "1990-04-10T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Slow Left-arm Orthodox",
+    "placeOfBirth": "Sadiqabad, Pakistan",
+    "country": "Pakistan"
+  },
+  {
+    "name": "Saim Ayub",
+    "dateOfBirth": "2003-02-14T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Karachi, Pakistan",
+    "country": "Pakistan"
+  },
+  {
+    "name": "Hassan Ali",
+    "dateOfBirth": "1994-05-02T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast Medium",
+    "placeOfBirth": "Okara, Punjab, Pakistan",
+    "country": "Pakistan"
+  },
+  {
+    "name": "Hassan Nawaz",
+    "dateOfBirth": "2002-04-01T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Islamabad, Pakistan",
+    "country": "Pakistan"
+  },
+  {
+    "name": "Mohammad Haris",
+    "dateOfBirth": "2001-09-10T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "None",
+    "placeOfBirth": "Karachi, Pakistan",
+    "country": "Pakistan"
+  },
+  {
+    "name": "Mohammad Wasim Jr",
+    "dateOfBirth": "2001-10-21T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast Medium",
+    "placeOfBirth": "Lahore, Pakistan",
+    "country": "Pakistan"
+  },
+  {
+    "name": "Sahibzada Farhan",
+    "dateOfBirth": "1995-09-15T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "None",
+    "placeOfBirth": "Faisalabad, Pakistan",
+    "country": "Pakistan"
+  },
+  {
+    "name": "Sufiyan Muqeem",
+    "dateOfBirth": "2001-01-01T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium Fast",
+    "placeOfBirth": "Lahore, Pakistan",
+    "country": "Pakistan"
+  },
+  {
+    "name": "Arafat Minhas",
+    "dateOfBirth": "2005-01-02T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Slow Left-arm Orthodox",
+    "placeOfBirth": "Multan, Punjab",
+    "country": "Pakistan"
+  },
+  {
+    "name": "Hussain Talat",
+    "dateOfBirth": "1996-08-05T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium Fast",
+    "placeOfBirth": "Rawalpindi, Pakistan",
+    "country": "Pakistan"
+  },
+  {
+    "name": "Temba Bavuma",
+    "dateOfBirth": "1990-05-17T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium",
+    "placeOfBirth": "Johannesburg, Gauteng, South Africa",
+    "country": "South Africa"
+  },
+  {
+    "name": "Aiden Markram",
+    "dateOfBirth": "1994-10-04T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Centurion, Gauteng, South Africa",
+    "country": "South Africa"
+  },
+  {
+    "name": "David Miller",
+    "dateOfBirth": "1989-06-10T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Cape Town, Western Cape, South Africa",
+    "country": "South Africa"
+  },
+  {
+    "name": "Tony de Zorzi",
+    "dateOfBirth": "1997-08-28T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Cape Town, Western Cape, South Africa",
+    "country": "South Africa"
+  },
+  {
+    "name": "Heinrich Klaasen",
+    "dateOfBirth": "1991-07-30T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "None",
+    "placeOfBirth": "Pretoria, Gauteng, South Africa",
+    "country": "South Africa"
+  },
+  {
+    "name": "Ryan Rickelton",
+    "dateOfBirth": "1996-07-11T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "None",
+    "placeOfBirth": "Johannesburg, Gauteng, South Africa",
+    "country": "South Africa"
+  },
+  {
+    "name": "Tristan Stubbs",
+    "dateOfBirth": "2000-08-14T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Johannesburg, Gauteng, South Africa",
+    "country": "South Africa"
+  },
+  {
+    "name": "Rassie van der Dussen",
+    "dateOfBirth": "1989-02-07T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Leg Break",
+    "placeOfBirth": "Hazyview, Mpumalanga, South Africa",
+    "country": "South Africa"
+  },
+  {
+    "name": "Corbin Bosch",
+    "dateOfBirth": "1994-01-01T00:00:00", 
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast Medium",
+    "placeOfBirth": "South Africa",
+    "country": "South Africa"
+  },
+  {
+    "name": "Marco Jansen",
+    "dateOfBirth": "2000-05-01T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Left-arm Fast",
+    "placeOfBirth": "Klerksdorp, North West, South Africa",
+    "country": "South Africa"
+  },
+  {
+    "name": "Wiaan Mulder",
+    "dateOfBirth": "1998-02-19T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium",
+    "placeOfBirth": "Johannesburg, Gauteng, South Africa",
+    "country": "South Africa"
+  },
+  {
+    "name": "Keshav Maharaj",
+    "dateOfBirth": "1990-02-07T00:00:00",
+    "role": "Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Slow Left-arm Orthodox",
+    "placeOfBirth": "Durban, KwaZulu-Natal, South Africa",
+    "country": "South Africa"
+  },
+  {
+    "name": "Tabraiz Shamsi",
+    "dateOfBirth": "1990-02-18T00:00:00",
+    "role": "Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Left-arm Wrist Spin",
+    "placeOfBirth": "Johannesburg, Gauteng, South Africa",
+    "country": "South Africa"
+  },
+  {
+    "name": "Kagiso Rabada",
+    "dateOfBirth": "1995-05-25T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Fast",
+    "placeOfBirth": "Johannesburg, Gauteng, South Africa",
+    "country": "South Africa"
+  },
+  {
+    "name": "Lungi Ngidi",
+    "dateOfBirth": "1996-03-29T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast Medium",
+    "placeOfBirth": "Durban, KwaZulu-Natal, South Africa",
+    "country": "South Africa"
+  },
+  {
+    "name": "Anrich Nortje",
+    "dateOfBirth": "1993-11-01T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast",
+    "placeOfBirth": "Uitenhage, Eastern Cape, South Africa",
+    "country": "South Africa"
+  },
+  {
+    "name": "Kyle Verreynne",
+    "dateOfBirth": "1997-05-12T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "None",
+    "placeOfBirth": "Pretoria, Gauteng, South Africa",
+    "country": "South Africa"
+  },
+  {
+    "name": "Senuran Muthusamy",
+    "dateOfBirth": "1994-01-17T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "East London, Eastern Cape, South Africa",
+    "country": "South Africa"
+  },
+  {
+    "name": "David Bedingham",
+    "dateOfBirth": "1992-06-10T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Leg Break",
+    "placeOfBirth": "Durban, KwaZulu-Natal, South Africa",
+    "country": "South Africa"
+  },
+  {
+    "name": "Kwena Maphaka",
+    "dateOfBirth": "2005-02-??T00:00:00", 
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast Medium",
+    "placeOfBirth": "South Africa",
+    "country": "South Africa"
+  },
+  {
+    "name": "George Linde",
+    "dateOfBirth": "1996-11-07T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Left-arm Orthodox",
+    "placeOfBirth": "Cape Town, Western Cape, South Africa",
+    "country": "South Africa"
+  },
+  {
+    "name": "Dane Paterson",
+    "dateOfBirth": "1989-04-16T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast Medium",
+    "placeOfBirth": "Paarl, Western Cape, South Africa",
+    "country": "South Africa"
+  },
+  {
+    "name": "Wesley Marsh",
+    "dateOfBirth": "1998-09-??T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "South Africa",
+    "country": "South Africa"
+  },
+  {
+    "name": "Nandre Burger",
+    "dateOfBirth": "1996-04-04T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium Fast",
+    "placeOfBirth": "Eastern Cape, South Africa",
+    "country": "South Africa"
+  },
+  {
+    "name": "Tony de Zorzi",
+    "dateOfBirth": "1997-08-28T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Cape Town, Western Cape, South Africa",
+    "country": "South Africa"
+  },
+  {
+    "name": "Shai Hope",
+    "dateOfBirth": "1993-11-10T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium",
+    "placeOfBirth": "Bridgetown, Barbados",
+    "country": "West Indies"
+  },
+  {
+    "name": "Nicholas Pooran",
+    "dateOfBirth": "1995-10-02T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "None",
+    "placeOfBirth": "Attnang, Trinidad and Tobago",
+    "country": "West Indies"
+  },
+  {
+    "name": "Rovman Powell",
+    "dateOfBirth": "1993-07-23T00:00:00",
+    "role": "Batsman (vice-captain)",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium",
+    "placeOfBirth": "Jamaica",
+    "country": "West Indies"
+  },
+  {
+    "name": "Shimron Hetmyer",
+    "dateOfBirth": "1996-12-26T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Guyana",
+    "country": "West Indies"
+  },
+  {
+    "name": "Brandon King",
+    "dateOfBirth": "1994-12-16T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "St Catherine, Jamaica",
+    "country": "West Indies"
+  },
+  {
+    "name": "Evin Lewis",
+    "dateOfBirth": "1991-12-27T00:00:00",
+    "role": "Batsman (limited-overs opener)",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Medium",
+    "placeOfBirth": "Rio Claro, Trinidad and Tobago",
+    "country": "West Indies"
+  },
+  {
+    "name": "Sherfane Rutherford",
+    "dateOfBirth": "1998-08-15T00:00:00",
+    "role": "All-rounder / Middle-order batter",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Fast Medium",
+    "placeOfBirth": "Enmore, Guyana",
+    "country": "West Indies"
+  },
+  {
+    "name": "Jason Holder",
+    "dateOfBirth": "1991-01-04T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium Fast",
+    "placeOfBirth": "Barbados",
+    "country": "West Indies"
+  },
+  {
+    "name": "Roston Chase",
+    "dateOfBirth": "1992-01-01T00:00:00", 
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Barbados",
+    "country": "West Indies"
+  },
+  {
+    "name": "Alzarri Joseph",
+    "dateOfBirth": "1996-11-20T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast",
+    "placeOfBirth": "Antigua",
+    "country": "West Indies"
+  },
+  {
+    "name": "Shamar Joseph",
+    "dateOfBirth": "2001-??-??T00:00:00", 
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast",
+    "placeOfBirth": "Trinidad and Tobago",
+    "country": "West Indies"
+  },
+  {
+    "name": "Gudakesh Motie",
+    "dateOfBirth": "1993-06-26T00:00:00",
+    "role": "Spin Bowler",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Slow Left-arm Orthodox",
+    "placeOfBirth": "Guyana",
+    "country": "West Indies"
+  },
+  {
+    "name": "Jayden Seales",
+    "dateOfBirth": "2001-09-10T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast",
+    "placeOfBirth": "Trinidad and Tobago",
+    "country": "West Indies"
+  },
+  {
+    "name": "Kavem Hodge",
+    "dateOfBirth": "1992-10-??T00:00:00", 
+    "role": "Batsman / All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Dominica",
+    "country": "West Indies"
+  },
+  {
+    "name": "Amir Jangoo",
+    "dateOfBirth": "1998-??-??T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "None",
+    "placeOfBirth": "Trinidad and Tobago",
+    "country": "West Indies"
+  },
+  {
+    "name": "Justin Greaves",
+    "dateOfBirth": "1994-??-??T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium",
+    "placeOfBirth": "Barbados",
+    "country": "West Indies"
+  },
+  {
+    "name": "Keacy Carty",
+    "dateOfBirth": "1997-04-02T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "St Vincent",
+    "country": "West Indies"
+  },
+  {
+    "name": "Matthew Forde",
+    "dateOfBirth": "2000-??-??T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast Medium",
+    "placeOfBirth": "Grenada",
+    "country": "West Indies"
+  },
+  {
+    "name": "Brandon King",
+    "dateOfBirth": "1994-12-16T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Jamaica",
+    "country": "West Indies"
+  },
+  {
+    "name": "Tagenarine Chanderpaul",
+    "dateOfBirth": "2000-11-31T00:00:00", 
+    "role": "Batsman",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Guyana",
+    "country": "West Indies"
+  },
+  {
+    "name": "Josh Da Silva",
+    "dateOfBirth": "1998-06-05T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "None",
+    "placeOfBirth": "Guyana",
+    "country": "West Indies"
+  },
+  {
+    "name": "Kirk McKenzie",
+    "dateOfBirth": "2003-06-15T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium",
+    "placeOfBirth": "Jamaica",
+    "country": "West Indies"
+  },
+  {
+    "name": "Alick Athanaze",
+    "dateOfBirth": "1996-02-20T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "None",
+    "placeOfBirth": "St Lucia",
+    "country": "West Indies"
+  },
+  {
+    "name": "Ian Greaves",
+    "dateOfBirth": "1993-08-??T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Slow Left-arm Orthodox",
+    "placeOfBirth": "Barbados",
+    "country": "West Indies"
+  },
+  {
+    "name": "Jason Holder",
+    "dateOfBirth": "1991-01-04T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium Fast",
+    "placeOfBirth": "Barbados",
+    "country": "West Indies"
+  },
+  {
+    "name": "Mitchell Santner",
+    "dateOfBirth": "1992-02-05T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Slow Left-arm Orthodox",
+    "placeOfBirth": "Hamilton, New Zealand",
+    "country": "New Zealand"
+  },
+  {
+    "name": "Devon Conway",
+    "dateOfBirth": "1988-06-08T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Medium",
+    "placeOfBirth": "Johannesburg, South Africa",
+    "country": "New Zealand"
+  },
+  {
+    "name": "Tom Latham",
+    "dateOfBirth": "1992-04-02T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Medium",
+    "placeOfBirth": "Christchurch, New Zealand",
+    "country": "New Zealand"
+  },
+  {
+    "name": "Kane Williamson",
+    "dateOfBirth": "1987-08-08T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Gisborne, New Zealand",
+    "country": "New Zealand"
+  },
+  {
+    "name": "Will Young",
+    "dateOfBirth": "1992-11-22T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "New Plymouth, New Zealand",
+    "country": "New Zealand"
+  },
+  {
+    "name": "Michael Bracewell",
+    "dateOfBirth": "1991-02-14T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Wellington, New Zealand",
+    "country": "New Zealand"
+  },
+  {
+    "name": "Mark Chapman",
+    "dateOfBirth": "1994-06-27T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Slow Left-arm Orthodox",
+    "placeOfBirth": "Hong Kong / Auckland, New Zealand",
+    "country": "New Zealand"
+  },
+  {
+    "name": "Daryl Mitchell",
+    "dateOfBirth": "1991-05-20T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium",
+    "placeOfBirth": "Hamilton, New Zealand",
+    "country": "New Zealand"
+  },
+  {
+    "name": "Glenn Phillips",
+    "dateOfBirth": "1996-12-06T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Auckland, New Zealand",
+    "country": "New Zealand"
+  },
+  {
+    "name": "Rachin Ravindra",
+    "dateOfBirth": "1999-11-18T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Slow Left-arm Orthodox",
+    "placeOfBirth": "Wellington, New Zealand",
+    "country": "New Zealand"
+  },
+  {
+    "name": "Matt Henry",
+    "dateOfBirth": "1991-12-14T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast Medium",
+    "placeOfBirth": "Christchurch, New Zealand",
+    "country": "New Zealand"
+  },
+  {
+    "name": "Lockie Ferguson",
+    "dateOfBirth": "1991-06-13T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast",
+    "placeOfBirth": "Auckland, New Zealand",
+    "country": "New Zealand"
+  },
+  {
+    "name": "Will O’Rourke",
+    "dateOfBirth": "2001-08-06T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast",
+    "placeOfBirth": "Canterbury, New Zealand",
+    "country": "New Zealand"
+  },
+  {
+    "name": "Ben Sears",
+    "dateOfBirth": "1998-02-11T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium Fast",
+    "placeOfBirth": "Wellington, New Zealand",
+    "country": "New Zealand"
+  },
+  {
+    "name": "Nathan Smith",
+    "dateOfBirth": "1998-07-15T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium Fast",
+    "placeOfBirth": "Wellington, New Zealand",
+    "country": "New Zealand"
+  },
+  {
+    "name": "Jacob Duffy",
+    "dateOfBirth": "1992-12-??T00:00:00",
+    "role": "Pace Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast Medium",
+    "placeOfBirth": "Dunedin, New Zealand",
+    "country": "New Zealand"
+  },
+  {
+    "name": "Adam Milne",
+    "dateOfBirth": "1992-04-13T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast",
+    "placeOfBirth": "Palmerston North, New Zealand",
+    "country": "New Zealand"
+  },
+  {
+    "name": "Ish Sodhi",
+    "dateOfBirth": "1992-01-22T00:00:00",
+    "role": "Spin Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Leg Spin",
+    "placeOfBirth": "Auckland, New Zealand",
+    "country": "New Zealand"
+  },
+  {
+    "name": "Ajaz Patel",
+    "dateOfBirth": "1988-11-12T00:00:00",
+    "role": "Spin Bowler",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Slow Left-arm Orthodox",
+    "placeOfBirth": "Auckland, New Zealand",
+    "country": "New Zealand"
+  },
+  {
+    "name": "Tim Seifert",
+    "dateOfBirth": "1994-02-03T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "None",
+    "placeOfBirth": "Auckland, New Zealand",
+    "country": "New Zealand"
+  },
+  {
+    "name": "Mitch Hay",
+    "dateOfBirth": "2002-??-??T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "None",
+    "placeOfBirth": "Canterbury, New Zealand",
+    "country": "New Zealand"
+  },
+  {
+    "name": "Zak Foulkes",
+    "dateOfBirth": "2003-??-??T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium Fast",
+    "placeOfBirth": "Christchurch, New Zealand",
+    "country": "New Zealand"
+  },
+  {
+    "name": "Adithya Ashok",
+    "dateOfBirth": "2002-09-05T00:00:00",
+    "role": "Spin Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Leg Break",
+    "placeOfBirth": "Vellore, India (represents NZ)",
+    "country": "New Zealand"
+  },
+  {
+    "name": "Charith Asalanka",
+    "dateOfBirth": "1992-11-17T00:00:00",
+    "role": "Batsman (Captain)",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Colombo, Sri Lanka",
+    "country": "Sri Lanka"
+  },
+  {
+    "name": "Pathum Nissanka",
+    "dateOfBirth": "1998-03-18T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Kalutara, Sri Lanka",
+    "country": "Sri Lanka"
+  },
+  {
+    "name": "Avishka Fernando",
+    "dateOfBirth": "1998-04-05T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Medium Fast",
+    "placeOfBirth": "Negombo, Sri Lanka",
+    "country": "Sri Lanka"
+  },
+  {
+    "name": "Nishan Madushka",
+    "dateOfBirth": "1999-12-23T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "None",
+    "placeOfBirth": "Colombo, Sri Lanka",
+    "country": "Sri Lanka"
+  },
+  {
+    "name": "Kusal Mendis",
+    "dateOfBirth": "1995-02-02T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Leg Break",
+    "placeOfBirth": "Moratuwa, Sri Lanka",
+    "country": "Sri Lanka"
+  },
+  {
+    "name": "Sadeera Samarawickrama",
+    "dateOfBirth": "1995-08-30T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Colombo, Sri Lanka",
+    "country": "Sri Lanka"
+  },
+  {
+    "name": "Kamindu Mendis",
+    "dateOfBirth": "1996-12-10T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Off Break, Slow Left-arm Orthodox",
+    "placeOfBirth": "Gampaha District, Sri Lanka",
+    "country": "Sri Lanka"
+  },
+  {
+    "name": "Janith Liyanage",
+    "dateOfBirth": "1996-05-11T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast Medium",
+    "placeOfBirth": "Kurunegala, Sri Lanka",
+    "country": "Sri Lanka"
+  },
+  {
+    "name": "Dunith Wellalage",
+    "dateOfBirth": "2003-05-18T00:00:00",
+    "role": "Spin Bowler",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Slow Left-arm Orthodox",
+    "placeOfBirth": "Galle, Sri Lanka",
+    "country": "Sri Lanka"
+  },
+  {
+    "name": "Wanindu Hasaranga",
+    "dateOfBirth": "1997-07-29T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Leg Break",
+    "placeOfBirth": "Galle, Sri Lanka",
+    "country": "Sri Lanka"
+  },
+  {
+    "name": "Maheesh Theekshana",
+    "dateOfBirth": "2000-07-07T00:00:00",
+    "role": "Spin Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Galle, Sri Lanka",
+    "country": "Sri Lanka"
+  },
+  {
+    "name": "Jeffrey Vandersay",
+    "dateOfBirth": "1989-02-06T00:00:00",
+    "role": "Spin Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Leg Break",
+    "placeOfBirth": "Colombo, Sri Lanka",
+    "country": "Sri Lanka"
+  },
+  {
+    "name": "Milan Rathnayake",
+    "dateOfBirth": "1995-01-10T00:00:00",
+    "role": "Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium Fast",
+    "placeOfBirth": "Colombo, Sri Lanka",
+    "country": "Sri Lanka"
+  },
+  {
+    "name": "Dilshan Madushanka",
+    "dateOfBirth": "2000-11-11T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium Fast",
+    "placeOfBirth": "Kurunegala, Sri Lanka",
+    "country": "Sri Lanka"
+  },
+  {
+    "name": "Asitha Fernando",
+    "dateOfBirth": "1997-12-18T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium Fast",
+    "placeOfBirth": "Colombo, Sri Lanka",
+    "country": "Sri Lanka"
+  },
+  {
+    "name": "Eshan Malinga",
+    "dateOfBirth": "1999-??-??T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Fast Medium",
+    "placeOfBirth": "Sri Lanka",
+    "country": "Sri Lanka"
+  },
+  {
+    "name": "Dinesh Chandimal",
+    "dateOfBirth": "1989-11-18T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Galle, Sri Lanka",
+    "country": "Sri Lanka"
+  },
+  {
+    "name": "Chamika Karunaratne",
+    "dateOfBirth": "1996-04-29T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast Medium",
+    "placeOfBirth": "Galle, Sri Lanka",
+    "country": "Sri Lanka"
+  },
+  {
+    "name": "Matheesha Pathirana",
+    "dateOfBirth": "2000-05-18T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast",
+    "placeOfBirth": "Ambalangoda, Sri Lanka",
+    "country": "Sri Lanka"
+  },
+  {
+    "name": "Nuwan Thushara",
+    "dateOfBirth": "1995-01-30T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Left-arm Fast Medium",
+    "placeOfBirth": "Colombo, Sri Lanka",
+    "country": "Sri Lanka"
+  },
+  {
+    "name": "Binura Fernando",
+    "dateOfBirth": "1998-11-29T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Fast",
+    "placeOfBirth": "Colombo, Sri Lanka",
+    "country": "Sri Lanka"
+  },
+  {
+    "name": "Kusal Perera",
+    "dateOfBirth": "1988-01-10T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Katunayake, Sri Lanka",
+    "country": "Sri Lanka"
+  },
+  {
+    "name": "Chamindu Wickramasinghe",
+    "dateOfBirth": "2002-09-06T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Fast Medium",
+    "placeOfBirth": "Kandy, Sri Lanka",
+    "country": "Sri Lanka"
+  },
+  {
+    "name": "Dasun Shanaka",
+    "dateOfBirth": "1991-09-09T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium Fast",
+    "placeOfBirth": "Panadura, Sri Lanka",
+    "country": "Sri Lanka"
+  },
+  {
+    "name": "Binura Fernando",
+    "dateOfBirth": "1998-11-29T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Fast",
+    "placeOfBirth": "Colombo, Sri Lanka",
+    "country": "Sri Lanka"
+  },
+  {
+    "name": "Craig Ervine",
+    "dateOfBirth": "1985-11-21T00:00:00",
+    "role": "Batsman (Captain)",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Bulawayo, Zimbabwe",
+    "country": "Zimbabwe"
+  },
+  {
+    "name": "Sean Williams",
+    "dateOfBirth": "1987-09-30T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Slow Left-arm Orthodox",
+    "placeOfBirth": "Bulawayo, Zimbabwe",
+    "country": "Zimbabwe"
+  },
+  {
+    "name": "Brian Bennett",
+    "dateOfBirth": "2001-01-01T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium Fast",
+    "placeOfBirth": "Zimbabwe",
+    "country": "Zimbabwe"
+  },
+  {
+    "name": "Ben Curran",
+    "dateOfBirth": "1996-08-10T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium",
+    "placeOfBirth": "South Africa",
+    "country": "Zimbabwe"
+  },
+  {
+    "name": "Wessly Madhevere",
+    "dateOfBirth": "2001-05-23T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium Fast",
+    "placeOfBirth": "Harare, Zimbabwe",
+    "country": "Zimbabwe"
+  },
+  {
+    "name": "Nicholas Welch",
+    "dateOfBirth": "1999-05-14T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Zimbabwe",
+    "country": "Zimbabwe"
+  },
+  {
+    "name": "Johnathan Campbell",
+    "dateOfBirth": "1996-11-11T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium",
+    "placeOfBirth": "Zimbabwe",
+    "country": "Zimbabwe"
+  },
+  {
+    "name": "Trevor Gwandu",
+    "dateOfBirth": "1999-09-07T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Medium Fast",
+    "placeOfBirth": "Zimbabwe",
+    "country": "Zimbabwe"
+  },
+  {
+    "name": "Nyasha Mayavo",
+    "dateOfBirth": "1995-06-08T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "None",
+    "placeOfBirth": "Zimbabwe",
+    "country": "Zimbabwe"
+  },
+  {
+    "name": "Tafadzwa Tsiga",
+    "dateOfBirth": "1994-08-12T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "None",
+    "placeOfBirth": "Zimbabwe",
+    "country": "Zimbabwe"
+  },
+  {
+    "name": "Blessing Muzarabani",
+    "dateOfBirth": "1994-01-18T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast",
+    "placeOfBirth": "Mashonaland, Zimbabwe",
+    "country": "Zimbabwe"
+  },
+  {
+    "name": "Richard Ngarava",
+    "dateOfBirth": "1996-11-09T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast Medium",
+    "placeOfBirth": "Harare, Zimbabwe",
+    "country": "Zimbabwe"
+  },
+  {
+    "name": "Victor Nyauchi",
+    "dateOfBirth": "1993-05-19T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium Fast",
+    "placeOfBirth": "Zimbabwe",
+    "country": "Zimbabwe"
+  },
+  {
+    "name": "Takudzwanashe Kaitano",
+    "dateOfBirth": "1993-06-15T00:00:00",
+    "role": "Opening Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Kadoma, Zimbabwe",
+    "country": "Zimbabwe"
+  },
+  {
+    "name": "Clive Madande",
+    "dateOfBirth": "2000-04-12T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "None",
+    "placeOfBirth": "Harare, Zimbabwe",
+    "country": "Zimbabwe"
+  },
+  {
+    "name": "Kundai Matigimu",
+    "dateOfBirth": "1998-02-02T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Fast",
+    "placeOfBirth": "Zimbabwe",
+    "country": "Zimbabwe"
+  },
+  {
+    "name": "Takudzwa Chataira",
+    "dateOfBirth": "1997-12-25T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium",
+    "placeOfBirth": "Harare, Zimbabwe",
+    "country": "Zimbabwe"
+  },
+  {
+    "name": "Vincent Masekesa",
+    "dateOfBirth": "2001-03-17T00:00:00",
+    "role": "Spin Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Slow Left-arm Orthodox",
+    "placeOfBirth": "Zimbabwe",
+    "country": "Zimbabwe"
+  },
+  {
+    "name": "Newman Nyamhuri",
+    "dateOfBirth": "1994-09-04T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium Fast",
+    "placeOfBirth": "Zimbabwe",
+    "country": "Zimbabwe"
+  },
+  {
+    "name": "Ryan Burl",
+    "dateOfBirth": "1994-02-11T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Slow Left-arm Orthodox",
+    "placeOfBirth": "Harare, Zimbabwe",
+    "country": "Zimbabwe"
+  },
+  {
+    "name": "Tadiwanashe Marumani",
+    "dateOfBirth": "2003-10-21T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "None",
+    "placeOfBirth": "Zimbabwe",
+    "country": "Zimbabwe"
+  },
+  {
+    "name": "Tinotenda Maposa",
+    "dateOfBirth": "1993-07-21T00:00:00",
+    "role": "Spin Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Slow Left-arm Orthodox",
+    "placeOfBirth": "Zimbabwe",
+    "country": "Zimbabwe"
+  },
+  {
+    "name": "Dion Myers",
+    "dateOfBirth": "2002-11-15T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Zimbabwe",
+    "country": "Zimbabwe"
+  },
+  {
+    "name": "Joylord Gumbie",
+    "dateOfBirth": "1996-02-21T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "None",
+    "placeOfBirth": "Zimbabwe",
+    "country": "Zimbabwe"
+  },
+  {
+    "name": "Sikandar Raza",
+    "dateOfBirth": "1986-04-24T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium",
+    "placeOfBirth": "Mutare, Zimbabwe",
+    "country": "Zimbabwe"
+  },
+  {
+    "name": "Hashmatullah Shahidi",
+    "dateOfBirth": "1986-04-24T00:00:00",
+    "role": "Batsman (Captain)",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Nangarhar, Afghanistan",
+    "country": "Afghanistan"
+  },
+  {
+    "name": "Rahmat Shah",
+    "dateOfBirth": "1986-04-24T00:00:00",
+    "role": "All-rounder (Vice-Captain)",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Leg Break",
+    "placeOfBirth": "Nangarhar, Afghanistan",
+    "country": "Afghanistan"
+  },
+  {
+    "name": "Rahmanullah Gurbaz",
+    "dateOfBirth": "1986-04-24T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "None",
+    "placeOfBirth": "Nangarhar, Afghanistan",
+    "country": "Afghanistan"
+  },
+  {
+    "name": "Ikram Alikhil",
+    "dateOfBirth": "1986-04-24T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "None",
+    "placeOfBirth": "Nangarhar, Afghanistan",
+    "country": "Afghanistan"
+  },
+  {
+    "name": "Ibrahim Zadran",
+    "dateOfBirth": "1986-04-24T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium Fast",
+    "placeOfBirth": "Nangarhar, Afghanistan",
+    "country": "Afghanistan"
+  },
+  {
+    "name": "Sediqullah Atal",
+    "dateOfBirth": "2001-08-12T00:00:00",
+    "role": "Opening Batsman",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "None",
+    "placeOfBirth": "Logar, Afghanistan",
+    "country": "Afghanistan"
+  },
+  {
+    "name": "Azmatullah Omarzai",
+    "dateOfBirth": "1986-04-24T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium Fast",
+    "placeOfBirth": "Nangarhar, Afghanistan",
+    "country": "Afghanistan"
+  },
+  {
+    "name": "Mohammad Nabi",
+    "dateOfBirth": "1986-04-24T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Puli Alam, Logar, Afghanistan",
+    "country": "Afghanistan"
+  },
+  {
+    "name": "Gulbadin Naib",
+    "dateOfBirth": "1991-06-04T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium Fast",
+    "placeOfBirth": "Puli Alam, Logar, Afghanistan",
+    "country": "Afghanistan"
+  },
+  {
+    "name": "Rashid Khan",
+    "dateOfBirth": "1986-04-24T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Leg Break",
+    "placeOfBirth": "Nangarhar, Afghanistan",
+    "country": "Afghanistan"
+  },
+  {
+    "name": "Naveed Zadran",
+    "dateOfBirth": "1986-04-24T00:00:00",
+    "role": "Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium",
+    "placeOfBirth": "Nangarhar, Afghanistan",
+    "country": "Afghanistan"
+  },
+  {
+    "name": "Noor Ahmad",
+    "dateOfBirth": "1986-04-24T00:00:00",
+    "role": "Spin Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Left-arm Wrist Spin",
+    "placeOfBirth": "Nangarhar, Afghanistan",
+    "country": "Afghanistan"
+  },
+  {
+    "name": "Fazalhaq Farooqi",
+    "dateOfBirth": "1986-04-24T00:00:00",
+    "role": "Fast Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Left-arm Fast Medium",
+    "placeOfBirth": "Nangarhar, Afghanistan",
+    "country": "Afghanistan"
+  },
+  {
+    "name": "Nangyal Kharoti",
+    "dateOfBirth": "1986-04-24T00:00:00",
+    "role": "Spin Bowler",
+    "battingStyle": "Left Handed Bat",
+    "bowlingStyle": "Slow Left-arm Orthodox",
+    "placeOfBirth": "Nangarhar, Afghanistan",
+    "country": "Afghanistan"
+  },
+  {
+    "name": "Farid Malik",
+    "dateOfBirth": "1986-04-24T00:00:00",
+    "role": "Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Nangarhar, Afghanistan",
+    "country": "Afghanistan"
+  },
+  {
+    "name": "Darwish Rasooli",
+    "dateOfBirth": "1986-04-24T00:00:00",
+    "role": "Batsman (Reserve)",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "None",
+    "placeOfBirth": "Nangarhar, Afghanistan",
+    "country": "Afghanistan"
+  },
+  {
+    "name": "Bilal Sami",
+    "dateOfBirth": "1986-04-24T00:00:00",
+    "role": "All-rounder (Reserve)",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Nangarhar, Afghanistan",
+    "country": "Afghanistan"
+  },
+  {
+    "name": "AM Ghazanfar",
+    "dateOfBirth": "1986-04-24T00:00:00",
+    "role": "Spin Bowler",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Nangarhar, Afghanistan",
+    "country": "Afghanistan"
+  },
+  {
+    "name": "Ismat Alam",
+    "dateOfBirth": "2002-02-02T00:00:00",
+    "role": "All-rounder/Test Debutant",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium Fast",
+    "placeOfBirth": "Nangarhar, Afghanistan",
+    "country": "Afghanistan"
+  },
+  {
+    "name": "Mujeeb Ur Rahman",
+    "dateOfBirth": "2001-03-28T00:00:00",
+    "role": "Spin Bowler (T20-only currently)",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Khost, Afghanistan",
+    "country": "Afghanistan"
+  },
+  {
+    "name": "Ishaq Zadran",
+    "dateOfBirth": "1986-04-24T00:00:00",
+    "role": "Fast All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium",
+    "placeOfBirth": "Nangarhar, Afghanistan",
+    "country": "Afghanistan"
+  },
+  {
+    "name": "Sharafuddin Ashraf",
+    "dateOfBirth": "1986-04-24T00:00:00",
+    "role": "Spin All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Left-arm Orthodox",
+    "placeOfBirth": "Nangarhar, Afghanistan",
+    "country": "Afghanistan"
+  },
+  {
+    "name": "Samiullah Shinwari",
+    "dateOfBirth": "1986-04-24T00:00:00",
+    "role": "All-rounder",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Medium Fast",
+    "placeOfBirth": "Nangarhar, Afghanistan",
+    "country": "Afghanistan"
+  },
+  {
+    "name": "Najibullah Zadran",
+    "dateOfBirth": "1986-04-24T00:00:00",
+    "role": "Wicketkeeper Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "None",
+    "placeOfBirth": "Nangarhar, Afghanistan",
+    "country": "Afghanistan"
+  },
+  {
+    "name": "Hazratullah Zazai",
+    "dateOfBirth": "1986-04-24T00:00:00",
+    "role": "Batsman",
+    "battingStyle": "Right Handed Bat",
+    "bowlingStyle": "Right-arm Off Break",
+    "placeOfBirth": "Nangarhar, Afghanistan",
+    "country": "Afghanistan"
+  }
+]

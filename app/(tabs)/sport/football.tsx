@@ -12,8 +12,6 @@ import { getTeamWithCrest, getWikipediaImageUrl, useFootballData } from "./footb
 // Transfer Card Component
 const TransferCard = ({ transfer }: { transfer: any }) => {
   const [playerImage, setPlayerImage] = useState<string | null>(null);
-  const [fromTeamCrest, setFromTeamCrest] = useState<string | null>(null);
-  const [toTeamCrest, setToTeamCrest] = useState<string | null>(null);
   
   React.useEffect(() => {
     const fetchPlayerImage = async () => {
@@ -28,34 +26,6 @@ const TransferCard = ({ transfer }: { transfer: any }) => {
     };
     fetchPlayerImage();
   }, [transfer.playerName]);
-
-  React.useEffect(() => {
-    const fetchTeamCrests = async () => {
-      try {
-        // Fetch from team crest
-        if (transfer.fromTeamId) {
-          const headers = new Headers();
-          headers.append('X-Auth-Token', API_KEY!);
-          const fromTeamResponse = await fetch(`https://api.football-data.org/v4/teams/${transfer.fromTeamId}`, { headers });
-          const fromTeamData = await fromTeamResponse.json();
-          setFromTeamCrest(fromTeamData.crest || null);
-        }
-
-        // Fetch to team crest
-        if (transfer.toTeamId) {
-          const headers = new Headers();
-          headers.append('X-Auth-Token', API_KEY!);
-          const toTeamResponse = await fetch(`https://api.football-data.org/v4/teams/${transfer.toTeamId}`, { headers });
-          const toTeamData = await toTeamResponse.json();
-          setToTeamCrest(toTeamData.crest || null);
-        }
-      } catch (error) {
-        console.error('Error fetching team crests:', error);
-      }
-    };
-    
-    fetchTeamCrests();
-  }, [transfer.fromTeamId, transfer.toTeamId]);
 
   return (
     <View style={styles.transferCard}>
@@ -73,27 +43,38 @@ const TransferCard = ({ transfer }: { transfer: any }) => {
         )}
         <View style={styles.compactTransferInfo}>
           <View style={styles.compactTransferTeams}>
-            <View style={styles.transferTeamContainer}>
-              {fromTeamCrest && (
+            {/* Centered arrow */}
+            <View style={styles.centerArrowContainer}>
+              <Text style={styles.transferArrow}>→</Text>
+            </View>
+            
+            {/* Left team - positioned at fixed distance from center */}
+            <View style={styles.leftTransferTeamContainer}>
+              <Text style={styles.transferTeamName}>{transfer.fromTeam}</Text>
+              {transfer.fromTeamCrest && (
                 <Image 
-                  source={{ uri: fromTeamCrest }} 
+                  source={{ uri: transfer.fromTeamCrest }} 
                   style={styles.transferTeamCrest}
                   resizeMode="contain"
                 />
               )}
-              <Text style={styles.transferTeamName}>{transfer.fromTeam}</Text>
             </View>
-            <Text style={styles.transferArrow}>→</Text>
-            <View style={styles.transferTeamContainer}>
-              {toTeamCrest && (
+            
+            {/* Right team - positioned at fixed distance from center */}
+            <View style={styles.rightTransferTeamContainer}>
+              {transfer.toTeamCrest && (
                 <Image 
-                  source={{ uri: toTeamCrest }} 
+                  source={{ uri: transfer.toTeamCrest }} 
                   style={styles.transferTeamCrest}
                   resizeMode="contain"
                 />
               )}
               <Text style={styles.transferTeamName}>{transfer.toTeam}</Text>
             </View>
+          </View>
+          
+          {/* Transfer amount - positioned below the teams */}
+          <View style={styles.transferAmountContainer}>
             <Text style={styles.transferAmount}>{transfer.amount}</Text>
           </View>
         </View>
@@ -126,7 +107,7 @@ export default function Football() {
   const transferScrollX = useRef(new Animated.Value(0)).current;
   
   // Transfer card dimensions
-  const transferCardWidth = width ; // Full width minus padding
+  const transferCardWidth = width -20; // Full width minus padding
   const transferCardMargin = 0; // No margin between cards now
   const transferCardWidthWithMargin = transferCardWidth;
 
@@ -136,6 +117,32 @@ export default function Football() {
   const [favoritePlayer, setFavoritePlayer] = useState<any>(null);
   const [favoritePlayerId, setFavoritePlayerId] = useState<number | null>(null);
   const [loadingFavoritePlayer, setLoadingFavoritePlayer] = useState(false);
+  const [nationalityFlag, setNationalityFlag] = useState<string | null>(null);
+
+  // Helper functions for player data processing
+  const calculateAge = (dateOfBirth: string): number => {
+    const birthDate = new Date(dateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+
+    return age;
+  };
+
+  const extractFirstLastName = (fullName: string): { firstName: string; lastName: string } => {
+    const nameParts = fullName.trim().split(' ');
+    if (nameParts.length === 1) {
+      return { firstName: nameParts[0], lastName: "" };
+    }
+    return {
+      firstName: nameParts[0],
+      lastName: nameParts.slice(1).join(' ')
+    };
+  };
 
   // Firebase user
   const { user } = useUser();
@@ -212,6 +219,24 @@ export default function Football() {
     }
   }, [favoriteTab, favoritePlayerId]);
 
+  // Fetch nationality flag when favorite player changes
+  useEffect(() => {
+    const fetchNationalityFlag = async () => {
+      if (favoritePlayer?.nationality) {
+        try {
+          const flagUrl = await getWikipediaImageUrl(`flag of ${favoritePlayer.nationality}`);
+          setNationalityFlag(flagUrl);
+        } catch (error) {
+          setNationalityFlag(null);
+        }
+      } else {
+        setNationalityFlag(null);
+      }
+    };
+
+    fetchNationalityFlag();
+  }, [favoritePlayer]);
+
 
   useEffect(() => {
     try {
@@ -283,7 +308,8 @@ export default function Football() {
   useEffect(() => {
     const transfers = (SPORTS_DATA as any).football?.transfers || [];
     if (transfers.length > 0 && transferScrollRef.current) {
-      const offset = transfers.length * transferCardWidthWithMargin - 16;
+      // Start from the middle set of transfers
+      const offset = transfers.length * transferCardWidthWithMargin;
       transferScrollRef.current.scrollTo({ x: offset, animated: false });
       transferScrollIndex.current = transfers.length;
     }
@@ -302,13 +328,13 @@ export default function Football() {
       if (transferScrollIndex.current >= transfers.length * 2) {
         transferScrollIndex.current = transfers.length;
         transferScrollRef.current?.scrollTo({
-          x: transfers.length * transferCardWidthWithMargin - 16,
+          x: transfers.length * transferCardWidthWithMargin,
           animated: false,
         });
       }
 
       transferScrollRef.current?.scrollTo({
-        x: transferScrollIndex.current * transferCardWidthWithMargin - 16,
+        x: transferScrollIndex.current * transferCardWidthWithMargin,
         animated: true,
       });
     }, 3000); // Auto-scroll every 3 seconds
@@ -393,7 +419,7 @@ export default function Football() {
               ref={transferScrollRef}
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.transferScrollContainer}
+              style={styles.transferScrollContainer}
               scrollEventThrottle={16}
               snapToInterval={transferCardWidthWithMargin}
               decelerationRate="fast"
@@ -421,7 +447,7 @@ export default function Football() {
           </View>
 
           {/* Latest Updates Section */}
-          <View style={[styles.sectionContainer, { marginTop: 2, marginBottom: 20 }]}>
+          <View style={[styles.sectionContainer, { marginTop: -20, marginBottom: 20 }]}>
             <Text style={styles.sectionTitle}>Latest Updates</Text>
             <ScrollView style={styles.updatesBox} showsVerticalScrollIndicator={false}>
               {(SPORTS_DATA as any).football?.headlines?.map((headline: any) => (
@@ -866,13 +892,36 @@ export default function Football() {
                 resizeMode="cover"
               />
               <Text style={styles.teamName}>{favoritePlayer.name || "N/A"}</Text>
-              <Text style={styles.teamDetail}>First Name: {favoritePlayer.firstName || "N/A"}</Text>
-              <Text style={styles.teamDetail}>Last Name: {favoritePlayer.lastName || "N/A"}</Text>
-              <Text style={styles.teamDetail}>Nationality: {favoritePlayer.nationality || "N/A"}</Text>
+              <Text style={styles.teamDetail}>First Name: {extractFirstLastName(favoritePlayer.name || "").firstName || "N/A"}</Text>
+              <Text style={styles.teamDetail}>Last Name: {extractFirstLastName(favoritePlayer.name || "").lastName || "N/A"}</Text>
+              <Text style={styles.teamDetail}>Age: {calculateAge(favoritePlayer.dateOfBirth)} years</Text>
+
+              {/* Nationality with flag */}
+              <View style={styles.countryContainer}>
+                <Text style={styles.teamDetail}>Nationality: {favoritePlayer.nationality || "N/A"}</Text>
+                {nationalityFlag && (
+                  <Image
+                    source={{ uri: nationalityFlag }}
+                    style={styles.countryFlag}
+                  />
+                )}
+              </View>
+              
               <Text style={styles.teamDetail}>Position: {favoritePlayer.position || "N/A"}</Text>
               <Text style={styles.teamDetail}>Jersey Number: {favoritePlayer.shirtNumber ?? "N/A"}</Text>
               <Text style={styles.teamDetail}>Date of Birth: {favoritePlayer.dateOfBirth || "N/A"}</Text>
-              <Text style={styles.teamDetail}>Current Club: {favoritePlayer.currentTeam?.name || "N/A"}</Text>
+              
+              {/* Current Club with crest */}
+              <View style={styles.countryContainer}>
+                <Text style={styles.teamDetail}>Current Club: {favoritePlayer.currentTeam?.name || "N/A"}</Text>
+                {favoritePlayer.currentTeam?.crest && (
+                  <Image
+                    source={{ uri: favoritePlayer.currentTeam.crest }}
+                    style={styles.clubCrest}
+                  />
+                )}
+              </View>
+              
               <Text style={styles.teamDetail}>Contract: {favoritePlayer.currentTeam?.contract?.start || "N/A"} - {favoritePlayer.currentTeam?.contract?.until || "N/A"}</Text>
               <Text style={[styles.teamDetail, { marginTop: 10 }]}>Competitions:</Text>
               {(favoritePlayer.currentTeam?.runningCompetitions ?? []).map(
@@ -1365,7 +1414,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     marginBottom: 10,
-    maxWidth: 100,
+    maxWidth: 150,
     textAlign: 'center',
     flexWrap: 'wrap',
   },
@@ -1511,21 +1560,25 @@ const styles = StyleSheet.create({
     color: '#f8fafc',
     fontSize: 11,
     fontWeight: '600',
-    maxWidth: 60,
+    maxWidth: 90,
     textAlign: 'center',
   },
   transferArrow: {
     color: '#3B82F6',
     fontSize: 20,
     fontWeight: 'bold',
-    marginHorizontal: 8,
   },
   transferAmount: {
     color: '#22c55e',
     fontSize: 11,
     fontWeight: '600',
     textAlign: 'center',
-    maxWidth: 60,
+    maxWidth: 150, 
+  },
+  transferAmountContainer: {
+    alignItems: 'center',
+    marginTop: 1,
+    width: '100%',
   },
   // Compact Transfer Card Styles
   compactTransferHeader: {
@@ -1544,6 +1597,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginRight: 12,
     backgroundColor: '#1e293b',
+    marginTop: -6,
   },
   compactTransferInfo: {
     flex: 1,
@@ -1551,7 +1605,35 @@ const styles = StyleSheet.create({
   compactTransferTeams: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    position: 'relative',
+    justifyContent: 'center',
+    minHeight: 30, // Ensure enough space for positioning
+  },
+  centerArrowContainer: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+    left: '50%',
+    transform: [{ translateX: -10 }], // Adjust based on arrow width
+    zIndex: 2,
+  },
+  leftTransferTeamContainer: {
+    position: 'absolute',
+    right: '50%',
+    marginRight: 25, // Fixed distance from center
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'flex-end', // Align items to the right edge
+    minWidth: 80, // Ensure consistent container width
+  },
+  rightTransferTeamContainer: {
+    position: 'absolute',
+    left: '50%',
+    marginLeft: 25, // Fixed distance from center
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'flex-end', // Align items to the right edge
+    minWidth: 80, // Ensure consistent container width
   },
   transferTeamContainer: {
     flexDirection: 'row',
@@ -1562,7 +1644,7 @@ const styles = StyleSheet.create({
   transferTeamCrest: {
     width: 26,
     height: 26,
-    marginRight: 4,
+    marginLeft: 6, // Fixed gap between team name and crest
   },
   updatesContainer: {
     marginTop: 4,
@@ -1605,9 +1687,25 @@ const styles = StyleSheet.create({
   transferScrollContainer: {
     height: 120,
     marginBottom: 12,
-    paddingHorizontal: 16,
   },
   transferCardWrapper: {
-    // Container for each transfer card
+    // No padding or margins - takes full width
+  },
+  countryContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  countryFlag: {
+    width: 20,
+    height: 15,
+    marginLeft: 8,
+    resizeMode: 'contain',
+  },
+  clubCrest: {
+    width: 20,
+    height: 20,
+    marginLeft: 8,
+    resizeMode: 'contain',
   },
 });

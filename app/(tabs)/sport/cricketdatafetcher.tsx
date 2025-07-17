@@ -4,18 +4,15 @@ import { useEffect, useState } from "react";
 import { Alert } from "react-native";
 // Local file path for storing country flags
 const FLAGS_FILE_PATH = FileSystem.documentDirectory + "cricket_flags.json";
-// Local file path for storing cricket players
-const PLAYERS_FILE_PATH = FileSystem.documentDirectory + "cricket_players.json";
 
-// Fetch and cache all country flags
-export async function fetchAndCacheCountryFlags(apiKey: string) {
-  const url = `https://api.cricapi.com/v1/countries?apikey=${apiKey}&offset=0`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-  const json = await res.json();
-  if (json.status !== 'success' || !Array.isArray(json.data)) throw new Error(json.message || 'Failed to fetch countries');
+// Fetch and cache all country flags using the API rotation system
+export async function fetchAndCacheCountryFlags() {
+  const data = await fetchCricketApi("countries");
+  if (data?.error) throw new Error(data.error);
+  if (!Array.isArray(data)) throw new Error('Failed to fetch countries');
+  
   // Store only id, name, and img
-  const flags = json.data.map((c: any) => ({
+  const flags = data.map((c: any) => ({
     id: c.id,
     name: c.name,
     img: c.img
@@ -25,52 +22,18 @@ export async function fetchAndCacheCountryFlags(apiKey: string) {
 }
 
 // Get country flags from local file (or fetch/cache if not present)
-export async function getCountryFlags(apiKey: string) {
+export async function getCountryFlags() {
   try {
     const fileInfo = await FileSystem.getInfoAsync(FLAGS_FILE_PATH);
     if (fileInfo.exists) {
       const jsonStr = await FileSystem.readAsStringAsync(FLAGS_FILE_PATH);
       return JSON.parse(jsonStr);
     } else {
-      return await fetchAndCacheCountryFlags(apiKey);
+      return await fetchAndCacheCountryFlags();
     }
   } catch (e) {
     // On error, try to fetch and cache again
-    return await fetchAndCacheCountryFlags(apiKey);
-  }
-}
-
-// Fetch and cache all cricket players
-export async function fetchAndCacheCricketPlayers(apiKey: string) {
-  const url = `https://api.cricapi.com/v1/players?apikey=${apiKey}&offset=0`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-  const json = await res.json();
-  if (json.status !== 'success' || !Array.isArray(json.data)) throw new Error(json.message || 'Failed to fetch players');
-  // Store only id, name, and other relevant fields
-  const players = json.data.map((p: any) => ({
-    id: p.id,
-    name: p.name,
-    country: p.country,
-    // Add other fields as needed
-  }));
-  await FileSystem.writeAsStringAsync(PLAYERS_FILE_PATH, JSON.stringify(players));
-  return players;
-}
-
-// Get cricket players from local file (or fetch/cache if not present)
-export async function getCricketPlayers(apiKey: string) {
-  try {
-    const fileInfo = await FileSystem.getInfoAsync(PLAYERS_FILE_PATH);
-    if (fileInfo.exists) {
-      const jsonStr = await FileSystem.readAsStringAsync(PLAYERS_FILE_PATH);
-      return JSON.parse(jsonStr);
-    } else {
-      return await fetchAndCacheCricketPlayers(apiKey);
-    }
-  } catch (e) {
-    // On error, try to fetch and cache again
-    return await fetchAndCacheCricketPlayers(apiKey);
+    return await fetchAndCacheCountryFlags();
   }
 }
 
@@ -232,7 +195,7 @@ const CRICKET_COUNTRIES = [
       setSeriesData(data || []);
     } catch (error) {
       const errorMessage = (error && typeof error === "object" && "message" in error) ? (error as any).message : String(error);
-      Alert.alert("Fetch Error", "Failed to fetch seriesss,error: " + errorMessage);
+      Alert.alert("Fetch Error", "Failed to fetch series,error: " + errorMessage);
     } finally {
       setLoadingSeries(false);
     }
@@ -242,13 +205,12 @@ const CRICKET_COUNTRIES = [
     setLoadingStats(true);
     setLoadingStatsMatches(true);
     try {
-      // Hardcoded fetch for stats tab
-      const res = await fetch('https://api.cricapi.com/v1/currentMatches?apikey=a7f22c03-d158-4834-aadf-0f11ea91e583&offset=0');
-      const json = await res.json();
-      if (json.status === 'success' && Array.isArray(json.data)) {
-        setStatsMatches(json.data);
-      } else {
+      // Use the proper API rotation system instead of hardcoded key
+      const data = await fetchCricketApi("currentMatches");
+      if (data?.error) {
         setStatsMatches([]);
+      } else {
+        setStatsMatches(Array.isArray(data) ? data : []);
       }
     } catch (error) {
       setStatsMatches([]);
