@@ -33,14 +33,15 @@ import CategoryBooks from './CategoryBooks';
 import FilterControls from './FilterControls';
 import FilteredViewer from './FilteredViewer';
 import GameFilteredViewer from './GameFilteredViewer';
+import LikedShows from "./LikedShows";
 import MusicDetailsViewer from "./MusicDetailsViewer";
 import MusicGenre from "./MusicGenre";
 
 const screenWidth = Dimensions.get('window').width;
 
 const filterOptions: Record<string, string[]> = {
-    Movie: ['Latest', 'Upcoming', 'Top Rated', 'Genre', 'Language', 'Release Year', 'Rating Above'],
-    'TV Series': ['Latest', 'Upcoming', 'Top Rated', 'Genre', 'Network', 'Language', 'Release Year'],
+    Movie: ['Latest', 'Upcoming', 'Top Rated', 'Liked', 'Genre', 'Language', 'Release Year', 'Rating Above'],
+    'TV Series': ['Latest', 'Upcoming', 'Top Rated', 'Liked', 'Genre', 'Network', 'Language', 'Release Year'],
     Music: ['Pop', 'Rock', 'Jazz', 'Hip-Hop', 'Electronic', 'Classical'],
     Game: ['Last 30 days', 'This week', 'Next week', 'Best of the year', 'Popular in 2024'],
     Book: ['Genre'],
@@ -68,6 +69,7 @@ export default function Dropdown({ activeTab }: DropdownProps) {
     const [showCategoryBooks, setShowCategoryBooks] = useState(false);
     const [selectedBookCategory, setSelectedBookCategory] = useState<string>('');
     const [selectedBookSubcategory, setSelectedBookSubcategory] = useState<string>('');
+    const [showLikedShows, setShowLikedShows] = useState(false);
     
     
     
@@ -111,6 +113,12 @@ export default function Dropdown({ activeTab }: DropdownProps) {
 
     const toggleFilter = async (option: string) => {
         const directFetchOptions = ['Latest', 'Upcoming', 'Top Rated', 'Last 30 days', 'This week', 'Next week', 'Best of the year', 'Popular in 2024'];
+
+        if (option === 'Liked' && (activeTab === 'Movie' || activeTab === 'TV Series')) {
+            setShowLikedShows(true);
+            closeDrawer();
+            return;
+        }
 
         if (directFetchOptions.includes(option)) {
             await handlePredefinedFetch(option);
@@ -315,6 +323,15 @@ export default function Dropdown({ activeTab }: DropdownProps) {
                             ? ['first_air_date', 'vote_average']
                             : ['release_date', 'vote_average']
                     }
+                />
+            )}
+
+            {/* LikedShows modal for Movie/TV Series */}
+            {(activeTab === 'Movie' || activeTab === 'TV Series') && (
+                <LikedShows
+                    visible={showLikedShows}
+                    onClose={() => setShowLikedShows(false)}
+                    activeTab={activeTab as 'Movie' | 'TV Series'}
                 />
             )}
 

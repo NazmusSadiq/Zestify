@@ -1,4 +1,6 @@
+import { useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import React from "react";
 import {
   Image,
@@ -10,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { db } from "../firebase";
 
 interface TrackImage {
   "#text": string;
@@ -31,25 +34,59 @@ const MusicDetailsViewer = ({
 }: MusicDetailsViewerProps) => {
   // Use a unique id for like/unlike (e.g., mbid or name+type fallback)
   const itemId = selectedItem?.mbid || `${itemType}:${selectedItem?.name}`;
-  const [likedIds, setLikedIds] = React.useState<{ [id: string]: boolean }>({});
-  const isLiked = !!itemId && likedIds[itemId];
 
-  const handleLike = () => {
-    if (itemId) {
-      setLikedIds((prev) => ({ ...prev, [itemId]: true }));
-      // TODO: Integrate with DB
+  const { user } = useUser();
+  const [isLiked, setIsLiked] = React.useState(false);
+  const [loadingLike, setLoadingLike] = React.useState(false);
+
+  // Fetch like state from Firestore when itemId changes
+  React.useEffect(() => {
+    const fetchLike = async () => {
+      if (!user?.primaryEmailAddress?.emailAddress || !itemId) {
+        setIsLiked(false);
+        return;
+      }
+      try {
+        const musicDocRef = doc(db, user.primaryEmailAddress.emailAddress, "music");
+        const docSnap = await getDoc(musicDocRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setIsLiked(!!data[itemId]);
+        } else {
+          setIsLiked(false);
+        }
+      } catch (e) {
+        setIsLiked(false);
+      }
+    };
+    fetchLike();
+  }, [user?.primaryEmailAddress?.emailAddress, itemId]);
+
+  const handleLike = async () => {
+    if (!user?.primaryEmailAddress?.emailAddress || !itemId) return;
+    setLoadingLike(true);
+    try {
+      const musicDocRef = doc(db, user.primaryEmailAddress.emailAddress, "music");
+      await setDoc(musicDocRef, { [itemId]: true }, { merge: true });
+      setIsLiked(true);
+    } catch (e) {
+      // Optionally show error
     }
+    setLoadingLike(false);
   };
 
-  const handleUnlike = () => {
-    if (itemId) {
-      setLikedIds((prev) => {
-        const updated = { ...prev };
-        delete updated[itemId];
-        return updated;
-      });
-      // TODO: Integrate with DB
+  const handleUnlike = async () => {
+    if (!user?.primaryEmailAddress?.emailAddress || !itemId) return;
+    setLoadingLike(true);
+    try {
+      const musicDocRef = doc(db, user.primaryEmailAddress.emailAddress, "music");
+      // Remove the field by setting it to delete
+      await setDoc(musicDocRef, { [itemId]: false }, { merge: true });
+      setIsLiked(false);
+    } catch (e) {
+      // Optionally show error
     }
+    setLoadingLike(false);
   };
 
   if (!selectedItem || !itemType) return null;
@@ -79,8 +116,9 @@ const MusicDetailsViewer = ({
                 style={styles.posterHeartButton}
                 onPress={isLiked ? handleUnlike : handleLike}
                 activeOpacity={0.7}
+                disabled={loadingLike}
               >
-                <Text style={{ fontSize: 28 }}>
+                <Text style={{ fontSize: 28, opacity: loadingLike ? 0.5 : 1 }}>
                   {isLiked ? "❤️" : "🤍"}
                 </Text>
               </TouchableOpacity>

@@ -1,6 +1,9 @@
+import { useUser } from "@clerk/clerk-expo";
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import React, { useEffect, useState } from 'react';
 import { Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { db } from "../firebase";
 
 interface FilteredGame {
   id: number;
@@ -40,6 +43,58 @@ interface GameFilterDetailsProps {
 }
 
 export default function GameFilterDetails({ game, visible, onClose }: GameFilterDetailsProps) {
+  const { user } = useUser();
+  const [isLiked, setIsLiked] = useState(false);
+  const [loadingLike, setLoadingLike] = useState(false);
+
+  useEffect(() => {
+    const fetchLike = async () => {
+      if (!user?.primaryEmailAddress?.emailAddress || !game?.id) {
+        setIsLiked(false);
+        return;
+      }
+      try {
+        const docRef = doc(db, user.primaryEmailAddress.emailAddress, "games");
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setIsLiked(!!data[game.id]);
+        } else {
+          setIsLiked(false);
+        }
+      } catch (e) {
+        setIsLiked(false);
+      }
+    };
+    fetchLike();
+  }, [user?.primaryEmailAddress?.emailAddress, game?.id]);
+
+  const handleLike = async () => {
+    if (!user?.primaryEmailAddress?.emailAddress || !game?.id) return;
+    setLoadingLike(true);
+    try {
+      const docRef = doc(db, user.primaryEmailAddress.emailAddress, "games");
+      await setDoc(docRef, { [game.id]: true }, { merge: true });
+      setIsLiked(true);
+    } catch (e) {
+      // Optionally show error
+    }
+    setLoadingLike(false);
+  };
+
+  const handleUnlike = async () => {
+    if (!user?.primaryEmailAddress?.emailAddress || !game?.id) return;
+    setLoadingLike(true);
+    try {
+      const docRef = doc(db, user.primaryEmailAddress.emailAddress, "games");
+      await setDoc(docRef, { [game.id]: false }, { merge: true });
+      setIsLiked(false);
+    } catch (e) {
+      // Optionally show error
+    }
+    setLoadingLike(false);
+  };
+
   if (!game) return null;
 
   return (
@@ -57,12 +112,25 @@ export default function GameFilterDetails({ game, visible, onClose }: GameFilter
               <Text style={styles.backButtonText}>Back</Text>
             </TouchableOpacity>
 
-            <Image
-              source={{ uri: game.background_image }}
-              style={styles.image}
-              resizeMode="cover"
-            />
-            
+            <View style={{ position: 'relative' }}>
+              <Image
+                source={{ uri: game.background_image }}
+                style={styles.image}
+                resizeMode="cover"
+              />
+              {/* Heart button at top right of poster */}
+              <TouchableOpacity
+                style={styles.posterHeartButton}
+                onPress={isLiked ? handleUnlike : handleLike}
+                activeOpacity={0.7}
+                disabled={loadingLike}
+              >
+                <Text style={{ fontSize: 28, opacity: loadingLike ? 0.5 : 1 }}>
+                  {isLiked ? '❤️' : '🤍'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
             <View style={styles.detailsContainer}>
               <Text style={styles.title}>{game.name}</Text>
               
@@ -216,5 +284,14 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  posterHeartButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 10,
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    borderRadius: 20,
+    padding: 2,
   },
 });

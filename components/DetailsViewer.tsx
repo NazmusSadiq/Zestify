@@ -1,5 +1,7 @@
+import { useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import React, { useEffect, useState } from "react";
 import {
   Image,
   Modal,
@@ -10,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { db } from "../firebase";
 
 interface DetailsViewerProps {
   data: Record<string, any> | null;
@@ -28,26 +31,59 @@ const DetailsViewer = ({
 }: DetailsViewerProps) => {
   // Use the TMDB id for like/unlike
   const itemId = data?.id;
-  // For demo, store liked state locally. Later, integrate with DB.
-  const [likedIds, setLikedIds] = useState<{ [id: number]: boolean }>({});
-  const isLiked = !!itemId && likedIds[itemId];
+  // Determine type: movie or tvseries
+  const type = data?.media_type === "tv" || data?.seasons ? "tvseries" : "movies";
+  const { user } = useUser();
+  const [isLiked, setIsLiked] = useState(false);
+  const [loadingLike, setLoadingLike] = useState(false);
 
-  const handleLike = () => {
-    if (itemId) {
-      setLikedIds((prev) => ({ ...prev, [itemId]: true }));
-      // TODO: Integrate with DB
+  // Fetch like state from Firestore when itemId/type changes
+  useEffect(() => {
+    const fetchLike = async () => {
+      if (!user?.primaryEmailAddress?.emailAddress || !itemId || !type) {
+        setIsLiked(false);
+        return;
+      }
+      try {
+        const docRef = doc(db, user.primaryEmailAddress.emailAddress, type);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setIsLiked(!!data[itemId]);
+        } else {
+          setIsLiked(false);
+        }
+      } catch (e) {
+        setIsLiked(false);
+      }
+    };
+    fetchLike();
+  }, [user?.primaryEmailAddress?.emailAddress, itemId, type]);
+
+  const handleLike = async () => {
+    if (!user?.primaryEmailAddress?.emailAddress || !itemId || !type) return;
+    setLoadingLike(true);
+    try {
+      const docRef = doc(db, user.primaryEmailAddress.emailAddress, type);
+      await setDoc(docRef, { [itemId]: true }, { merge: true });
+      setIsLiked(true);
+    } catch (e) {
+      // Optionally show error
     }
+    setLoadingLike(false);
   };
 
-  const handleUnlike = () => {
-    if (itemId) {
-      setLikedIds((prev) => {
-        const updated = { ...prev };
-        delete updated[itemId];
-        return updated;
-      });
-      // TODO: Integrate with DB
+  const handleUnlike = async () => {
+    if (!user?.primaryEmailAddress?.emailAddress || !itemId || !type) return;
+    setLoadingLike(true);
+    try {
+      const docRef = doc(db, user.primaryEmailAddress.emailAddress, type);
+      await setDoc(docRef, { [itemId]: false }, { merge: true });
+      setIsLiked(false);
+    } catch (e) {
+      // Optionally show error
     }
+    setLoadingLike(false);
   };
 
   if (!data) return null;
@@ -182,8 +218,9 @@ const DetailsViewer = ({
                   style={styles.posterHeartButton}
                   onPress={isLiked ? handleUnlike : handleLike}
                   activeOpacity={0.7}
+                  disabled={loadingLike}
                 >
-                  <Text style={{ fontSize: 28 }}>
+                  <Text style={{ fontSize: 28, opacity: loadingLike ? 0.5 : 1 }}>
                     {isLiked ? "❤️" : "🤍"}
                   </Text>
                 </TouchableOpacity>
