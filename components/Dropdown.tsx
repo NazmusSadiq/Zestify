@@ -33,6 +33,7 @@ import CategoryBooks from './CategoryBooks';
 import FilterControls from './FilterControls';
 import FilteredViewer from './FilteredViewer';
 import GameFilteredViewer from './GameFilteredViewer';
+import LikedGames from "./LikedGames";
 import LikedShows from "./LikedShows";
 import MusicDetailsViewer from "./MusicDetailsViewer";
 import MusicGenre from "./MusicGenre";
@@ -70,6 +71,7 @@ export default function Dropdown({ activeTab }: DropdownProps) {
     const [selectedBookCategory, setSelectedBookCategory] = useState<string>('');
     const [selectedBookSubcategory, setSelectedBookSubcategory] = useState<string>('');
     const [showLikedShows, setShowLikedShows] = useState(false);
+    const [showLikedGames, setShowLikedGames] = useState(false);
     
     
     
@@ -116,6 +118,11 @@ export default function Dropdown({ activeTab }: DropdownProps) {
 
         if (option === 'Liked' && (activeTab === 'Movie' || activeTab === 'TV Series')) {
             setShowLikedShows(true);
+            closeDrawer();
+            return;
+        }
+        if (option === 'Liked' && activeTab === 'Game') {
+            setShowLikedGames(true);
             closeDrawer();
             return;
         }
@@ -332,6 +339,13 @@ export default function Dropdown({ activeTab }: DropdownProps) {
                     visible={showLikedShows}
                     onClose={() => setShowLikedShows(false)}
                     activeTab={activeTab as 'Movie' | 'TV Series'}
+                />
+            )}
+            {/* LikedGames modal for Game */}
+            {activeTab === 'Game' && (
+                <LikedGames
+                    visible={showLikedGames}
+                    onClose={() => setShowLikedGames(false)}
                 />
             )}
 
