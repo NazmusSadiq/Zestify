@@ -36,8 +36,13 @@ const MusicDetailsViewer = ({
   let itemId = '';
   if (itemType === 'track' && selectedItem?.name && selectedItem?.artist?.name) {
     itemId = `${selectedItem.name}:${selectedItem.artist.name}`;
-  } else if (itemType === 'album' && selectedItem?.name && selectedItem?.artist?.name) {
-    itemId = `${selectedItem.name}:${selectedItem.artist.name}`;
+  } else if (itemType === 'album' && selectedItem?.name && selectedItem?.artist) {
+    const artistName = typeof selectedItem.artist === 'string'
+      ? selectedItem.artist
+      : selectedItem.artist.name;
+    if (artistName) {
+      itemId = `${selectedItem.name}:${artistName}`;
+    }
   } else if (itemType === 'artist' && selectedItem?.name) {
     itemId = selectedItem.name;
   } else if (selectedItem?.mbid) {
