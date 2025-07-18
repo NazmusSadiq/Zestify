@@ -29,8 +29,11 @@ export default function MusicGenre({ genre, onBack }: MusicGenreProps) {
         );
         setArtistImages(artistImgs);
         // Fetch Wikipedia images for tracks
-        const trackImgs = await Promise.all(
-          content.topTracks.map(async (track) => await getMusicImageFromWiki(track.name) || getImageUrl(track.image))
+        // const trackImgs = await Promise.all(
+        //   content.topTracks.map(async (track) => await getMusicImageFromWiki(track.name) || getImageUrl(track.image))
+        // );
+        const trackImgs = content.topTracks.map(
+          () => "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/The_Sounds_of_Earth_-_GPN-2000-001976.jpg/1200px-The_Sounds_of_Earth_-_GPN-2000-001976.jpg"
         );
         setTrackImages(trackImgs);
       }

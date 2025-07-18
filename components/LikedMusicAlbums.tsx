@@ -110,7 +110,7 @@ export default function LikedMusicAlbums({ visible, onClose }: LikedMusicAlbumsP
           )}
         </View>
         <Text style={styles.albumName} numberOfLines={2}>{title}</Text>
-        {listeners && <Text style={styles.albumListeners}>👂 {listeners}</Text>}
+        {listeners && <Text style={styles.albumListeners}> {listeners}</Text>}
       </TouchableOpacity>
     );
   };

@@ -130,11 +130,19 @@ const MusicDetailsViewer = ({
         setWikiImage(null);
         return;
       }
-      let name = selectedItem.name;
-      if (itemType === "track" && selectedItem.artist?.name) {
-        name = selectedItem.name;
+      // let name = selectedItem.name;
+      // if (itemType === "track" && selectedItem.artist?.name) {
+      //   name = selectedItem.name;
+      // }
+      // const img = await getMusicImageFromWiki(name);
+      let img: string | null = null;
+      if (itemType === "track") {
+        // Always use the specified image for tracks
+        img = "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/The_Sounds_of_Earth_-_GPN-2000-001976.jpg/1200px-The_Sounds_of_Earth_-_GPN-2000-001976.jpg";
+      } else {
+        let name = selectedItem.name;
+        img = await getMusicImageFromWiki(name);
       }
-      const img = await getMusicImageFromWiki(name);
       setWikiImage(img);
     };
     fetchWikiImage();

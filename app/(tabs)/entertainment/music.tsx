@@ -45,7 +45,8 @@ export default function Music() {
       if (hotContent) {
         const updatedTracks = await Promise.all(
           hotContent.topTracks.map(async (track) => {
-            const wikiImage = await getMusicImageFromWiki(track.name);
+            // const wikiImage = await getMusicImageFromWiki(track.name);
+            const wikiImage = "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/The_Sounds_of_Earth_-_GPN-2000-001976.jpg/1200px-The_Sounds_of_Earth_-_GPN-2000-001976.jpg";
             return { ...track, wikiImage: wikiImage ?? "" };
           })
         );

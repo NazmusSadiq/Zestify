@@ -93,13 +93,14 @@ export default function LikedMusicTracks({ visible, onClose }: LikedMusicTracksP
 
   const renderTrack = ({ item }: { item: Track }) => {
     const title = item.name || "Unknown Title";
-    const key = item.name + (item.artist?.name || "");
-    const imageUrl = wikiImages[key] || getImageUrl(item.image);
+    // const key = item.name + (item.artist?.name || "");
+    // const imageUrl = wikiImages[key] || getImageUrl(item.image);
+    const imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/The_Sounds_of_Earth_-_GPN-2000-001976.jpg/1200px-The_Sounds_of_Earth_-_GPN-2000-001976.jpg";
     const listeners = item.listeners || null;
     return (
       <TouchableOpacity style={styles.trackCard} onPress={() => setSelectedTrack(item)}>
         <View style={styles.imageContainer}>
-          {imageUrl ? (
+          {/* {imageUrl ? (
             <Image
               source={{ uri: imageUrl }}
               style={styles.image}
@@ -107,10 +108,15 @@ export default function LikedMusicTracks({ visible, onClose }: LikedMusicTracksP
             />
           ) : (
             <View style={[styles.image, { backgroundColor: "#444" }]} />
-          )}
+          )} */}
+          <Image
+            source={{ uri: imageUrl }}
+            style={styles.image}
+            resizeMode="cover"
+          />
         </View>
         <Text style={styles.trackName} numberOfLines={2}>{title}</Text>
-        {listeners && <Text style={styles.trackListeners}>👂 {listeners}</Text>}
+        {listeners && <Text style={styles.trackListeners}> {listeners}</Text>}
       </TouchableOpacity>
     );
   };
