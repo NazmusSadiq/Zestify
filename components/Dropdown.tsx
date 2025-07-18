@@ -33,6 +33,7 @@ import CategoryBooks from './CategoryBooks';
 import FilterControls from './FilterControls';
 import FilteredViewer from './FilteredViewer';
 import GameFilteredViewer from './GameFilteredViewer';
+import LikedBooks from "./LikedBooks";
 import LikedGames from "./LikedGames";
 import LikedShows from "./LikedShows";
 import MusicDetailsViewer from "./MusicDetailsViewer";
@@ -45,7 +46,7 @@ const filterOptions: Record<string, string[]> = {
     'TV Series': ['Latest', 'Upcoming', 'Top Rated', 'Genre', 'Network', 'Language', 'Release Year', 'Liked'],
     Music: ['Pop', 'Rock', 'Jazz', 'Hip-Hop', 'Electronic', 'Classical'],
     Game: ['Last 30 days', 'This week', 'Next week', 'Best of the year', 'Popular in 2024', 'Liked'],
-    Book: ['Genre'],
+    Book: ['Genre', 'Liked'],
 };
 
 interface DropdownProps {
@@ -72,6 +73,7 @@ export default function Dropdown({ activeTab }: DropdownProps) {
     const [selectedBookSubcategory, setSelectedBookSubcategory] = useState<string>('');
     const [showLikedShows, setShowLikedShows] = useState(false);
     const [showLikedGames, setShowLikedGames] = useState(false);
+    const [showLikedBooks, setShowLikedBooks] = useState(false);
     
     
     
@@ -123,6 +125,11 @@ export default function Dropdown({ activeTab }: DropdownProps) {
         }
         if (option === 'Liked' && activeTab === 'Game') {
             setShowLikedGames(true);
+            closeDrawer();
+            return;
+        }
+        if (option === 'Liked' && activeTab === 'Book') {
+            setShowLikedBooks(true);
             closeDrawer();
             return;
         }
@@ -346,6 +353,13 @@ export default function Dropdown({ activeTab }: DropdownProps) {
                 <LikedGames
                     visible={showLikedGames}
                     onClose={() => setShowLikedGames(false)}
+                />
+            )}
+            {/* LikedBooks modal for Book */}
+            {activeTab === 'Book' && (
+                <LikedBooks
+                    visible={showLikedBooks}
+                    onClose={() => setShowLikedBooks(false)}
                 />
             )}
 
