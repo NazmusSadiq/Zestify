@@ -22,7 +22,7 @@ export default function LikedMusicTracks({ visible, onClose }: LikedMusicTracksP
   const [loading, setLoading] = useState(true);
   const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
   const [sortBy, setSortBy] = useState(sortOptions[0]);
-  const [wikiImages, setWikiImages] = useState<string[]>([]);
+  const [wikiImages, setWikiImages] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     if (!visible) return;
@@ -31,7 +31,7 @@ export default function LikedMusicTracks({ visible, onClose }: LikedMusicTracksP
       try {
         if (!user?.primaryEmailAddress?.emailAddress) {
           setTracks([]);
-          setWikiImages([]);
+          setWikiImages({});
           return;
         }
         const docRef = doc(db, user.primaryEmailAddress.emailAddress, "musicTracks");
@@ -56,18 +56,22 @@ export default function LikedMusicTracks({ visible, onClose }: LikedMusicTracksP
           );
           const validTracks = detailsArr.filter((t): t is Track => t !== null);
           setTracks(validTracks);
-          // Fetch Wikipedia images for tracks
-          const wikiImgs = await Promise.all(
-            validTracks.map(async (track) => await getMusicImageFromWiki(track.name) || getImageUrl(track.image))
+          // Fetch Wikipedia images for tracks and store by key
+          const wikiImgs: { [key: string]: string } = {};
+          await Promise.all(
+            validTracks.map(async (track) => {
+              const key = track.name + (track.artist?.name || "");
+              wikiImgs[key] = (await getMusicImageFromWiki(track.name, track.artist?.name)) || getImageUrl(track.image);
+            })
           );
           setWikiImages(wikiImgs);
         } else {
           setTracks([]);
-          setWikiImages([]);
+          setWikiImages({});
         }
       } catch (err) {
         setTracks([]);
-        setWikiImages([]);
+        setWikiImages({});
       }
       setLoading(false);
     };
@@ -87,21 +91,26 @@ export default function LikedMusicTracks({ visible, onClose }: LikedMusicTracksP
     });
   };
 
-  const renderTrack = ({ item, index }: { item: Track, index: number }) => {
-    const title = item.name || 'Unknown Title';
-    const imageUrl = wikiImages[index] || getImageUrl(item.image);
+  const renderTrack = ({ item }: { item: Track }) => {
+    const title = item.name || "Unknown Title";
+    const key = item.name + (item.artist?.name || "");
+    const imageUrl = wikiImages[key] || getImageUrl(item.image);
     const listeners = item.listeners || null;
     return (
-      <TouchableOpacity style={styles.cardWrapper} onPress={() => setSelectedTrack(item)}>
+      <TouchableOpacity style={styles.trackCard} onPress={() => setSelectedTrack(item)}>
         <View style={styles.imageContainer}>
-          <Image
-            source={{ uri: imageUrl }}
-            style={styles.image}
-            resizeMode="cover"
-          />
+          {imageUrl ? (
+            <Image
+              source={{ uri: imageUrl }}
+              style={styles.image}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={[styles.image, { backgroundColor: "#444" }]} />
+          )}
         </View>
-        <Text style={styles.infoText}>{title}</Text>
-        {listeners && <Text style={styles.infoText}>👂 {listeners}</Text>}
+        <Text style={styles.trackName} numberOfLines={2}>{title}</Text>
+        {listeners && <Text style={styles.trackListeners}>👂 {listeners}</Text>}
       </TouchableOpacity>
     );
   };
@@ -109,13 +118,14 @@ export default function LikedMusicTracks({ visible, onClose }: LikedMusicTracksP
   if (!visible) return null;
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent={false}
-      onRequestClose={onClose}
-    >
-      <SafeAreaView style={styles.fullscreenContainer}>
+    <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Liked Music Tracks</Text>
+          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <Text style={styles.closeButtonText}>Close ✕</Text>
+          </TouchableOpacity>
+        </View>
         <View style={styles.sortSection}>
           <Text style={styles.sortLabel}>Sort By:</Text>
           <View style={styles.dropdown}>
@@ -143,12 +153,13 @@ export default function LikedMusicTracks({ visible, onClose }: LikedMusicTracksP
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#FF0000" />
+            <Text style={styles.loadingText}>Loading...</Text>
           </View>
         ) : (
           <FlatList
             data={sortTracks(tracks)}
-            renderItem={({ item, index }) => renderTrack({ item, index })}
-            keyExtractor={(item, idx) => item.name + (item.artist?.name || '') + idx}
+            renderItem={({ item }) => renderTrack({ item })}
+            keyExtractor={(item, idx) => item.name + (item.artist?.name || "") + idx}
             numColumns={2}
             contentContainerStyle={styles.listContent}
             columnWrapperStyle={styles.row}
@@ -157,7 +168,7 @@ export default function LikedMusicTracks({ visible, onClose }: LikedMusicTracksP
         )}
         <MusicDetailsViewer
           selectedItem={selectedTrack}
-          itemType={selectedTrack ? 'track' : null}
+          itemType={selectedTrack ? "track" : null}
           onClose={() => setSelectedTrack(null)}
           getImageUrl={getImageUrl}
         />
@@ -167,21 +178,44 @@ export default function LikedMusicTracks({ visible, onClose }: LikedMusicTracksP
 }
 
 const styles = StyleSheet.create({
-  fullscreenContainer: {
+  container: {
     flex: 1,
     backgroundColor: "#1e272e",
-    paddingTop: 10,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#000",
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#485460",
+  },
+  headerTitle: {
+    color: "#f1f2f6",
+    fontWeight: "bold",
+    fontSize: 20,
+  },
+  closeButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    backgroundColor: "#FF0000",
+    borderRadius: 16,
+  },
+  closeButtonText: {
+    color: "#f1f2f6",
+    fontSize: 12,
+    fontWeight: "600",
   },
   sortSection: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: "#000",
     paddingBottom: 10,
     paddingTop: 12,
     borderBottomWidth: 1,
     borderBottomColor: "#485460",
     paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
   },
   sortLabel: {
     color: "#f1f2f6",
@@ -214,11 +248,6 @@ const styles = StyleSheet.create({
   dropdownItemText: {
     color: "#f1f2f6",
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   listContent: {
     paddingHorizontal: 4,
     paddingBottom: 10,
@@ -226,26 +255,47 @@ const styles = StyleSheet.create({
   row: {
     justifyContent: "space-between",
   },
-  cardWrapper: {
-    flex: 1 / 2,
-    marginVertical: 8,
-    marginHorizontal: 14,
-    alignItems: 'center',
+  trackCard: {
+    flex: 1,
+    margin: 8,
+    backgroundColor: "#2f3640",
+    borderRadius: 12,
+    overflow: "hidden",
+    alignItems: "center",
+    padding: 8,
   },
   imageContainer: {
+    width: "100%",
+    alignItems: "center",
     marginBottom: 8,
   },
   image: {
-    width: 80,
-    height: 80,
+    width: 120,
+    height: 120,
     borderRadius: 8,
-    backgroundColor: '#222',
-    overflow: 'hidden',
+    backgroundColor: "#222",
   },
-  infoText: {
-    color: "#d2dae2",
+  trackName: {
+    color: "#f1f2f6",
+    fontSize: 16,
     fontWeight: "bold",
-    fontSize: 12,
-    textAlign: 'center',
+    marginBottom: 4,
+    textAlign: "center",
+  },
+  trackListeners: {
+    color: "#ffd700",
+    fontSize: 14,
+    marginBottom: 2,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
+  },
+  loadingText: {
+    color: "#fff",
+    marginTop: 10,
+    fontSize: 16,
   },
 });

@@ -1,10 +1,10 @@
 import { useUser } from "@clerk/clerk-expo";
 import { doc, getDoc } from "firebase/firestore";
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Image, Modal, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, FlatList, Image, Modal, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { db } from "../firebase";
-import { Artist, getArtistDetails, getImageUrl, getMusicImageFromWiki } from '../services/music_API';
-import MusicDetailsViewer from './MusicDetailsViewer';
+import { Artist, getArtistDetails, getImageUrl, getMusicImageFromWiki } from "../services/music_API";
+import MusicDetailsViewer from "./MusicDetailsViewer";
 
 const sortOptions = [
   { option: 'Title', key: 'title' },
@@ -22,7 +22,7 @@ export default function LikedMusicArtists({ visible, onClose }: LikedMusicArtist
   const [loading, setLoading] = useState(true);
   const [selectedArtist, setSelectedArtist] = useState<Artist | null>(null);
   const [sortBy, setSortBy] = useState(sortOptions[0]);
-  const [wikiImages, setWikiImages] = useState<string[]>([]);
+  const [wikiImages, setWikiImages] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     if (!visible) return;
@@ -31,7 +31,7 @@ export default function LikedMusicArtists({ visible, onClose }: LikedMusicArtist
       try {
         if (!user?.primaryEmailAddress?.emailAddress) {
           setArtists([]);
-          setWikiImages([]);
+          setWikiImages({});
           return;
         }
         const docRef = doc(db, user.primaryEmailAddress.emailAddress, "musicArtists");
@@ -56,18 +56,22 @@ export default function LikedMusicArtists({ visible, onClose }: LikedMusicArtist
           );
           const validArtists = detailsArr.filter((a): a is Artist => a !== null);
           setArtists(validArtists);
-          // Fetch Wikipedia images for artists
-          const wikiImgs = await Promise.all(
-            validArtists.map(async (artist) => await getMusicImageFromWiki(artist.name) || getImageUrl(artist.image))
+          // Fetch Wikipedia images for artists and store by key
+          const wikiImgs: { [key: string]: string } = {};
+          await Promise.all(
+            validArtists.map(async (artist) => {
+              const key = artist.name;
+              wikiImgs[key] = (await getMusicImageFromWiki(artist.name)) || getImageUrl(artist.image);
+            })
           );
           setWikiImages(wikiImgs);
         } else {
           setArtists([]);
-          setWikiImages([]);
+          setWikiImages({});
         }
       } catch (err) {
         setArtists([]);
-        setWikiImages([]);
+        setWikiImages({});
       }
       setLoading(false);
     };
@@ -87,21 +91,26 @@ export default function LikedMusicArtists({ visible, onClose }: LikedMusicArtist
     });
   };
 
-  const renderArtist = ({ item, index }: { item: Artist, index: number }) => {
-    const title = item.name || 'Unknown Artist';
-    const imageUrl = wikiImages[index] || getImageUrl(item.image);
+  const renderArtist = ({ item }: { item: Artist }) => {
+    const title = item.name || "Unknown Artist";
+    const key = item.name;
+    const imageUrl = wikiImages[key] || getImageUrl(item.image);
     const listeners = item.listeners || null;
     return (
-      <TouchableOpacity style={styles.cardWrapper} onPress={() => setSelectedArtist(item)}>
+      <TouchableOpacity style={styles.artistCard} onPress={() => setSelectedArtist(item)}>
         <View style={styles.imageContainer}>
-          <Image
-            source={{ uri: imageUrl }}
-            style={styles.image}
-            resizeMode="cover"
-          />
+          {imageUrl ? (
+            <Image
+              source={{ uri: imageUrl }}
+              style={styles.image}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={[styles.image, { backgroundColor: "#444" }]} />
+          )}
         </View>
-        <Text style={styles.infoText}>{title}</Text>
-        {listeners && <Text style={styles.infoText}>👂 {listeners}</Text>}
+        <Text style={styles.artistName} numberOfLines={2}>{title}</Text>
+        {listeners && <Text style={styles.artistListeners}>👂 {listeners}</Text>}
       </TouchableOpacity>
     );
   };
@@ -109,13 +118,14 @@ export default function LikedMusicArtists({ visible, onClose }: LikedMusicArtist
   if (!visible) return null;
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent={false}
-      onRequestClose={onClose}
-    >
-      <SafeAreaView style={styles.fullscreenContainer}>
+    <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Liked Music Artists</Text>
+          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <Text style={styles.closeButtonText}>Close ✕</Text>
+          </TouchableOpacity>
+        </View>
         <View style={styles.sortSection}>
           <Text style={styles.sortLabel}>Sort By:</Text>
           <View style={styles.dropdown}>
@@ -143,11 +153,12 @@ export default function LikedMusicArtists({ visible, onClose }: LikedMusicArtist
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#FF0000" />
+            <Text style={styles.loadingText}>Loading...</Text>
           </View>
         ) : (
           <FlatList
             data={sortArtists(artists)}
-            renderItem={({ item, index }) => renderArtist({ item, index })}
+            renderItem={({ item }) => renderArtist({ item })}
             keyExtractor={(item, idx) => item.name + idx}
             numColumns={2}
             contentContainerStyle={styles.listContent}
@@ -157,7 +168,7 @@ export default function LikedMusicArtists({ visible, onClose }: LikedMusicArtist
         )}
         <MusicDetailsViewer
           selectedItem={selectedArtist}
-          itemType={selectedArtist ? 'artist' : null}
+          itemType={selectedArtist ? "artist" : null}
           onClose={() => setSelectedArtist(null)}
           getImageUrl={getImageUrl}
         />
@@ -167,21 +178,44 @@ export default function LikedMusicArtists({ visible, onClose }: LikedMusicArtist
 }
 
 const styles = StyleSheet.create({
-  fullscreenContainer: {
+  container: {
     flex: 1,
     backgroundColor: "#1e272e",
-    paddingTop: 10,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#000",
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#485460",
+  },
+  headerTitle: {
+    color: "#f1f2f6",
+    fontWeight: "bold",
+    fontSize: 20,
+  },
+  closeButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    backgroundColor: "#FF0000",
+    borderRadius: 16,
+  },
+  closeButtonText: {
+    color: "#f1f2f6",
+    fontSize: 12,
+    fontWeight: "600",
   },
   sortSection: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: "#000",
     paddingBottom: 10,
     paddingTop: 12,
     borderBottomWidth: 1,
     borderBottomColor: "#485460",
     paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
   },
   sortLabel: {
     color: "#f1f2f6",
@@ -214,11 +248,6 @@ const styles = StyleSheet.create({
   dropdownItemText: {
     color: "#f1f2f6",
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   listContent: {
     paddingHorizontal: 4,
     paddingBottom: 10,
@@ -226,26 +255,47 @@ const styles = StyleSheet.create({
   row: {
     justifyContent: "space-between",
   },
-  cardWrapper: {
-    flex: 1 / 2,
-    marginVertical: 8,
-    marginHorizontal: 14,
-    alignItems: 'center',
+  artistCard: {
+    flex: 1,
+    margin: 8,
+    backgroundColor: "#2f3640",
+    borderRadius: 12,
+    overflow: "hidden",
+    alignItems: "center",
+    padding: 8,
   },
   imageContainer: {
+    width: "100%",
+    alignItems: "center",
     marginBottom: 8,
   },
   image: {
-    width: 80,
-    height: 80,
+    width: 120,
+    height: 120,
     borderRadius: 8,
-    backgroundColor: '#222',
-    overflow: 'hidden',
+    backgroundColor: "#222",
   },
-  infoText: {
-    color: "#d2dae2",
+  artistName: {
+    color: "#f1f2f6",
+    fontSize: 16,
     fontWeight: "bold",
-    fontSize: 12,
-    textAlign: 'center',
+    marginBottom: 4,
+    textAlign: "center",
+  },
+  artistListeners: {
+    color: "#ffd700",
+    fontSize: 14,
+    marginBottom: 2,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
+  },
+  loadingText: {
+    color: "#fff",
+    marginTop: 10,
+    fontSize: 16,
   },
 });

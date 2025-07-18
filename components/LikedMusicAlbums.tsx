@@ -22,6 +22,7 @@ export default function LikedMusicAlbums({ visible, onClose }: LikedMusicAlbumsP
   const [loading, setLoading] = useState(true);
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
   const [sortBy, setSortBy] = useState(sortOptions[0]);
+  const [wikiImages, setWikiImages] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     if (!visible) return;
@@ -30,6 +31,7 @@ export default function LikedMusicAlbums({ visible, onClose }: LikedMusicAlbumsP
       try {
         if (!user?.primaryEmailAddress?.emailAddress) {
           setAlbums([]);
+          setWikiImages({});
           return;
         }
         const docRef = doc(db, user.primaryEmailAddress.emailAddress, "musicAlbums");
@@ -52,12 +54,24 @@ export default function LikedMusicAlbums({ visible, onClose }: LikedMusicAlbumsP
               }
             })
           );
-          setAlbums(detailsArr.filter((a): a is Album => a !== null));
+          const validAlbums = detailsArr.filter((a): a is Album => a !== null);
+          setAlbums(validAlbums);
+          // Fetch Wikipedia images for albums and store by key
+          const wikiImgs: { [key: string]: string } = {};
+          await Promise.all(
+            validAlbums.map(async (album) => {
+              const key = album.name + (album.artist?.name || "");
+              wikiImgs[key] = (await getImageUrl(album.image)) || "";
+            })
+          );
+          setWikiImages(wikiImgs);
         } else {
           setAlbums([]);
+          setWikiImages({});
         }
       } catch (err) {
         setAlbums([]);
+        setWikiImages({});
       }
       setLoading(false);
     };
@@ -78,20 +92,25 @@ export default function LikedMusicAlbums({ visible, onClose }: LikedMusicAlbumsP
   };
 
   const renderAlbum = ({ item }: { item: Album }) => {
-    const title = item.name || 'Unknown Title';
-    const imageUrl = getImageUrl(item.image);
+    const title = item.name || "Unknown Title";
+    const key = item.name + (item.artist?.name || "");
+    const imageUrl = wikiImages[key] || getImageUrl(item.image);
     const listeners = item.listeners || null;
     return (
-      <TouchableOpacity style={styles.cardWrapper} onPress={() => setSelectedAlbum(item)}>
+      <TouchableOpacity style={styles.albumCard} onPress={() => setSelectedAlbum(item)}>
         <View style={styles.imageContainer}>
-          <Image
-            source={{ uri: imageUrl }}
-            style={styles.image}
-            resizeMode="cover"
-          />
+          {imageUrl ? (
+            <Image
+              source={{ uri: imageUrl }}
+              style={styles.image}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={[styles.image, { backgroundColor: "#444" }]} />
+          )}
         </View>
-        <Text style={styles.infoText}>{title}</Text>
-        {listeners && <Text style={styles.infoText}>👂 {listeners}</Text>}
+        <Text style={styles.albumName} numberOfLines={2}>{title}</Text>
+        {listeners && <Text style={styles.albumListeners}>👂 {listeners}</Text>}
       </TouchableOpacity>
     );
   };
@@ -99,13 +118,14 @@ export default function LikedMusicAlbums({ visible, onClose }: LikedMusicAlbumsP
   if (!visible) return null;
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent={false}
-      onRequestClose={onClose}
-    >
-      <SafeAreaView style={styles.fullscreenContainer}>
+    <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Liked Music Albums</Text>
+          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <Text style={styles.closeButtonText}>Close ✕</Text>
+          </TouchableOpacity>
+        </View>
         <View style={styles.sortSection}>
           <Text style={styles.sortLabel}>Sort By:</Text>
           <View style={styles.dropdown}>
@@ -133,12 +153,13 @@ export default function LikedMusicAlbums({ visible, onClose }: LikedMusicAlbumsP
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#FF0000" />
+            <Text style={styles.loadingText}>Loading...</Text>
           </View>
         ) : (
           <FlatList
             data={sortAlbums(albums)}
             renderItem={renderAlbum}
-            keyExtractor={(item, idx) => item.name + (item.artist?.name || '') + idx}
+            keyExtractor={(item, idx) => item.name + (item.artist?.name || "") + idx}
             numColumns={2}
             contentContainerStyle={styles.listContent}
             columnWrapperStyle={styles.row}
@@ -147,7 +168,7 @@ export default function LikedMusicAlbums({ visible, onClose }: LikedMusicAlbumsP
         )}
         <MusicDetailsViewer
           selectedItem={selectedAlbum}
-          itemType={selectedAlbum ? 'album' : null}
+          itemType={selectedAlbum ? "album" : null}
           onClose={() => setSelectedAlbum(null)}
           getImageUrl={getImageUrl}
         />
@@ -157,21 +178,44 @@ export default function LikedMusicAlbums({ visible, onClose }: LikedMusicAlbumsP
 }
 
 const styles = StyleSheet.create({
-  fullscreenContainer: {
+  container: {
     flex: 1,
     backgroundColor: "#1e272e",
-    paddingTop: 10,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#000",
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#485460",
+  },
+  headerTitle: {
+    color: "#f1f2f6",
+    fontWeight: "bold",
+    fontSize: 20,
+  },
+  closeButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    backgroundColor: "#FF0000",
+    borderRadius: 16,
+  },
+  closeButtonText: {
+    color: "#f1f2f6",
+    fontSize: 12,
+    fontWeight: "600",
   },
   sortSection: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: "#000",
     paddingBottom: 10,
     paddingTop: 12,
     borderBottomWidth: 1,
     borderBottomColor: "#485460",
     paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
   },
   sortLabel: {
     color: "#f1f2f6",
@@ -204,11 +248,6 @@ const styles = StyleSheet.create({
   dropdownItemText: {
     color: "#f1f2f6",
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   listContent: {
     paddingHorizontal: 4,
     paddingBottom: 10,
@@ -216,26 +255,47 @@ const styles = StyleSheet.create({
   row: {
     justifyContent: "space-between",
   },
-  cardWrapper: {
-    flex: 1 / 2,
-    marginVertical: 8,
-    marginHorizontal: 14,
-    alignItems: 'center',
+  albumCard: {
+    flex: 1,
+    margin: 8,
+    backgroundColor: "#2f3640",
+    borderRadius: 12,
+    overflow: "hidden",
+    alignItems: "center",
+    padding: 8,
   },
   imageContainer: {
+    width: "100%",
+    alignItems: "center",
     marginBottom: 8,
   },
   image: {
-    width: 80,
-    height: 80,
+    width: 120,
+    height: 120,
     borderRadius: 8,
-    backgroundColor: '#222',
-    overflow: 'hidden',
+    backgroundColor: "#222",
   },
-  infoText: {
-    color: "#d2dae2",
+  albumName: {
+    color: "#f1f2f6",
+    fontSize: 16,
     fontWeight: "bold",
-    fontSize: 12,
-    textAlign: 'center',
+    marginBottom: 4,
+    textAlign: "center",
   },
-}); 
+  albumListeners: {
+    color: "#ffd700",
+    fontSize: 14,
+    marginBottom: 2,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
+  },
+  loadingText: {
+    color: "#fff",
+    marginTop: 10,
+    fontSize: 16,
+  },
+});
