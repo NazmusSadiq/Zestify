@@ -1,4 +1,4 @@
-import { getGenreContent, getImageUrl, getItemDetails, type Album, type Artist, type GenreContent, type Track } from "@/services/music_API";
+import { getGenreContent, getImageUrl, getItemDetails, getMusicImageFromWiki, type Album, type Artist, type GenreContent, type Track } from "@/services/music_API";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import { Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -15,12 +15,24 @@ export default function MusicGenre({ genre, onBack }: MusicGenreProps) {
   const [genreContent, setGenreContent] = useState<GenreContent | null>(null);
   const [selectedItem, setSelectedItem] = useState<Artist | Album | Track | null>(null);
   const [itemType, setItemType] = useState<"artist" | "album" | "track" | null>(null);
+  const [artistImages, setArtistImages] = useState<string[]>([]);
+  const [trackImages, setTrackImages] = useState<string[]>([]);
 
   useEffect(() => {
     const loadGenreContent = async () => {
       const content = await getGenreContent(genre);
       if (content) {
         setGenreContent(content);
+        // Fetch Wikipedia images for artists
+        const artistImgs = await Promise.all(
+          content.topArtists.map(async (artist) => await getMusicImageFromWiki(artist.name) || getImageUrl(artist.image))
+        );
+        setArtistImages(artistImgs);
+        // Fetch Wikipedia images for tracks
+        const trackImgs = await Promise.all(
+          content.topTracks.map(async (track) => await getMusicImageFromWiki(track.name) || getImageUrl(track.image))
+        );
+        setTrackImages(trackImgs);
       }
     };
     loadGenreContent();
@@ -85,7 +97,7 @@ export default function MusicGenre({ genre, onBack }: MusicGenreProps) {
                 onPress={() => handleItemPress(artist, "artist")}
               >
                 <Image
-                  source={{ uri: getImageUrl(artist.image) }}
+                  source={{ uri: artistImages[index] }}
                   style={styles.artistImage}
                 />
                 <Text style={styles.artistCardName}>{artist.name}</Text>
@@ -102,7 +114,7 @@ export default function MusicGenre({ genre, onBack }: MusicGenreProps) {
               onPress={() => handleItemPress(track, "track")}
             >
               <Image
-                source={{ uri: getImageUrl(track.image) }}
+                source={{ uri: trackImages[index] }}
                 style={styles.trackImage}
               />
               <View style={styles.trackInfo}>

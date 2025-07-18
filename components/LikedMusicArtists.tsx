@@ -3,7 +3,7 @@ import { doc, getDoc } from "firebase/firestore";
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Modal, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { db } from "../firebase";
-import { Artist, getArtistDetails, getImageUrl } from '../services/music_API';
+import { Artist, getArtistDetails, getImageUrl, getMusicImageFromWiki } from '../services/music_API';
 import MusicDetailsViewer from './MusicDetailsViewer';
 
 const sortOptions = [
@@ -22,6 +22,7 @@ export default function LikedMusicArtists({ visible, onClose }: LikedMusicArtist
   const [loading, setLoading] = useState(true);
   const [selectedArtist, setSelectedArtist] = useState<Artist | null>(null);
   const [sortBy, setSortBy] = useState(sortOptions[0]);
+  const [wikiImages, setWikiImages] = useState<string[]>([]);
 
   useEffect(() => {
     if (!visible) return;
@@ -30,6 +31,7 @@ export default function LikedMusicArtists({ visible, onClose }: LikedMusicArtist
       try {
         if (!user?.primaryEmailAddress?.emailAddress) {
           setArtists([]);
+          setWikiImages([]);
           return;
         }
         const docRef = doc(db, user.primaryEmailAddress.emailAddress, "musicArtists");
@@ -52,12 +54,20 @@ export default function LikedMusicArtists({ visible, onClose }: LikedMusicArtist
               }
             })
           );
-          setArtists(detailsArr.filter((a): a is Artist => a !== null));
+          const validArtists = detailsArr.filter((a): a is Artist => a !== null);
+          setArtists(validArtists);
+          // Fetch Wikipedia images for artists
+          const wikiImgs = await Promise.all(
+            validArtists.map(async (artist) => await getMusicImageFromWiki(artist.name) || getImageUrl(artist.image))
+          );
+          setWikiImages(wikiImgs);
         } else {
           setArtists([]);
+          setWikiImages([]);
         }
       } catch (err) {
         setArtists([]);
+        setWikiImages([]);
       }
       setLoading(false);
     };
@@ -77,9 +87,9 @@ export default function LikedMusicArtists({ visible, onClose }: LikedMusicArtist
     });
   };
 
-  const renderArtist = ({ item }: { item: Artist }) => {
+  const renderArtist = ({ item, index }: { item: Artist, index: number }) => {
     const title = item.name || 'Unknown Artist';
-    const imageUrl = getImageUrl(item.image);
+    const imageUrl = wikiImages[index] || getImageUrl(item.image);
     const listeners = item.listeners || null;
     return (
       <TouchableOpacity style={styles.cardWrapper} onPress={() => setSelectedArtist(item)}>
@@ -137,7 +147,7 @@ export default function LikedMusicArtists({ visible, onClose }: LikedMusicArtist
         ) : (
           <FlatList
             data={sortArtists(artists)}
-            renderItem={renderArtist}
+            renderItem={({ item, index }) => renderArtist({ item, index })}
             keyExtractor={(item, idx) => item.name + idx}
             numColumns={2}
             contentContainerStyle={styles.listContent}
@@ -238,4 +248,4 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'center',
   },
-}); 
+});

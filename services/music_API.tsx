@@ -20,6 +20,7 @@ interface Track extends BaseItem {
   wiki?: {
     summary: string;
   };
+  wikiImage?: string; // Added property
 }
 
 interface Artist extends BaseItem {
@@ -42,6 +43,7 @@ interface Album extends BaseItem {
   wiki?: {
     summary: string;
   };
+  wikiImage?: string; // Added property
 }
 
 interface SearchResult {
@@ -170,7 +172,28 @@ export const getImageUrl = (images: TrackImage[]) => {
   return image["#text"] || DEFAULT_IMAGE;
 };
 
+export async function getMusicImageFromWiki(name: string): Promise<string | null> {
+  try {
+    const url = `https://en.wikipedia.org/w/api.php?action=query&format=json&titles=${encodeURIComponent(name)}&prop=pageimages&pithumbsize=500&origin=*`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const pages = data?.query?.pages;
+    if (pages) {
+      for (const pageId in pages) {
+        const page = pages[pageId];
+        if (page.thumbnail && page.thumbnail.source) {
+          return page.thumbnail.source;
+        }
+      }
+    }
+    return null;
+  } catch (e) {
+    console.error("Error fetching image from Wikipedia:", e);
+    return null;
+  }
+}
+
 export type {
-    Album, Artist, BaseItem, GenreContent, SearchResult, Track, TrackImage
+  Album, Artist, BaseItem, GenreContent, SearchResult, Track, TrackImage
 };
 

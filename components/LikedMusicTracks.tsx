@@ -3,7 +3,7 @@ import { doc, getDoc } from "firebase/firestore";
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Modal, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { db } from "../firebase";
-import { getImageUrl, getTrackDetails, Track } from '../services/music_API';
+import { getImageUrl, getMusicImageFromWiki, getTrackDetails, Track } from '../services/music_API';
 import MusicDetailsViewer from './MusicDetailsViewer';
 
 const sortOptions = [
@@ -22,6 +22,7 @@ export default function LikedMusicTracks({ visible, onClose }: LikedMusicTracksP
   const [loading, setLoading] = useState(true);
   const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
   const [sortBy, setSortBy] = useState(sortOptions[0]);
+  const [wikiImages, setWikiImages] = useState<string[]>([]);
 
   useEffect(() => {
     if (!visible) return;
@@ -30,6 +31,7 @@ export default function LikedMusicTracks({ visible, onClose }: LikedMusicTracksP
       try {
         if (!user?.primaryEmailAddress?.emailAddress) {
           setTracks([]);
+          setWikiImages([]);
           return;
         }
         const docRef = doc(db, user.primaryEmailAddress.emailAddress, "musicTracks");
@@ -52,12 +54,20 @@ export default function LikedMusicTracks({ visible, onClose }: LikedMusicTracksP
               }
             })
           );
-          setTracks(detailsArr.filter((t): t is Track => t !== null));
+          const validTracks = detailsArr.filter((t): t is Track => t !== null);
+          setTracks(validTracks);
+          // Fetch Wikipedia images for tracks
+          const wikiImgs = await Promise.all(
+            validTracks.map(async (track) => await getMusicImageFromWiki(track.name) || getImageUrl(track.image))
+          );
+          setWikiImages(wikiImgs);
         } else {
           setTracks([]);
+          setWikiImages([]);
         }
       } catch (err) {
         setTracks([]);
+        setWikiImages([]);
       }
       setLoading(false);
     };
@@ -77,9 +87,9 @@ export default function LikedMusicTracks({ visible, onClose }: LikedMusicTracksP
     });
   };
 
-  const renderTrack = ({ item }: { item: Track }) => {
+  const renderTrack = ({ item, index }: { item: Track, index: number }) => {
     const title = item.name || 'Unknown Title';
-    const imageUrl = getImageUrl(item.image);
+    const imageUrl = wikiImages[index] || getImageUrl(item.image);
     const listeners = item.listeners || null;
     return (
       <TouchableOpacity style={styles.cardWrapper} onPress={() => setSelectedTrack(item)}>
@@ -137,7 +147,7 @@ export default function LikedMusicTracks({ visible, onClose }: LikedMusicTracksP
         ) : (
           <FlatList
             data={sortTracks(tracks)}
-            renderItem={renderTrack}
+            renderItem={({ item, index }) => renderTrack({ item, index })}
             keyExtractor={(item, idx) => item.name + (item.artist?.name || '') + idx}
             numColumns={2}
             contentContainerStyle={styles.listContent}
@@ -238,4 +248,4 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'center',
   },
-}); 
+});

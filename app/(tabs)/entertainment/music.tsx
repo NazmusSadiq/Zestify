@@ -2,6 +2,7 @@ import {
   getGenreContent,
   getImageUrl,
   getItemDetails,
+  getMusicImageFromWiki,
   type Album,
   type Artist,
   type GenreContent,
@@ -16,34 +17,50 @@ export default function Music() {
   const [genreContent, setGenreContent] = useState<GenreContent | null>(null);
   const [selectedItem, setSelectedItem] = useState<Artist | Album | Track | null>(null);
   const [itemType, setItemType] = useState<"artist" | "album" | "track" | null>(null);
-  const [latestReleases, setLatestReleases] = useState<Album[]>([]);
-  const [hotTracks, setHotTracks] = useState<Track[]>([]);
-  const [upcomingAlbums, setUpcomingAlbums] = useState<Album[]>([]);
+  const [latestReleases, setLatestReleases] = useState<(Album & { wikiImage?: string })[]>([]);
+  const [hotTracks, setHotTracks] = useState<(Track & { wikiImage?: string })[]>([]);
+  const [upcomingAlbums, setUpcomingAlbums] = useState<(Album & { wikiImage?: string })[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchMusicData();
   }, []);
 
+  // Update fetchMusicData to include wiki images
   const fetchMusicData = async () => {
     setIsLoading(true);
     try {
-      // Fetch latest releases (using top albums from various genres)
       const latestContent = await getGenreContent("rock");
       if (latestContent) {
-        setLatestReleases(latestContent.topAlbums);
+        const updatedAlbums = await Promise.all(
+          latestContent.topAlbums.map(async (album) => {
+            const wikiImage = await getMusicImageFromWiki(album.name);
+            return { ...album, wikiImage: wikiImage ?? "" };
+          })
+        );
+        setLatestReleases(updatedAlbums);
       }
 
-      // Fetch hot tracks (using top tracks from various genres)
       const hotContent = await getGenreContent("pop");
       if (hotContent) {
-        setHotTracks(hotContent.topTracks);
+        const updatedTracks = await Promise.all(
+          hotContent.topTracks.map(async (track) => {
+            const wikiImage = await getMusicImageFromWiki(track.name);
+            return { ...track, wikiImage: wikiImage ?? "" };
+          })
+        );
+        setHotTracks(updatedTracks);
       }
 
-      // Fetch upcoming albums (using top albums from electronic genre)
       const upcomingContent = await getGenreContent("electronic");
       if (upcomingContent) {
-        setUpcomingAlbums(upcomingContent.topAlbums);
+        const updatedUpcomingAlbums = await Promise.all(
+          upcomingContent.topAlbums.map(async (album) => {
+            const wikiImage = await getMusicImageFromWiki(album.name);
+            return { ...album, wikiImage: wikiImage ?? "" };
+          })
+        );
+        setUpcomingAlbums(updatedUpcomingAlbums);
       }
     } catch (error) {
       console.error("Error fetching music data:", error);
@@ -75,6 +92,7 @@ export default function Music() {
 
 
 
+  // Update renderSection to use pre-fetched wiki images
   const renderSection = (title: string, items: (Album | Track)[], type: "album" | "track") => (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
@@ -86,7 +104,7 @@ export default function Music() {
             onPress={() => handleItemPress(item, type)}
           >
             <Image
-              source={{ uri: getImageUrl(item.image) }}
+              source={{ uri: item.wikiImage || getImageUrl(item.image) }}
               style={styles.itemImage}
             />
             <Text style={styles.itemName}>{item.name}</Text>
@@ -96,6 +114,7 @@ export default function Music() {
       </ScrollView>
     </View>
   );
+
 
   if (isLoading) {
     return (

@@ -1,3 +1,4 @@
+import { getMusicImageFromWiki } from "@/services/music_API";
 import { useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import { doc, getDoc, setDoc } from "firebase/firestore";
@@ -52,6 +53,7 @@ const MusicDetailsViewer = ({
   const { user } = useUser();
   const [isLiked, setIsLiked] = React.useState(false);
   const [loadingLike, setLoadingLike] = React.useState(false);
+  const [wikiImage, setWikiImage] = React.useState<string | null>(null);
 
   // Determine Firestore category based on itemType
   const categoryKey =
@@ -122,6 +124,22 @@ const MusicDetailsViewer = ({
     setLoadingLike(false);
   };
 
+  React.useEffect(() => {
+    const fetchWikiImage = async () => {
+      if (!selectedItem || !itemType) {
+        setWikiImage(null);
+        return;
+      }
+      let name = selectedItem.name;
+      if (itemType === "track" && selectedItem.artist?.name) {
+        name = selectedItem.name;
+      }
+      const img = await getMusicImageFromWiki(name);
+      setWikiImage(img);
+    };
+    fetchWikiImage();
+  }, [selectedItem, itemType]);
+
   if (!selectedItem || !itemType) return null;
 
   return (
@@ -141,7 +159,7 @@ const MusicDetailsViewer = ({
           <ScrollView showsVerticalScrollIndicator={false}>
             <View style={{ position: "relative" }}>
               <Image
-                source={{ uri: getImageUrl(selectedItem.image) }}
+                source={{ uri: wikiImage || getImageUrl(selectedItem.image) }}
                 style={styles.detailImage}
               />
               {/* Heart button at top right of poster */}
