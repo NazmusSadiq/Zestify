@@ -61,7 +61,7 @@ export default function LikedMusicTracks({ visible, onClose }: LikedMusicTracksP
           await Promise.all(
             validTracks.map(async (track) => {
               const key = track.name + (track.artist?.name || "");
-              wikiImgs[key] = (await getMusicImageFromWiki(track.name, track.artist?.name)) || getImageUrl(track.image);
+              wikiImgs[key] = (await getMusicImageFromWiki(track.name)) || getImageUrl(track.image);
             })
           );
           setWikiImages(wikiImgs);
