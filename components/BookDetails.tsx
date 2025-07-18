@@ -1,4 +1,5 @@
 import { useUser } from "@clerk/clerk-expo";
+import { Ionicons } from '@expo/vector-icons';
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import React, { useEffect, useState } from 'react';
 import { Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -79,8 +80,9 @@ export default function BookDetails({ book, visible, onClose }: BookDetailsProps
     >
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>×</Text>
+          <TouchableOpacity style={styles.backButton} onPress={onClose}>
+            <Ionicons name="arrow-back" size={24} color="#FF0000" />
+            <Text style={styles.backButtonText}>Back</Text>
           </TouchableOpacity>
           <ScrollView style={styles.scrollView}>
             {/* Image at top, heart button at top right of image, then title below image */}
@@ -137,7 +139,7 @@ export default function BookDetails({ book, visible, onClose }: BookDetailsProps
             {book.volumeInfo.description && (
               <View style={styles.descriptionContainer}>
                 <Text style={styles.descriptionTitle}>Description</Text>
-                <Text style={styles.description}>{book.volumeInfo.description}</Text>
+                <Text style={styles.description}>{book.volumeInfo.description.replace(/<[^>]+>/g, "")}</Text>
               </View>
             )}
           </ScrollView>
@@ -161,21 +163,15 @@ const styles = StyleSheet.create({
     // maxHeight: '80%',
     padding: 20,
   },
-  closeButton: {
-    position: 'absolute',
-    right: 10,
-    top: 10,
-    zIndex: 1,
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: '#1a1a1a',
-    justifyContent: 'center',
+  backButton: {
+    flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 16,
   },
-  closeButtonText: {
-    fontSize: 24,
+  backButtonText: {
     color: '#FF0000',
+    fontSize: 16,
+    marginLeft: 8,
   },
   scrollView: {
     flex: 1,
