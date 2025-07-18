@@ -40,10 +40,10 @@ import MusicGenre from "./MusicGenre";
 const screenWidth = Dimensions.get('window').width;
 
 const filterOptions: Record<string, string[]> = {
-    Movie: ['Latest', 'Upcoming', 'Top Rated', 'Liked', 'Genre', 'Language', 'Release Year', 'Rating Above'],
-    'TV Series': ['Latest', 'Upcoming', 'Top Rated', 'Liked', 'Genre', 'Network', 'Language', 'Release Year'],
+    Movie: ['Latest', 'Upcoming', 'Top Rated', 'Genre', 'Language', 'Release Year', 'Rating Above', 'Liked'],
+    'TV Series': ['Latest', 'Upcoming', 'Top Rated', 'Genre', 'Network', 'Language', 'Release Year', 'Liked'],
     Music: ['Pop', 'Rock', 'Jazz', 'Hip-Hop', 'Electronic', 'Classical'],
-    Game: ['Last 30 days', 'This week', 'Next week', 'Best of the year', 'Popular in 2024'],
+    Game: ['Last 30 days', 'This week', 'Next week', 'Best of the year', 'Popular in 2024', 'Liked'],
     Book: ['Genre'],
 };
 

@@ -167,67 +167,7 @@ export default function Games() {  const [trendingGames, setTrendingGames] = use
         />
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Top Publishers</Text>
-        <FlatList
-          data={topPublishers}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.companyCard}
-              onPress={async () => {
-                const details = await fetchPublisherDetails(item.id);
-                setSelectedCompany(details);
-                setCompanyModalVisible(true);
-              }}
-            >
-              <Image
-                source={{ uri: item.image_background }}
-                style={styles.companyImage}
-                resizeMode="cover"
-              />
-              <View style={styles.companyInfo}>
-                <Text style={styles.companyName}>{item.name}</Text>
-                <Text style={styles.companyGames}>Games: {item.games_count}</Text>
-              </View>
-            </TouchableOpacity>
-          )}
-          keyExtractor={(item) => item.id.toString()}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.listContainer}
-        />
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Top Developers</Text>
-        <FlatList
-          data={topDevelopers}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.companyCard}
-              onPress={async () => {
-                const details = await fetchDeveloperDetails(item.id);
-                setSelectedCompany(details);
-                setCompanyModalVisible(true);
-              }}
-            >
-              <Image
-                source={{ uri: item.image_background }}
-                style={styles.companyImage}
-                resizeMode="cover"
-              />
-              <View style={styles.companyInfo}>
-                <Text style={styles.companyName}>{item.name}</Text>
-                <Text style={styles.companyGames}>Games: {item.games_count}</Text>
-              </View>
-            </TouchableOpacity>
-          )}
-          keyExtractor={(item) => item.id.toString()}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.listContainer}
-        />
-      </View>
+      
 
       <GameDetails
         game={selectedGame}
