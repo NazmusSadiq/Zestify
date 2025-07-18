@@ -39,7 +39,15 @@ const MusicDetailsViewer = ({
   const [isLiked, setIsLiked] = React.useState(false);
   const [loadingLike, setLoadingLike] = React.useState(false);
 
-  // Fetch like state from Firestore when itemId changes
+  // Determine Firestore category based on itemType
+  const categoryKey =
+    itemType === "artist"
+      ? "musicArtists"
+      : itemType === "album"
+      ? "musicAlbums"
+      : "musicTracks";
+
+  // Fetch like state from Firestore when itemId or categoryKey changes
   React.useEffect(() => {
     const fetchLike = async () => {
       if (!user?.primaryEmailAddress?.emailAddress || !itemId) {
@@ -47,7 +55,11 @@ const MusicDetailsViewer = ({
         return;
       }
       try {
-        const musicDocRef = doc(db, user.primaryEmailAddress.emailAddress, "music");
+        const musicDocRef = doc(
+          db,
+          user.primaryEmailAddress.emailAddress,
+          categoryKey
+        );
         const docSnap = await getDoc(musicDocRef);
         if (docSnap.exists()) {
           const data = docSnap.data();
@@ -55,21 +67,25 @@ const MusicDetailsViewer = ({
         } else {
           setIsLiked(false);
         }
-      } catch (e) {
+      } catch {
         setIsLiked(false);
       }
     };
     fetchLike();
-  }, [user?.primaryEmailAddress?.emailAddress, itemId]);
+  }, [user?.primaryEmailAddress?.emailAddress, itemId, categoryKey]);
 
   const handleLike = async () => {
     if (!user?.primaryEmailAddress?.emailAddress || !itemId) return;
     setLoadingLike(true);
     try {
-      const musicDocRef = doc(db, user.primaryEmailAddress.emailAddress, "music");
+      const musicDocRef = doc(
+        db,
+        user.primaryEmailAddress.emailAddress,
+        categoryKey
+      );
       await setDoc(musicDocRef, { [itemId]: true }, { merge: true });
       setIsLiked(true);
-    } catch (e) {
+    } catch {
       // Optionally show error
     }
     setLoadingLike(false);
@@ -79,11 +95,14 @@ const MusicDetailsViewer = ({
     if (!user?.primaryEmailAddress?.emailAddress || !itemId) return;
     setLoadingLike(true);
     try {
-      const musicDocRef = doc(db, user.primaryEmailAddress.emailAddress, "music");
-      // Remove the field by setting it to delete
+      const musicDocRef = doc(
+        db,
+        user.primaryEmailAddress.emailAddress,
+        categoryKey
+      );
       await setDoc(musicDocRef, { [itemId]: false }, { merge: true });
       setIsLiked(false);
-    } catch (e) {
+    } catch {
       // Optionally show error
     }
     setLoadingLike(false);
