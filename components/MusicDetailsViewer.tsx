@@ -33,7 +33,16 @@ const MusicDetailsViewer = ({
   getImageUrl,
 }: MusicDetailsViewerProps) => {
   // Use a unique id for like/unlike (e.g., mbid or name+type fallback)
-  const itemId = selectedItem?.mbid || `${itemType}:${selectedItem?.name}`;
+  let itemId = '';
+  if (itemType === 'track' && selectedItem?.name && selectedItem?.artist?.name) {
+    itemId = `${selectedItem.name}:${selectedItem.artist.name}`;
+  } else if (itemType === 'album' && selectedItem?.name && selectedItem?.artist?.name) {
+    itemId = `${selectedItem.name}:${selectedItem.artist.name}`;
+  } else if (itemType === 'artist' && selectedItem?.name) {
+    itemId = selectedItem.name;
+  } else if (selectedItem?.mbid) {
+    itemId = selectedItem.mbid;
+  }
 
   const { user } = useUser();
   const [isLiked, setIsLiked] = React.useState(false);

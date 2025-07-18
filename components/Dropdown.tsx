@@ -35,6 +35,9 @@ import FilteredViewer from './FilteredViewer';
 import GameFilteredViewer from './GameFilteredViewer';
 import LikedBooks from "./LikedBooks";
 import LikedGames from "./LikedGames";
+import LikedMusicAlbums from "./LikedMusicAlbums";
+import LikedMusicArtists from "./LikedMusicArtists";
+import LikedMusicTracks from "./LikedMusicTracks";
 import LikedShows from "./LikedShows";
 import MusicDetailsViewer from "./MusicDetailsViewer";
 import MusicGenre from "./MusicGenre";
@@ -44,7 +47,7 @@ const screenWidth = Dimensions.get('window').width;
 const filterOptions: Record<string, string[]> = {
     Movie: ['Latest', 'Upcoming', 'Top Rated', 'Genre', 'Language', 'Release Year', 'Rating Above', 'Liked'],
     'TV Series': ['Latest', 'Upcoming', 'Top Rated', 'Genre', 'Network', 'Language', 'Release Year', 'Liked'],
-    Music: ['Pop', 'Rock', 'Jazz', 'Hip-Hop', 'Electronic', 'Classical'],
+    Music: ['Pop', 'Rock', 'Jazz', 'Hip-Hop', 'Electronic', 'Classical', 'Liked Tracks', 'Liked Artists', 'Liked Albums'],
     Game: ['Last 30 days', 'This week', 'Next week', 'Best of the year', 'Popular in 2024', 'Liked'],
     Book: ['Genre', 'Liked'],
 };
@@ -74,6 +77,9 @@ export default function Dropdown({ activeTab }: DropdownProps) {
     const [showLikedShows, setShowLikedShows] = useState(false);
     const [showLikedGames, setShowLikedGames] = useState(false);
     const [showLikedBooks, setShowLikedBooks] = useState(false);
+    const [showLikedMusicTracks, setShowLikedMusicTracks] = useState(false);
+    const [showLikedMusicAlbums, setShowLikedMusicAlbums] = useState(false);
+    const [showLikedMusicArtists, setShowLikedMusicArtists] = useState(false);
     
     
     
@@ -130,6 +136,21 @@ export default function Dropdown({ activeTab }: DropdownProps) {
         }
         if (option === 'Liked' && activeTab === 'Book') {
             setShowLikedBooks(true);
+            closeDrawer();
+            return;
+        }
+        if (option === 'Liked Tracks' && activeTab === 'Music') {
+            setShowLikedMusicTracks(true);
+            closeDrawer();
+            return;
+        }
+        if (option === 'Liked Albums' && activeTab === 'Music') {
+            setShowLikedMusicAlbums(true);
+            closeDrawer();
+            return;
+        }
+        if (option === 'Liked Artists' && activeTab === 'Music') {
+            setShowLikedMusicArtists(true);
             closeDrawer();
             return;
         }
@@ -274,7 +295,16 @@ export default function Dropdown({ activeTab }: DropdownProps) {
                                         <TouchableOpacity
                                             onPress={() => {
                                                 if (activeTab === 'Music') {
-                                                    handleMusicGenreSelect(option);
+                                                    // Only treat as genre if not a liked option
+                                                    if ([
+                                                        'Liked Tracks',
+                                                        'Liked Albums',
+                                                        'Liked Artists'
+                                                    ].includes(option)) {
+                                                        toggleFilter(option);
+                                                    } else {
+                                                        handleMusicGenreSelect(option);
+                                                    }
                                                 } else {
                                                     toggleFilter(option);
                                                 }
@@ -362,8 +392,26 @@ export default function Dropdown({ activeTab }: DropdownProps) {
                     onClose={() => setShowLikedBooks(false)}
                 />
             )}
-
-            {activeTab === 'Music' && selectedGenre && genreContent && (
+            {/* LikedMusicTracks, LikedMusicAlbums, LikedMusicArtists, and MusicGenre modals for Music */}
+            {activeTab === 'Music' && showLikedMusicTracks && (
+                <LikedMusicTracks
+                    visible={showLikedMusicTracks}
+                    onClose={() => setShowLikedMusicTracks(false)}
+                />
+            )}
+            {activeTab === 'Music' && showLikedMusicAlbums && (
+                <LikedMusicAlbums
+                    visible={showLikedMusicAlbums}
+                    onClose={() => setShowLikedMusicAlbums(false)}
+                />
+            )}
+            {activeTab === 'Music' && showLikedMusicArtists && (
+                <LikedMusicArtists
+                    visible={showLikedMusicArtists}
+                    onClose={() => setShowLikedMusicArtists(false)}
+                />
+            )}
+            {activeTab === 'Music' && !showLikedMusicTracks && !showLikedMusicAlbums && !showLikedMusicArtists && selectedGenre && genreContent && (
                 <MusicGenre
                     genre={selectedGenre}
                     onBack={() => {
