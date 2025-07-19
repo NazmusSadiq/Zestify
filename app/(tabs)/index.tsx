@@ -13,7 +13,7 @@ const { height, width } = Dimensions.get("window");
 interface MovieItem {
   id: number;
   title: string;
-  poster_path: string | null;
+  poster_path?: string | null;
   release_date: string;
   [key: string]: any;
 }
@@ -157,7 +157,7 @@ export default function Index() {
     }, 2000);
   };
 
-  const getPosterUrl = (path: string | null) =>
+  const getPosterUrl = (path?: string | null) =>
     path ? `https://image.tmdb.org/t/p/w500${path}` : undefined;
 
   const handleMoviePress = (movie: MovieItem) => {
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#1B2631",
     paddingHorizontal: 8,
-    paddingTop: 4,
+    paddingTop: 70, // Increased from 4 to 32 for more space below the top bar
   },
   section: {
     height: height * 0.235,
