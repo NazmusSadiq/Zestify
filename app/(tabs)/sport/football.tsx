@@ -1,5 +1,5 @@
 // --- Render Stats Tab ---
-import { API_KEY, COMPETITIONS, STATS_OPTIONS } from "@/services/fotball_API";
+import { API_KEY, COMPETITIONS, MATCHES_COMPETITIONS, STATS_OPTIONS } from "@/services/fotball_API";
 import { useUser } from "@clerk/clerk-expo";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import React, { useEffect, useRef, useState } from "react";
@@ -119,6 +119,13 @@ export default function Football() {
   const [loadingFavoritePlayer, setLoadingFavoritePlayer] = useState(false);
   const [nationalityFlag, setNationalityFlag] = useState<string | null>(null);
 
+  // --- Match Subscription State ---
+  const [subscribedMatches, setSubscribedMatches] = useState<Set<number>>(new Set());
+  const [loadingSubscriptions, setLoadingSubscriptions] = useState<{ [key: number]: boolean }>({});
+  const matchesScrollRef = useRef<ScrollView>(null);
+  const shouldAutoScroll = useRef(true);
+  const shouldRefetchSubscribed = useRef(true); 
+
   // Helper functions for player data processing
   const calculateAge = (dateOfBirth: string): number => {
     const birthDate = new Date(dateOfBirth);
@@ -190,6 +197,68 @@ export default function Football() {
       saveFavoritePlayerId();
     }
   }, [favoritePlayerId, user?.primaryEmailAddress?.emailAddress]);
+
+  // --- Match Subscription Functions ---
+  // Fetch subscribed matches from Firebase on mount
+  useEffect(() => {
+    const fetchSubscribedMatches = async () => {
+      if (!user?.primaryEmailAddress?.emailAddress) {
+        setSubscribedMatches(new Set());
+        return;
+      }
+      try {
+        const userDocRef = doc(db, "users", user.primaryEmailAddress.emailAddress);
+        const docSnap = await getDoc(userDocRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.subscribedMatches && Array.isArray(data.subscribedMatches)) {
+            setSubscribedMatches(new Set(data.subscribedMatches));
+          }
+        }
+      } catch (error) {
+        console.error("Error loading subscribed matches:", error);
+      }
+    };
+    fetchSubscribedMatches();
+  }, [user?.primaryEmailAddress?.emailAddress]);
+
+  // Save subscribed matches to Firebase when they change
+  const saveSubscribedMatches = async (matchIds: Set<number>) => {
+    if (!user?.primaryEmailAddress?.emailAddress) return;
+    try {
+      const userDocRef = doc(db, "users", user.primaryEmailAddress.emailAddress);
+      await setDoc(userDocRef, { subscribedMatches: Array.from(matchIds) }, { merge: true });
+    } catch (error) {
+      console.error("Error saving subscribed matches:", error);
+    }
+  };
+
+  // Toggle match subscription
+  const toggleMatchSubscription = async (matchId: number) => {
+    if (!matchId) return;
+    
+    setLoadingSubscriptions(prev => ({ ...prev, [matchId]: true }));
+    
+    const newSubscribedMatches = new Set(subscribedMatches);
+    const wasSubscribed = subscribedMatches.has(matchId);
+    
+    if (wasSubscribed) {
+      newSubscribedMatches.delete(matchId);
+      // If we're in subscribed section and unsubscribing, remove from current view
+      if (matchesCompetition.id === "SUBSCRIBED") {
+        setMatchesData(prev => prev.filter(match => match.id !== matchId));
+        shouldRefetchSubscribed.current = false; // Don't refetch immediately
+      }
+    } else {
+      newSubscribedMatches.add(matchId);
+      shouldRefetchSubscribed.current = true; // Allow refetch for new subscriptions
+    }
+    
+    setSubscribedMatches(newSubscribedMatches);
+    await saveSubscribedMatches(newSubscribedMatches);
+    
+    setLoadingSubscriptions(prev => ({ ...prev, [matchId]: false }));
+  };
 
   // Fetch player data by id
   async function fetchFavoritePlayer(playerId: number) {
@@ -271,16 +340,63 @@ export default function Football() {
 
   const {
     statsCompetition, setStatsCompetition, statsOption, setStatsOption, statsData, loadingStats, fetchStatsData,
-    matchesCompetition, setMatchesCompetition, matchesData, loadingMatches, fetchMatchesData, homeMatches, loadingHome,
+    matchesCompetition, setMatchesCompetition, matchesData, setMatchesData, loadingMatches, fetchMatchesData, homeMatches, loadingHome,
     fetchHomeMatches, favoriteTeams, setFavoriteTeams, favoriteTeamsStats, loadingFavStats, fetchFavoriteStats, addFavoriteTeam, searchTeams
   } = useFootballData();
 
   useEffect(() => {
     if (activeTab === "Home") fetchHomeMatches();
     if (activeTab === "Stats") fetchStatsData();
-    if (activeTab === "Matches") fetchMatchesData();
+    if (activeTab === "Matches") {
+      if (matchesCompetition.id === "SUBSCRIBED") {
+        shouldRefetchSubscribed.current = true; // Enable refetch when entering subscribed section
+        fetchMatchesData(Array.from(subscribedMatches));
+      } else {
+        fetchMatchesData();
+      }
+    }
     if (activeTab === "Favorite") fetchFavoriteStats();
   }, [activeTab, statsCompetition, statsOption, matchesCompetition, favoriteTeams]);
+
+  // Separate effect for subscribed matches that only triggers when subscribedMatches changes
+  useEffect(() => {
+    if (activeTab === "Matches" && matchesCompetition.id === "SUBSCRIBED" && shouldRefetchSubscribed.current) {
+      fetchMatchesData(Array.from(subscribedMatches));
+      shouldRefetchSubscribed.current = false; // Reset flag after fetching
+    }
+  }, [subscribedMatches]);
+
+  // Auto-scroll to relevant matches when competition changes (not on subscription toggle)
+  useEffect(() => {
+    if (activeTab === "Matches" && matchesData.length > 0 && shouldAutoScroll.current && matchesCompetition.id !== "SUBSCRIBED") {
+      setTimeout(() => {
+        if (matchesScrollRef.current) {
+          const upcomingIndex = matchesData.findIndex(match => match.status === "SCHEDULED");
+          if (upcomingIndex !== -1) {
+            matchesScrollRef.current.scrollTo({ y: upcomingIndex * 110, animated: true });
+          } else {
+            const finishedIndices = matchesData
+              .map((match, idx) => (match.status === "FINISHED" ? idx : -1))
+              .filter(idx => idx !== -1);
+            if (finishedIndices.length > 0) {
+              const lastFinishedIndex = finishedIndices[finishedIndices.length - 1];
+              matchesScrollRef.current.scrollTo({ y: lastFinishedIndex * 110, animated: true });
+            }
+          }
+        }
+        shouldAutoScroll.current = false; // Prevent auto-scroll until next competition change
+      }, 100);
+    }
+  }, [matchesData, activeTab]);
+
+  // Reset auto-scroll flag when competition changes
+  useEffect(() => {
+    shouldAutoScroll.current = true;
+    // Reset refetch flag when competition changes - allows refetch when returning to subscribed
+    if (matchesCompetition.id === "SUBSCRIBED") {
+      shouldRefetchSubscribed.current = true;
+    }
+  }, [matchesCompetition]);
 
   useEffect(() => {
     if (favoriteTab === 'player') return; // handled in onSearchInputChange
@@ -381,9 +497,26 @@ export default function Football() {
             const isPlayed = status === "FINISHED" || status === "IN_PLAY" || status === "PAUSED";
             return (
               <View key={match.id} style={styles.homeMatchCard}>
-                <Text style={styles.metaText}>
-                  {(competition?.name === "Primera Division" ? "La Liga" : competition?.name) ?? 'Unknown'} - R{matchday}{isPlayed ? ` - ${timeString}` : ""}
-                </Text>
+                <View style={styles.matchHeader}>
+                  <Text style={styles.metaText}>
+                    {(competition?.name === "Primera Division" ? "La Liga" : competition?.name) ?? 'Unknown'} - R{matchday}{isPlayed ? ` - ${timeString}` : ""}
+                  </Text>
+                  
+                  {/* Bell subscription button */}
+                  <TouchableOpacity
+                    style={styles.bellButton}
+                    onPress={() => toggleMatchSubscription(match.id)}
+                    disabled={loadingSubscriptions[match.id]}
+                  >
+                    <Text style={[
+                      styles.bellIcon, 
+                      subscribedMatches.has(match.id) && styles.bellIconSubscribed,
+                      loadingSubscriptions[match.id] && styles.bellIconLoading
+                    ]}>
+                      {subscribedMatches.has(match.id) ? '🔔' : '🔕'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
                 <View style={styles.teamRow}>
                   {/* Centered time/score */}
                   <View style={styles.centerTimeContainer}>
@@ -482,7 +615,7 @@ export default function Football() {
               <Animated.View style={[styles.outlayTray, { transform: [{ translateX: matchesTrayAnim }] }]}>
                 <Text style={styles.sectionTitle}>Competitions</Text>
                 <View>
-                  {COMPETITIONS.map((comp) => (
+                  {MATCHES_COMPETITIONS.map((comp) => (
                     <TouchableOpacity
                       key={comp.id}
                       onPress={() => setMatchesCompetition(comp)}
@@ -513,30 +646,7 @@ export default function Football() {
         ) : (
           <ScrollView
             style={styles.scrollContainer}
-            ref={(ref) => {
-              if (ref && matchesData.length > 0) {
-                const upcomingIndex = matchesData.findIndex(match => match.status === "SCHEDULED");
-                if (upcomingIndex !== -1) {
-                  setTimeout(() => {
-                    ref.scrollTo({ y: upcomingIndex * 110, animated: true });
-                  }, 100);
-                } else {
-                  const finishedIndices = matchesData
-                    .map((match, idx) => (match.status === "FINISHED" ? idx : -1))
-                    .filter(idx => idx !== -1);
-                  if (finishedIndices.length > 0) {
-                    const lastFinishedIndex = finishedIndices[finishedIndices.length - 1];
-                    setTimeout(() => {
-                      ref.scrollTo({ y: lastFinishedIndex * 110, animated: true });
-                    }, 100);
-                  } else {
-                    setTimeout(() => {
-                      ref.scrollTo({ y: 0, animated: true });
-                    }, 100);
-                  }
-                }
-              }
-            }}
+            ref={matchesScrollRef}
           >
             {matchesData.map((match: any) => {
               const { homeTeam, awayTeam, score, utcDate, status, competition, matchday } = match;
@@ -552,9 +662,26 @@ export default function Football() {
 
               return (
                 <View key={match.id} style={styles.matchCard}>
-                  <Text style={styles.metaText}>
-                    {(competition?.name === "Primera Division" ? "La Liga" : competition?.name) ?? 'Unknown'} - R{matchday}{isPlayed ? ` - ${timeString}` : ""}
-                  </Text>
+                  <View style={styles.matchHeader}>
+                    <Text style={styles.metaText}>
+                      {(competition?.name === "Primera Division" ? "La Liga" : competition?.name) ?? 'Unknown'} - R{matchday}{isPlayed ? ` - ${timeString}` : ""}
+                    </Text>
+                    
+                    {/* Bell subscription button */}
+                    <TouchableOpacity
+                      style={styles.bellButton}
+                      onPress={() => toggleMatchSubscription(match.id)}
+                      disabled={loadingSubscriptions[match.id]}
+                    >
+                      <Text style={[
+                        styles.bellIcon, 
+                        subscribedMatches.has(match.id) && styles.bellIconSubscribed,
+                        loadingSubscriptions[match.id] && styles.bellIconLoading
+                      ]}>
+                        {subscribedMatches.has(match.id) ? '🔔' : '🔕'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
 
                   <View style={styles.teamRow}>
                     {/* Centered time/score */}
@@ -1196,6 +1323,29 @@ const styles = StyleSheet.create({
     color: '#94a3b8',
     fontSize: 13,
     marginBottom: 8,
+  },
+  matchHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  bellButton: {
+    padding: 4,
+    borderRadius: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bellIcon: {
+    fontSize: 16,
+    opacity: 0.6,
+  },
+  bellIconSubscribed: {
+    opacity: 1,
+    color: '#22c55e', // Green color for subscribed
+  },
+  bellIconLoading: {
+    opacity: 0.3,
   },
 
   teamRow: {

@@ -34,6 +34,7 @@ const getTeamStatsFromJSON = (teamName: string) => {
 const TABS = ["Series", "Matches", "Teams", "Players"];
 const CRICKET_COUNTRIES = Object.keys((SPORTS_DATA as any).cricket);
 const MATCH_CATEGORIES = [
+  "Subscribed",
   "All Matches",
   "Current Matches",
   "Upcoming Matches",
@@ -66,6 +67,11 @@ export default function Cricket() {
   const [favoritePlayerName, setFavoritePlayerName] = useState<string | null>(null);
   const [loadingFavoritePlayer, setLoadingFavoritePlayer] = useState(false);
   const debounceTimeout = useRef<number | null>(null);
+
+  // --- Match Subscription State ---
+  const [subscribedMatches, setSubscribedMatches] = useState<Set<string>>(new Set());
+  const [loadingSubscriptions, setLoadingSubscriptions] = useState<{ [key: string]: boolean }>({});
+  const shouldRefetchSubscribed = useRef(true);
 
   const calculateAge = (dateOfBirth: string): number => {
     const birthDate = new Date(dateOfBirth);
@@ -181,18 +187,40 @@ export default function Cricket() {
   // Firebase user
   const { user } = useUser();
 
-
   const {
     matchesData,
     loadingMatches,
+    setMatchesData,
     selectedCompetition,
     setSelectedCompetition,
     getMatchScorecard,
     getSeriesInfo,
     seriesData,
     loadingSeries,
-    fetchSeriesData
+    fetchSeriesData,
+    fetchSubscribedMatches
   } = useCricketData();
+
+  useEffect(() => {
+    if (selectedCompetition === "Subscribed" && shouldRefetchSubscribed.current) {
+      const subscribedMatchIds = Array.from(subscribedMatches);
+      fetchSubscribedMatches(subscribedMatchIds);
+      shouldRefetchSubscribed.current = false;
+    }
+  }, [selectedCompetition, subscribedMatches, fetchSubscribedMatches]);
+
+  useEffect(() => {
+    if (selectedCompetition === "Subscribed" && subscribedMatches.size > 0) {
+      const subscribedMatchIds = Array.from(subscribedMatches);
+      fetchSubscribedMatches(subscribedMatchIds);
+    }
+  }, [subscribedMatches]);
+
+  useEffect(() => {
+    if (selectedCompetition === "Subscribed") {
+      shouldRefetchSubscribed.current = true;
+    }
+  }, [selectedCompetition]);
 
   useEffect(() => {
     if (selectedMatch) {
@@ -292,6 +320,70 @@ export default function Cricket() {
       fetchFavoritePlayer(favoritePlayerName);
     }
   }, [favoritePlayerName, allCricketerNames]);
+
+  // --- Match Subscription Functions ---
+  // Fetch subscribed matches from Firebase on mount
+  useEffect(() => {
+    const fetchSubscribedMatches = async () => {
+      if (!user?.primaryEmailAddress?.emailAddress) {
+        setSubscribedMatches(new Set());
+        return;
+      }
+      try {
+        const userDocRef = doc(db, "users", user.primaryEmailAddress.emailAddress);
+        const docSnap = await getDoc(userDocRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.subscribedCricketMatches) {
+            setSubscribedMatches(new Set(data.subscribedCricketMatches));
+          }
+        }
+      } catch (error) {
+        console.error("Error loading subscribed cricket matches:", error);
+      }
+    };
+    fetchSubscribedMatches();
+  }, [user?.primaryEmailAddress?.emailAddress]);
+
+  // Save subscribed matches to Firebase when they change
+  const saveSubscribedMatches = async (matchIds: Set<string>) => {
+    if (!user?.primaryEmailAddress?.emailAddress) return;
+    try {
+      const userDocRef = doc(db, "users", user.primaryEmailAddress.emailAddress);
+      await setDoc(userDocRef, { subscribedCricketMatches: Array.from(matchIds) }, { merge: true });
+    } catch (error) {
+      console.error("Error saving subscribed cricket matches:", error);
+    }
+  };
+
+  // Toggle match subscription
+  const toggleMatchSubscription = async (matchId: string) => {
+    if (!matchId) return;
+    
+    setLoadingSubscriptions(prev => ({ ...prev, [matchId]: true }));
+    
+    const newSubscribedMatches = new Set(subscribedMatches);
+    const wasSubscribed = subscribedMatches.has(matchId);
+    
+    if (wasSubscribed) {
+      newSubscribedMatches.delete(matchId);
+      // If we're in subscribed section and unsubscribing, remove from current view
+      if (selectedCompetition === "Subscribed") {
+        setMatchesData(prev => prev.filter(match => (match.id || match.matchId) !== matchId));
+        shouldRefetchSubscribed.current = false; // Don't refetch immediately
+      } else {
+        shouldRefetchSubscribed.current = true;
+      }
+    } else {
+      newSubscribedMatches.add(matchId);
+      shouldRefetchSubscribed.current = true; // Allow refetch for new subscriptions
+    }
+    
+    setSubscribedMatches(newSubscribedMatches);
+    await saveSubscribedMatches(newSubscribedMatches);
+    
+    setLoadingSubscriptions(prev => ({ ...prev, [matchId]: false }));
+  };
 
   // Load Bangladesh data by default for stats
   useEffect(() => {
@@ -476,6 +568,10 @@ export default function Cricket() {
     // Disable if not started or fantasyEnabled is false
     const disabled = notStarted || match.fantasyEnabled === false;
 
+    const matchId = match.id || match.matchId;
+    const isSubscribed = subscribedMatches.has(matchId);
+    const isLoadingSubscription = loadingSubscriptions[matchId];
+
     const handleMatchPress = () => {
       if (!disabled) {
         setSelectedSeries(null); // Close series modal
@@ -485,16 +581,36 @@ export default function Cricket() {
 
     return (
       <TouchableOpacity
-        key={match.id || match.matchId}
+        key={matchId}
         style={styles.matchCard}
         onPress={handleMatchPress}
         disabled={disabled}
       >
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <Text style={styles.matchTitle}>{match.name || match.matchTitle || match.teams || 'Unknown Match'}</Text>
-          {match.fantasyEnabled === true && (
-            <Text style={styles.scorecardAvailable}>scorecard available</Text>
-          )}
+          <View style={{ flex: 1, marginRight: 10 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text style={styles.matchTitle}>{match.name || match.matchTitle || match.teams || 'Unknown Match'}</Text>
+              <TouchableOpacity
+                onPress={(e) => {
+                  e.stopPropagation();
+                  toggleMatchSubscription(matchId);
+                }}
+                disabled={isLoadingSubscription}
+                style={styles.cricketSubscribeButton}
+              >
+                {isLoadingSubscription ? (
+                  <ActivityIndicator size="small" color="#3B82F6" />
+                ) : (
+                  <Text style={[styles.cricketBellIcon, { color: isSubscribed ? '#22C55E' : '#9CA3AF' }]}>
+                    {isSubscribed ? '🔔' : '🔕'}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+            {match.fantasyEnabled === true && (
+              <Text style={styles.scorecardAvailable}>scorecard available</Text>
+            )}
+          </View>
         </View>
         <Text style={styles.matchStatus}>{match.status || match.matchType || ''}</Text>
         <Text style={styles.matchDetail}>{match.date || match.dateTimeGMT || ''} {match.venue ? `| ${match.venue}` : ''}</Text>
@@ -522,29 +638,51 @@ export default function Cricket() {
     // Disable if not started or fantasyEnabled is false
     const disabled = notStarted || match.fantasyEnabled === false;
 
+    const matchId = match.id || match.matchId;
+    const isSubscribed = subscribedMatches.has(matchId);
+    const isLoadingSubscription = loadingSubscriptions[matchId];
+
     return (
-      <TouchableOpacity
-        key={match.id || match.matchId}
-        style={styles.matchCard}
-        onPress={() => {
-          if (!disabled) setSelectedMatch(match);
-        }}
-        disabled={disabled}
-      >
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <Text style={styles.matchTitle}>{match.name || match.matchTitle || match.teams || 'Unknown Match'}</Text>
-          {match.fantasyEnabled === true && (
-            <Text style={styles.scorecardAvailable}>scorecard available</Text>
-          )}
-        </View>
-        <Text style={styles.matchStatus}>{match.status || match.matchType || ''}</Text>
-        <Text style={styles.matchDetail}>{match.date || match.dateTimeGMT || ''} {match.venue ? `| ${match.venue}` : ''}</Text>
-        {match.score?.map?.((s: any, idx: number) => (
-          <Text key={idx} style={styles.matchDetail}>
-            {s.inning}: {s.r}/{s.w} in {s.o} overs
-          </Text>
-        ))}
-      </TouchableOpacity>
+      <View style={styles.matchCard} key={matchId}>
+        <TouchableOpacity
+          style={styles.matchContent}
+          onPress={() => {
+            if (!disabled) setSelectedMatch(match);
+          }}
+          disabled={disabled}
+        >
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <View style={{ flex: 1, marginRight: 10 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={styles.matchTitle}>{match.name || match.matchTitle || match.teams || 'Unknown Match'}</Text>
+                <TouchableOpacity
+                  onPress={() => toggleMatchSubscription(matchId)}
+                  disabled={isLoadingSubscription}
+                  style={styles.cricketSubscribeButton}
+                >
+                  {isLoadingSubscription ? (
+                    <ActivityIndicator size="small" color="#3B82F6" />
+                  ) : (
+                    <Text style={[styles.cricketBellIcon, { color: isSubscribed ? '#22C55E' : '#9CA3AF' }]}>
+                      {isSubscribed ? '🔔' : '🔕'}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+              {match.fantasyEnabled === true && (
+                <Text style={styles.scorecardAvailable}>scorecard available</Text>
+              )}
+            </View>
+          </View>
+          <Text style={styles.matchStatus}>{match.status || match.matchType || ''}</Text>
+          <Text style={styles.matchDetail}>{match.date || match.dateTimeGMT || ''} {match.venue ? `| ${match.venue}` : ''}</Text>
+          {match.score?.map?.((s: any, idx: number) => (
+            <Text key={idx} style={styles.matchDetail}>
+              {s.inning}: {s.r}/{s.w} in {s.o} overs
+            </Text>
+          ))}
+        </TouchableOpacity>
+      </View>
     );
   };
 
@@ -1151,6 +1289,17 @@ const styles = StyleSheet.create({
     flex: 1,
     flexWrap: 'wrap',
   },
+  cricketSubscribeButton: {
+    padding: 4,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 32,
+    minHeight: 32,
+  },
+  cricketBellIcon: {
+    fontSize: 16,
+  },
   scorecardAvailable: {
     color: '#22c55e',
     fontWeight: 'bold',
@@ -1657,5 +1806,16 @@ const styles = StyleSheet.create({
     height: 15,
     marginLeft: 8,
     borderRadius: 2,
+  },
+  matchContent: {
+    flex: 1,
+  },
+  subscribeButton: {
+    padding: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  bellIcon: {
+    fontSize: 18,
   },
 });

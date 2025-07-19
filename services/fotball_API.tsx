@@ -10,6 +10,11 @@ export const COMPETITIONS = [
     { id: "CL", name: "UCL" },
 ];
 
+export const MATCHES_COMPETITIONS = [
+    { id: "SUBSCRIBED", name: "Subscribed" },
+    ...COMPETITIONS,
+];
+
 export const STATS_OPTIONS = [
     "Standings",
     "Team Stats",

@@ -21,6 +21,7 @@ export async function getWikipediaImageUrl(playerName: string): Promise<string |
 import {
   COMPETITIONS,
   fetchFromApi,
+  MATCHES_COMPETITIONS,
   STATS_ENDPOINTS,
 } from "@/services/fotball_API";
 import { useUser } from "@clerk/clerk-expo";
@@ -53,7 +54,7 @@ export function useFootballData() {
   const [statsData, setStatsData] = useState<any>(null);
   const [loadingStats, setLoadingStats] = useState(false);
 
-  const [matchesCompetition, setMatchesCompetition] = useState(COMPETITIONS[0]);
+  const [matchesCompetition, setMatchesCompetition] = useState(MATCHES_COMPETITIONS[0]);
   const [matchesData, setMatchesData] = useState<any[]>([]);
   const [loadingMatches, setLoadingMatches] = useState(false);
 
@@ -283,9 +284,15 @@ export function useFootballData() {
     }
   };
 
-  const fetchMatchesData = async () => {
+  const fetchMatchesData = async (subscribedMatchIds?: number[]) => {
     setLoadingMatches(true);
     try {
+      // Handle special "Subscribed" filter
+      if (matchesCompetition.id === "SUBSCRIBED") {
+        await fetchSubscribedMatches(subscribedMatchIds);
+        return;
+      }
+
       const data = await fetchFromApi(
         `competitions/${matchesCompetition.id}/matches`
       );
@@ -305,6 +312,66 @@ export function useFootballData() {
       Alert.alert("Fetch Error", "Failed to fetch matches");
     } finally {
       setLoadingMatches(false);
+    }
+  };
+
+  // Fetch subscribed matches from provided match IDs and get their details
+  const fetchSubscribedMatches = async (subscribedMatchIds?: number[]) => {
+    try {
+      // If no IDs provided, try to get from Firebase (fallback)
+      let matchIds = subscribedMatchIds;
+      if (!matchIds) {
+        if (!user?.primaryEmailAddress?.emailAddress) {
+          setMatchesData([]);
+          return;
+        }
+
+        const userDocRef = doc(db, "users", user.primaryEmailAddress.emailAddress);
+        const docSnap = await getDoc(userDocRef);
+        
+        if (!docSnap.exists()) {
+          setMatchesData([]);
+          return;
+        }
+
+        const userData = docSnap.data();
+        matchIds = userData.subscribedMatches || [];
+      }
+
+      if (!matchIds || matchIds.length === 0) {
+        setMatchesData([]);
+        return;
+      }
+
+      // Fetch details for each subscribed match
+      const matchDetails = [];
+      for (const matchId of matchIds) {
+        try {
+          const matchData = await fetchFromApi(`matches/${matchId}`);
+          if (matchData && !matchData.error) {
+            // Handle different API response structures
+            const match = matchData.match || matchData;
+            if (match && match.id) {
+              matchDetails.push(match);
+            } else {
+              console.log(`Match ${matchId} has invalid structure:`, matchData);
+            }
+          } else {
+            console.log(`Match ${matchId} fetch failed:`, matchData?.error || 'Unknown error');
+          }
+        } catch (error) {
+          console.error(`Failed to fetch match ${matchId}:`, error);
+          // Continue with other matches even if one fails
+        }
+      }
+
+      // Sort by date
+      matchDetails.sort((a: any, b: any) => new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime());
+      
+      setMatchesData(matchDetails);
+    } catch (error) {
+      console.error("Error fetching subscribed matches:", error);
+      setMatchesData([]);
     }
   };
 
@@ -432,8 +499,10 @@ export function useFootballData() {
     matchesCompetition,
     setMatchesCompetition,
     matchesData,
+    setMatchesData,
     loadingMatches,
     fetchMatchesData,
+    fetchSubscribedMatches,
 
     homeMatches,
     loadingHome,
@@ -453,5 +522,9 @@ export function useFootballData() {
     favoritePlayerData,
     loadingFavoritePlayer,
     addFavoritePlayer,
+
+    // Competitions arrays
+    COMPETITIONS,
+    MATCHES_COMPETITIONS,
   };
 }

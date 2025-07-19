@@ -141,9 +141,40 @@ const CRICKET_COUNTRIES = [
     }
   };
 
+  // Fetch subscribed matches
+  const fetchSubscribedMatches = async (subscribedMatchIds?: string[]) => {
+    setLoadingMatches(true);
+    try {
+      if (!subscribedMatchIds || subscribedMatchIds.length === 0) {
+        setMatchesData([]);
+        return;
+      }
+
+      // Filter allMatchesData to show only subscribed matches
+      if (allMatchesData.length > 0) {
+        const subscribedMatches = allMatchesData.filter((match: any) => 
+          subscribedMatchIds.includes(match.id || match.matchId)
+        );
+        setMatchesData(subscribedMatches);
+      } else {
+        // If allMatchesData is not loaded, try to fetch individual matches
+        // For now, just show empty as cricket API doesn't support individual match fetching easily
+        setMatchesData([]);
+      }
+    } catch (error) {
+      setMatchesData([]);
+    } finally {
+      setLoadingMatches(false);
+    }
+  };
+
   // When selectedCompetition changes, filter from allMatchesData
   useEffect(() => {
-    if (selectedCompetition === "Current Matches") {
+    if (selectedCompetition === "Subscribed") {
+      // Handle subscribed matches - this will be called from cricket.tsx with subscribedMatchIds
+      // For now, just show empty until called with proper IDs
+      setMatchesData([]);
+    } else if (selectedCompetition === "Current Matches") {
       // Current Matches is a live API call
       const fetchCurrent = async () => {
         setLoadingMatches(true);
@@ -303,6 +334,7 @@ const CRICKET_COUNTRIES = [
   return {
     matchesData,
     loadingMatches,
+    setMatchesData,
 
     seriesData,
     loadingSeries,
@@ -329,5 +361,6 @@ const CRICKET_COUNTRIES = [
 
     getMatchScorecard,
     getSeriesInfo,
+    fetchSubscribedMatches,
   };
 }
