@@ -6,12 +6,11 @@ import React from "react";
 import {
   Image,
   Modal,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import { db } from "../firebase";
 
@@ -152,25 +151,25 @@ const MusicDetailsViewer = ({
 
   return (
     <Modal
-      visible={!!selectedItem}
       animationType="slide"
-      transparent={false}
+      transparent={true}
+      visible={!!selectedItem}
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.container}>
-        <View style={styles.detailContainer}>
-          <TouchableOpacity style={styles.backButton} onPress={onClose}>
-            <Ionicons name="arrow-back" size={24} color="#FF0000" />
-            <Text style={styles.backButtonText}>Back</Text>
-          </TouchableOpacity>
+      <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+          <ScrollView>
+            <TouchableOpacity style={styles.backButton} onPress={onClose}>
+              <Ionicons name="arrow-back" size={24} color="#FF0000" />
+              <Text style={styles.backButtonText}>Back</Text>
+            </TouchableOpacity>
 
-          <ScrollView showsVerticalScrollIndicator={false}>
-            <View style={{ position: "relative" }}>
+            <View style={{ position: 'relative' }}>
               <Image
                 source={{ uri: wikiImage || getImageUrl(selectedItem.image) }}
-                style={styles.detailImage}
+                style={styles.image}
+                resizeMode="cover"
               />
-              {/* Heart button at top right of poster */}
               <TouchableOpacity
                 style={styles.posterHeartButton}
                 onPress={isLiked ? handleUnlike : handleLike}
@@ -178,108 +177,152 @@ const MusicDetailsViewer = ({
                 disabled={loadingLike}
               >
                 <Text style={{ fontSize: 28, opacity: loadingLike ? 0.5 : 1 }}>
-                  {isLiked ? "❤️" : "🤍"}
+                  {isLiked ? '❤️' : '🤍'}
                 </Text>
               </TouchableOpacity>
             </View>
-            <Text style={styles.detailTitle}>{selectedItem.name}</Text>
 
-            {itemType === "artist" && "stats" in selectedItem && (
-              <>
-                <Text style={styles.detailSubtitle}>
-                  {selectedItem.stats?.listeners} listeners
-                </Text>
-                <Text style={styles.detailText}>
-                  {selectedItem.bio?.summary.replace(/<[^>]*>/g, "")}
-                </Text>
-              </>
-            )}
+            <View style={styles.detailsContainer}>
+              <Text style={styles.title}>{selectedItem.name}</Text>
 
-            {itemType === "album" && "artist" in selectedItem && (
-              <>
-                <Text style={styles.detailSubtitle}>
-                  By {selectedItem.artist.name}
-                </Text>
-                <Text style={styles.detailStats}>
-                  {selectedItem.listeners} listeners • {selectedItem.playcount} plays
-                </Text>
-                <Text style={styles.detailText}>
-                  {selectedItem.wiki?.summary.replace(/<[^>]*>/g, "")}
-                </Text>
-              </>
-            )}
+              {itemType === 'artist' && 'stats' in selectedItem && (
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Listeners:</Text>
+                  <Text style={styles.value}>{selectedItem.stats?.listeners}</Text>
+                </View>
+              )}
+              {itemType === 'album' && 'artist' in selectedItem && (
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Artist:</Text>
+                  <Text style={styles.value}>{selectedItem.artist.name}</Text>
+                </View>
+              )}
+              {itemType === 'track' && 'artist' in selectedItem && (
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Artist:</Text>
+                  <Text style={styles.value}>{selectedItem.artist.name}</Text>
+                </View>
+              )}
+              {(itemType === 'album' || itemType === 'track') && (
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Listeners:</Text>
+                  <Text style={styles.value}>{selectedItem.listeners}</Text>
+                </View>
+              )}
+              {(itemType === 'album' || itemType === 'track') && (
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Plays:</Text>
+                  <Text style={styles.value}>{selectedItem.playcount}</Text>
+                </View>
+              )}
 
-            {itemType === "track" && "artist" in selectedItem && (
-              <>
-                <Text style={styles.detailSubtitle}>
-                  By {selectedItem.artist.name}
-                </Text>
-                <Text style={styles.detailStats}>
-                  {selectedItem.listeners} listeners • {selectedItem.playcount} plays
-                </Text>
-                <Text style={styles.detailText}>
-                  {selectedItem.wiki?.summary.replace(/<[^>]*>/g, "")}
-                </Text>
-              </>
-            )}
+              {itemType === 'artist' && (
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Bio</Text>
+                  <Text style={styles.description}>{selectedItem.bio?.summary.replace(/<[^>]*>/g, "")}</Text>
+                </View>
+              )}
+              {itemType === 'album' && (
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Album Info</Text>
+                  <Text style={styles.description}>{selectedItem.wiki?.summary.replace(/<[^>]*>/g, "")}</Text>
+                </View>
+              )}
+              {itemType === 'track' && (
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Track Info</Text>
+                  <Text style={styles.description}>{selectedItem.wiki?.summary.replace(/<[^>]*>/g, "")}</Text>
+                </View>
+              )}
+            </View>
           </ScrollView>
         </View>
-      </SafeAreaView>
+      </View>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  modalContainer: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  detailContainer: {
+  modalContent: {
+    backgroundColor: '#1E1E1E',
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#333333',
+  },
+  image: {
+    width: '100%',
+    height: 220,
+    borderRadius: 15,
+  },
+  posterHeartButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 10,
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    borderRadius: 20,
+    padding: 2,
+  },
+  detailsContainer: {
+    padding: 15,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    marginBottom: 12,
+    backgroundColor: '#252525',
+    padding: 10,
+    borderRadius: 8,
+  },
+  label: {
+    fontWeight: 'bold',
+    width: 100,
+    color: '#3B82F6',
+  },
+  value: {
     flex: 1,
-    padding: 16,
+    color: '#FFFFFF',
+  },
+  section: {
+    marginTop: 20,
+    backgroundColor: '#252525',
+    padding: 15,
+    borderRadius: 12,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    color: '#3B82F6',
+  },
+  description: {
+    color: '#CCCCCC',
+    lineHeight: 22,
   },
   backButton: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 16,
   },
   backButtonText: {
-    color: "#FF0000",
+    color: '#FF0000',
     fontSize: 16,
     marginLeft: 8,
-  },
-  detailImage: {
-    width: "100%",
-    height: 300,
-    borderRadius: 8,
-    marginBottom: 16,
-  },
-  detailTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#fff",
-    marginBottom: 8,
-  },
-  detailSubtitle: {
-    fontSize: 18,
-    color: "#FF0000",
-    marginBottom: 8,
-  },
-  detailStats: {
-    fontSize: 14,
-    color: "#888",
-    marginBottom: 16,
-  },
-  detailText: {
-    fontSize: 16,
-    color: "#fff",
-    lineHeight: 24,
-  },
-  posterHeartButton: {
-    position: "absolute",
-    top: 16,
-    right: 16,
-    zIndex: 1,
   },
 });
 
