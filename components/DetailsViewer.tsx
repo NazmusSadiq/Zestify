@@ -5,12 +5,11 @@ import React, { useEffect, useState } from "react";
 import {
   Image,
   Modal,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import { db } from "../firebase";
 
@@ -121,11 +120,11 @@ const DetailsViewer = ({
 
       if (key === "seasons" && Array.isArray(value)) {
         return (
-          <View key={key} style={styles.fieldContainer}>
+          <View key={key} style={styles.fieldCard}>
             {label}
             {value.map((season: any) => (
               <View key={season.id || season.season_number} style={{ marginBottom: 12 }}>
-                <Text style={[styles.fieldValue, { fontWeight: "700" }]}>
+                <Text style={[styles.fieldValue, { fontWeight: "700" }]}> 
                   Season {season.season_number}:
                 </Text>
                 {season.episodes && season.episodes.length > 0 ? (
@@ -148,7 +147,7 @@ const DetailsViewer = ({
 
       if (typeof value === "string" || typeof value === "number") {
         return (
-          <View key={key} style={styles.fieldContainer}>
+          <View key={key} style={styles.fieldCard}>
             <Text style={styles.fieldKey}>{formatKey(key)}:</Text>
             <Text style={styles.fieldValue}>{value.toString()}</Text>
           </View>
@@ -157,7 +156,7 @@ const DetailsViewer = ({
 
       if (Array.isArray(value)) {
         return (
-          <View key={key} style={styles.fieldContainer}>
+          <View key={key} style={styles.fieldCard}>
             {label}
             <Text style={styles.fieldValue}>
               {value
@@ -172,7 +171,7 @@ const DetailsViewer = ({
 
       if (typeof value === "object" && value !== null) {
         return (
-          <View key={key} style={styles.fieldContainer}>
+          <View key={key} style={styles.fieldCard}>
             {label}
             <Text style={styles.fieldValue}>
               {value.name || value.title || JSON.stringify(value)}
@@ -189,31 +188,26 @@ const DetailsViewer = ({
 
   return (
     <Modal
-      visible={visible}
       animationType="slide"
-      transparent={false}
+      transparent={true}
+      visible={visible}
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.fullscreenContainer}>
-        <View style={styles.fullContent}>
-          {/* Back button at top left, like in GameDetails */}
-          <TouchableOpacity style={styles.backButton} onPress={onClose}>
-            <Ionicons name="arrow-back" size={24} color="#FF0000" />
-            <Text style={styles.backButtonText}>Back</Text>
-          </TouchableOpacity>
-          <ScrollView contentContainerStyle={styles.scrollContent}>
-            {data[titleKey] && <Text style={styles.title}>{data[titleKey]}</Text>}
+      <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+          <ScrollView>
+            <TouchableOpacity style={styles.backButton} onPress={onClose}>
+              <Ionicons name="arrow-back" size={24} color="#FF0000" />
+              <Text style={styles.backButtonText}>Back</Text>
+            </TouchableOpacity>
 
             {data[imageKey] && (
-              <View style={styles.imageContainer}>
+              <View style={{ position: 'relative' }}>
                 <Image
-                  source={{
-                    uri: `https://image.tmdb.org/t/p/w342${data[imageKey]}`,
-                  }}
+                  source={{ uri: `https://image.tmdb.org/t/p/w342${data[imageKey]}` }}
                   style={styles.image}
                   resizeMode="cover"
                 />
-                {/* Heart button on top right of poster */}
                 <TouchableOpacity
                   style={styles.posterHeartButton}
                   onPress={isLiked ? handleUnlike : handleLike}
@@ -221,109 +215,114 @@ const DetailsViewer = ({
                   disabled={loadingLike}
                 >
                   <Text style={{ fontSize: 28, opacity: loadingLike ? 0.5 : 1 }}>
-                    {isLiked ? "❤️" : "🤍"}
+                    {isLiked ? '❤️' : '🤍'}
                   </Text>
                 </TouchableOpacity>
               </View>
             )}
 
-            <View style={styles.detailsContainer}>{renderFields()}</View>
+            <View style={styles.detailsContainer}>
+              {data[titleKey] && <Text style={styles.title}>{data[titleKey]}</Text>}
+              {renderFields()}
+            </View>
           </ScrollView>
         </View>
-      </SafeAreaView>
+      </View>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  fullscreenContainer: {
+  modalContainer: {
     flex: 1,
-    backgroundColor: "#1B2631",
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  fullContent: {
-    flex: 1,
-    padding: 0,
-    backgroundColor: "#1B2631",
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 40,
-  },
-  backButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 2,
-    marginTop: 20, // Increased from 4 to make the back button lower
-    marginLeft: 4,
-    alignSelf: "flex-start",
-  },
-  backButtonText: {
-    color: "#FF0000",
-    fontSize: 16,
-    marginLeft: 8,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#fff",
-    marginBottom: 12,
-    textAlign: "center",
-    marginTop: 4, 
-  },
-  imageContainer: {
-    aspectRatio: 2 / 3,
-    height: 400,
-    borderRadius: 4,
-    overflow: "hidden",
-    backgroundColor: "#34495e",
-    alignSelf: "center",
-    marginBottom: 12,
-    position: "relative",
-    justifyContent: "center",
-    alignItems: "center",
+  modalContent: {
+    backgroundColor: '#1E1E1E',
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#333333',
   },
   image: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 4,
+    width: '100%',
+    height: 220,
+    borderRadius: 15,
   },
   posterHeartButton: {
-    position: "absolute",
+    position: 'absolute',
     top: 10,
     right: 10,
     zIndex: 10,
-    backgroundColor: "rgba(0,0,0,0.8)",
+    backgroundColor: 'rgba(0,0,0,0.8)',
     borderRadius: 20,
     padding: 2,
   },
   detailsContainer: {
-    marginTop: 8,
-    backgroundColor: "#222a34",
-    padding: 12,
-    borderRadius: 8,
+    marginTop: 20,
+    backgroundColor: '#252525',
+    padding: 15,
+    borderRadius: 12,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+    textAlign: 'center',
+    marginTop: 4,
   },
   fieldContainer: {
     marginBottom: 10,
   },
+  fieldCard: {
+    marginBottom: 12,
+    backgroundColor: '#333333',
+    padding: 12,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
+    elevation: 2,
+  },
   fieldKey: {
-    color: "#bbb",
-    fontWeight: "600",
+    color: '#3B82F6',
+    fontWeight: '600',
     fontSize: 16,
   },
   fieldValue: {
-    color: "#eee",
+    color: '#FFFFFF',
     fontSize: 15,
   },
   labelWithIcon: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 4,
   },
   icon: {
     width: 14,
     height: 14,
     marginLeft: 6,
-    tintColor: "#ccc",
+    tintColor: '#ccc',
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    marginTop: 0,
+    marginLeft: 0,
+    alignSelf: 'flex-start',
+  },
+  backButtonText: {
+    color: '#FF0000',
+    fontSize: 16,
+    marginLeft: 8,
   },
 });
 
