@@ -123,8 +123,7 @@ export default function Football() {
   const [subscribedMatches, setSubscribedMatches] = useState<Set<number>>(new Set());
   const [loadingSubscriptions, setLoadingSubscriptions] = useState<{ [key: number]: boolean }>({});
   const matchesScrollRef = useRef<ScrollView>(null);
-  const shouldAutoScroll = useRef(true);
-  const shouldRefetchSubscribed = useRef(true); 
+  const shouldAutoScroll = useRef(true); 
 
   // Helper functions for player data processing
   const calculateAge = (dateOfBirth: string): number => {
@@ -203,6 +202,7 @@ export default function Football() {
   useEffect(() => {
     const fetchSubscribedMatches = async () => {
       if (!user?.primaryEmailAddress?.emailAddress) {
+        console.log("No user email, setting empty subscribed matches");
         setSubscribedMatches(new Set());
         return;
       }
@@ -212,11 +212,19 @@ export default function Football() {
         if (docSnap.exists()) {
           const data = docSnap.data();
           if (data.subscribedMatches && Array.isArray(data.subscribedMatches)) {
+            console.log("Loaded subscribed matches from Firebase:", data.subscribedMatches);
             setSubscribedMatches(new Set(data.subscribedMatches));
+          } else {
+            console.log("No subscribed matches found in Firebase");
+            setSubscribedMatches(new Set());
           }
+        } else {
+          console.log("No user document found in Firebase");
+          setSubscribedMatches(new Set());
         }
       } catch (error) {
         console.error("Error loading subscribed matches:", error);
+        setSubscribedMatches(new Set());
       }
     };
     fetchSubscribedMatches();
@@ -244,14 +252,14 @@ export default function Football() {
     
     if (wasSubscribed) {
       newSubscribedMatches.delete(matchId);
-      // If we're in subscribed section and unsubscribing, remove from current view
+      console.log(`Unsubscribed from match ${matchId}`);
+      // If we're in subscribed section and unsubscribing, remove from current view immediately
       if (matchesCompetition.id === "SUBSCRIBED") {
         setMatchesData(prev => prev.filter(match => match.id !== matchId));
-        shouldRefetchSubscribed.current = false; // Don't refetch immediately
       }
     } else {
       newSubscribedMatches.add(matchId);
-      shouldRefetchSubscribed.current = true; // Allow refetch for new subscriptions
+      console.log(`Subscribed to match ${matchId}`);
     }
     
     setSubscribedMatches(newSubscribedMatches);
@@ -341,16 +349,17 @@ export default function Football() {
   const {
     statsCompetition, setStatsCompetition, statsOption, setStatsOption, statsData, loadingStats, fetchStatsData,
     matchesCompetition, setMatchesCompetition, matchesData, setMatchesData, loadingMatches, fetchMatchesData, homeMatches, loadingHome,
-    fetchHomeMatches, favoriteTeams, setFavoriteTeams, favoriteTeamsStats, loadingFavStats, fetchFavoriteStats, addFavoriteTeam, searchTeams
+    fetchHomeMatches, fetchFootballHomeMatches, favoriteTeams, setFavoriteTeams, favoriteTeamsStats, loadingFavStats, fetchFavoriteStats, addFavoriteTeam, searchTeams
   } = useFootballData();
 
   useEffect(() => {
-    if (activeTab === "Home") fetchHomeMatches();
+    if (activeTab === "Home") fetchFootballHomeMatches(); // Use football-specific function
     if (activeTab === "Stats") fetchStatsData();
     if (activeTab === "Matches") {
       if (matchesCompetition.id === "SUBSCRIBED") {
-        shouldRefetchSubscribed.current = true; // Enable refetch when entering subscribed section
-        fetchMatchesData(Array.from(subscribedMatches));
+        // Only fetch subscribed matches if we have loaded them from Firebase
+        // The actual fetching will happen in the separate useEffect below when subscribedMatches changes
+        console.log("Switched to subscribed matches view - waiting for Firebase data");
       } else {
         fetchMatchesData();
       }
@@ -360,20 +369,36 @@ export default function Football() {
 
   // Separate effect for subscribed matches that only triggers when subscribedMatches changes
   useEffect(() => {
-    if (activeTab === "Matches" && matchesCompetition.id === "SUBSCRIBED" && shouldRefetchSubscribed.current) {
-      fetchMatchesData(Array.from(subscribedMatches));
-      shouldRefetchSubscribed.current = false; // Reset flag after fetching
+    if (activeTab === "Matches" && matchesCompetition.id === "SUBSCRIBED") {
+      if (subscribedMatches.size > 0) {
+        console.log("Fetching subscribed matches data:", Array.from(subscribedMatches));
+        fetchMatchesData(Array.from(subscribedMatches));
+      } else {
+        console.log("No subscribed matches found");
+        setMatchesData([]);
+      }
     }
-  }, [subscribedMatches]);
+  }, [subscribedMatches, activeTab, matchesCompetition]);
 
   // Auto-scroll to relevant matches when competition changes (not on subscription toggle)
   useEffect(() => {
     if (activeTab === "Matches" && matchesData.length > 0 && shouldAutoScroll.current && matchesCompetition.id !== "SUBSCRIBED") {
       setTimeout(() => {
         if (matchesScrollRef.current) {
-          const upcomingIndex = matchesData.findIndex(match => match.status === "SCHEDULED");
-          if (upcomingIndex !== -1) {
-            matchesScrollRef.current.scrollTo({ y: upcomingIndex * 110, animated: true });
+          // Find the earliest upcoming match (next match by date)
+          const now = new Date();
+          const upcomingMatches = matchesData
+            .map((match, idx) => ({ match, idx }))
+            .filter(({ match }) => {
+              const matchDate = new Date(match.utcDate);
+              const upcomingStatuses = ["SCHEDULED", "TIMED", "POSTPONED"];
+              return upcomingStatuses.includes(match.status) && matchDate > now;
+            })
+            .sort((a, b) => new Date(a.match.utcDate).getTime() - new Date(b.match.utcDate).getTime());
+          
+          if (upcomingMatches.length > 0) {
+            const earliestUpcomingIndex = upcomingMatches[0].idx;
+            matchesScrollRef.current.scrollTo({ y: earliestUpcomingIndex * 110, animated: true });
           } else {
             const finishedIndices = matchesData
               .map((match, idx) => (match.status === "FINISHED" ? idx : -1))
@@ -392,10 +417,6 @@ export default function Football() {
   // Reset auto-scroll flag when competition changes
   useEffect(() => {
     shouldAutoScroll.current = true;
-    // Reset refetch flag when competition changes - allows refetch when returning to subscribed
-    if (matchesCompetition.id === "SUBSCRIBED") {
-      shouldRefetchSubscribed.current = true;
-    }
   }, [matchesCompetition]);
 
   useEffect(() => {
@@ -494,12 +515,13 @@ export default function Football() {
             const matchDate = new Date(utcDate);
             matchDate.setHours(matchDate.getHours() + 6);
             const timeString = matchDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const dateString = matchDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
             const isPlayed = status === "FINISHED" || status === "IN_PLAY" || status === "PAUSED";
             return (
               <View key={match.id} style={styles.homeMatchCard}>
                 <View style={styles.matchHeader}>
                   <Text style={styles.metaText}>
-                    {(competition?.name === "Primera Division" ? "La Liga" : competition?.name) ?? 'Unknown'} - R{matchday}{isPlayed ? ` - ${timeString}` : ""}
+                    {(competition?.name === "Primera Division" ? "La Liga" : competition?.name) ?? 'Unknown'} - R{matchday} - {dateString}
                   </Text>
                   
                   {/* Bell subscription button */}
@@ -657,14 +679,14 @@ export default function Football() {
               const matchDate = new Date(utcDate);
               matchDate.setHours(matchDate.getHours() + 6);
               const timeString = matchDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
+              const dateString = matchDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
               const isPlayed = status === "FINISHED" || status === "IN_PLAY" || status === "PAUSED";
 
               return (
                 <View key={match.id} style={styles.matchCard}>
                   <View style={styles.matchHeader}>
                     <Text style={styles.metaText}>
-                      {(competition?.name === "Primera Division" ? "La Liga" : competition?.name) ?? 'Unknown'} - R{matchday}{isPlayed ? ` - ${timeString}` : ""}
+                      {(competition?.name === "Primera Division" ? "La Liga" : competition?.name) ?? 'Unknown'} - R{matchday} - {dateString}
                     </Text>
                     
                     {/* Bell subscription button */}

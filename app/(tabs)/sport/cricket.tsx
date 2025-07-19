@@ -2,17 +2,17 @@ import { useUser } from "@clerk/clerk-expo";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Animated,
-  Image,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View
+    ActivityIndicator,
+    Animated,
+    Image,
+    Modal,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View
 } from "react-native";
 import { db } from "../../../firebase";
 import SPORTS_DATA from "../../../sportsdata.json";
@@ -71,7 +71,6 @@ export default function Cricket() {
   // --- Match Subscription State ---
   const [subscribedMatches, setSubscribedMatches] = useState<Set<string>>(new Set());
   const [loadingSubscriptions, setLoadingSubscriptions] = useState<{ [key: string]: boolean }>({});
-  const shouldRefetchSubscribed = useRef(true);
 
   const calculateAge = (dateOfBirth: string): number => {
     const birthDate = new Date(dateOfBirth);
@@ -202,25 +201,18 @@ export default function Cricket() {
   } = useCricketData();
 
   useEffect(() => {
-    if (selectedCompetition === "Subscribed" && shouldRefetchSubscribed.current) {
-      const subscribedMatchIds = Array.from(subscribedMatches);
-      fetchSubscribedMatches(subscribedMatchIds);
-      shouldRefetchSubscribed.current = false;
+    // Only fetch subscribed matches if we have them loaded and competition is set to Subscribed
+    if (selectedCompetition === "Subscribed") {
+      if (subscribedMatches.size > 0) {
+        console.log("Fetching subscribed cricket matches:", Array.from(subscribedMatches));
+        const subscribedMatchIds = Array.from(subscribedMatches);
+        fetchSubscribedMatches(subscribedMatchIds);
+      } else {
+        console.log("No subscribed cricket matches found");
+        setMatchesData([]);
+      }
     }
   }, [selectedCompetition, subscribedMatches, fetchSubscribedMatches]);
-
-  useEffect(() => {
-    if (selectedCompetition === "Subscribed" && subscribedMatches.size > 0) {
-      const subscribedMatchIds = Array.from(subscribedMatches);
-      fetchSubscribedMatches(subscribedMatchIds);
-    }
-  }, [subscribedMatches]);
-
-  useEffect(() => {
-    if (selectedCompetition === "Subscribed") {
-      shouldRefetchSubscribed.current = true;
-    }
-  }, [selectedCompetition]);
 
   useEffect(() => {
     if (selectedMatch) {
@@ -326,6 +318,7 @@ export default function Cricket() {
   useEffect(() => {
     const fetchSubscribedMatches = async () => {
       if (!user?.primaryEmailAddress?.emailAddress) {
+        console.log("No user email, setting empty subscribed cricket matches");
         setSubscribedMatches(new Set());
         return;
       }
@@ -335,11 +328,19 @@ export default function Cricket() {
         if (docSnap.exists()) {
           const data = docSnap.data();
           if (data.subscribedCricketMatches) {
+            console.log("Loaded subscribed cricket matches from Firebase:", data.subscribedCricketMatches);
             setSubscribedMatches(new Set(data.subscribedCricketMatches));
+          } else {
+            console.log("No subscribed cricket matches found in Firebase");
+            setSubscribedMatches(new Set());
           }
+        } else {
+          console.log("No user document found in Firebase");
+          setSubscribedMatches(new Set());
         }
       } catch (error) {
         console.error("Error loading subscribed cricket matches:", error);
+        setSubscribedMatches(new Set());
       }
     };
     fetchSubscribedMatches();
@@ -367,16 +368,14 @@ export default function Cricket() {
     
     if (wasSubscribed) {
       newSubscribedMatches.delete(matchId);
-      // If we're in subscribed section and unsubscribing, remove from current view
+      console.log(`Unsubscribed from cricket match ${matchId}`);
+      // If we're in subscribed section and unsubscribing, remove from current view immediately
       if (selectedCompetition === "Subscribed") {
         setMatchesData(prev => prev.filter(match => (match.id || match.matchId) !== matchId));
-        shouldRefetchSubscribed.current = false; // Don't refetch immediately
-      } else {
-        shouldRefetchSubscribed.current = true;
       }
     } else {
       newSubscribedMatches.add(matchId);
-      shouldRefetchSubscribed.current = true; // Allow refetch for new subscriptions
+      console.log(`Subscribed to cricket match ${matchId}`);
     }
     
     setSubscribedMatches(newSubscribedMatches);
@@ -1210,8 +1209,8 @@ export default function Cricket() {
             {renderSeriesModal()}
           </View>
         )}
-        {activeTab === "Favorite" && renderFavorite()}
-        {activeTab === "Stats" && renderStats()}
+        {activeTab === "Teams" && renderStats()}
+        {activeTab === "Players" && renderFavorite()}
       </View>
     </View>
   );

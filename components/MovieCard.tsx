@@ -19,7 +19,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ title, posterUrl, onPress }) => {
           </View>
         )}
       </View>
-      <Text style={styles.title} numberOfLines={2}>{title}</Text>
+      <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">{title}</Text>
     </TouchableOpacity>
   );
 };
@@ -28,6 +28,7 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     marginBottom: 0,
+    paddingBottom: 4, // Ensure text is not clipped at the bottom
   },
   imageContainer: {
     aspectRatio: 2 / 3,
@@ -60,6 +61,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: 4,
     maxWidth: '100%',
+    paddingBottom: 8, // Increased to prevent visual clipping
+    marginBottom: 2, // Extra space for safety
   },
 });
 

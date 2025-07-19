@@ -1,12 +1,15 @@
 
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Animated, Dimensions, Image, NativeScrollEvent, NativeSyntheticEvent, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import CricketMatchCarousel from "../../components/CricketMatchCarousel";
 import DetailsViewer from "../../components/DetailsViewer";
+import FootballMatchCarousel from "../../components/FootballMatchCarousel";
 import MovieCard from "../../components/MovieCard";
 import MusicDetailsViewer from "../../components/MusicDetailsViewer";
 import { fetchPersonalizedMusicRecommendations } from "../../components/musicRecommender";
 import { fetchPersonalizedRecommendations } from "../../components/tmdbRecommender";
 import { getImageUrl } from "../../services/music_API";
+import { onGlobalScrollBeginDrag, onGlobalScrollEndDrag, registerCarousel, startGlobalAutoScroll, stopGlobalAutoScroll, unregisterCarousel } from "../../utils/carouselSync";
 
 const { height, width } = Dimensions.get("window");
 
@@ -38,8 +41,6 @@ export default function Index() {
 
   const scrollRef = React.useRef<ScrollView>(null);
   const scrollIndex = React.useRef<number>(0);
-  const isManualScrolling = React.useRef<boolean>(false);
-  const manualScrollTimeout = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollX = React.useMemo(() => new Animated.Value(0), []);
 
   // For music carousel logic
@@ -51,8 +52,6 @@ export default function Index() {
 
   const musicScrollRef = React.useRef<ScrollView>(null);
   const musicScrollIndex = React.useRef<number>(0);
-  const musicIsManualScrolling = React.useRef<boolean>(false);
-  const musicManualScrollTimeout = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const musicScrollX = React.useMemo(() => new Animated.Value(0), []);
 
   useEffect(() => {
@@ -69,27 +68,6 @@ export default function Index() {
   }, []);
 
   useEffect(() => {
-    if (scrollRef.current && recommended.length > 0) {
-      const offset = recommended.length * cardWidthWithMargin;
-      scrollRef.current.scrollTo({ x: offset, animated: false });
-      scrollIndex.current = recommended.length;
-    }
-  }, [recommended]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!recommended.length || isManualScrolling.current) return;
-      scrollIndex.current++;
-      if (scrollIndex.current >= recommended.length * 2) {
-        scrollIndex.current = recommended.length;
-        scrollRef.current?.scrollTo({ x: recommended.length * cardWidthWithMargin, animated: false });
-      }
-      scrollRef.current?.scrollTo({ x: scrollIndex.current * cardWidthWithMargin, animated: true });
-    }, 2000);
-    return () => clearInterval(interval);
-  }, [recommended]);
-
-  useEffect(() => {
     (async () => {
       try {
         const rec = await fetchPersonalizedMusicRecommendations();
@@ -102,59 +80,85 @@ export default function Index() {
     })();
   }, []);
 
+  // Register carousels when data is loaded and start global auto-scroll
   useEffect(() => {
-    if (musicScrollRef.current && musicRecommended.length > 0) {
+    if (recommended.length > 0) {
+      registerCarousel({
+        ref: scrollRef,
+        index: scrollIndex,
+        itemCount: recommended.length,
+        cardWidthWithMargin: cardWidthWithMargin
+      });
+      
+      // Initialize scroll position
+      const offset = recommended.length * cardWidthWithMargin;
+      scrollRef.current?.scrollTo({ x: offset, animated: false });
+      scrollIndex.current = recommended.length;
+    }
+    
+    return () => {
+      if (recommended.length > 0) {
+        unregisterCarousel(scrollRef);
+      }
+    };
+  }, [recommended, cardWidthWithMargin]);
+
+  useEffect(() => {
+    if (musicRecommended.length > 0) {
+      registerCarousel({
+        ref: musicScrollRef,
+        index: musicScrollIndex,
+        itemCount: musicRecommended.length,
+        cardWidthWithMargin: musicCardWidthWithMargin
+      });
+      
+      // Initialize scroll position
       const offset = musicRecommended.length * musicCardWidthWithMargin;
-      musicScrollRef.current.scrollTo({ x: offset, animated: false });
+      musicScrollRef.current?.scrollTo({ x: offset, animated: false });
       musicScrollIndex.current = musicRecommended.length;
     }
-  }, [musicRecommended]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!musicRecommended.length || musicIsManualScrolling.current) return;
-      musicScrollIndex.current++;
-      if (musicScrollIndex.current >= musicRecommended.length * 2) {
-        musicScrollIndex.current = musicRecommended.length;
-        musicScrollRef.current?.scrollTo({ x: musicRecommended.length * musicCardWidthWithMargin, animated: false });
+    
+    return () => {
+      if (musicRecommended.length > 0) {
+        unregisterCarousel(musicScrollRef);
       }
-      musicScrollRef.current?.scrollTo({ x: musicScrollIndex.current * musicCardWidthWithMargin, animated: true });
-    }, 2000);
-    return () => clearInterval(interval);
-  }, [musicRecommended]);
+    };
+  }, [musicRecommended, musicCardWidthWithMargin]);
+
+  // Start global auto-scroll when any carousel is ready
+  useEffect(() => {
+    const hasContent = recommended.length > 0 || musicRecommended.length > 0;
+    if (hasContent) {
+      startGlobalAutoScroll();
+    } else {
+      stopGlobalAutoScroll();
+    }
+    
+    return () => {
+      stopGlobalAutoScroll();
+    };
+  }, [recommended.length, musicRecommended.length]);
 
   const onScrollBeginDrag = () => {
-    isManualScrolling.current = true;
-    if (manualScrollTimeout.current) {
-      clearTimeout(manualScrollTimeout.current);
-      manualScrollTimeout.current = null;
-    }
+    onGlobalScrollBeginDrag();
   };
 
   const onScrollEndDrag = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetX = event.nativeEvent.contentOffset.x;
     const currentIndex = Math.round(offsetX / cardWidthWithMargin);
     scrollIndex.current = currentIndex;
-    manualScrollTimeout.current = setTimeout(() => {
-      isManualScrolling.current = false;
-    }, 2000);
+    onGlobalScrollEndDrag();
   };
 
   const onMusicScrollBeginDrag = () => {
-    musicIsManualScrolling.current = true;
-    if (musicManualScrollTimeout.current) {
-      clearTimeout(musicManualScrollTimeout.current);
-      musicManualScrollTimeout.current = null;
-    }
+    onGlobalScrollBeginDrag();
   };
 
   const onMusicScrollEndDrag = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetX = event.nativeEvent.contentOffset.x;
     const currentIndex = Math.round(offsetX / musicCardWidthWithMargin);
     musicScrollIndex.current = currentIndex;
-    musicManualScrollTimeout.current = setTimeout(() => {
-      musicIsManualScrolling.current = false;
-    }, 2000);
+    onGlobalScrollEndDrag();
   };
 
   const getPosterUrl = (path?: string | null) =>
@@ -169,7 +173,7 @@ export default function Index() {
   const renderRecommendedSection = () => {
     const tripledMovies = [...recommended, ...recommended, ...recommended];
     return (
-      <View style={styles.section}>
+      <View style={[styles.section, { marginBottom: -2 }]}> 
         <Text style={styles.sectionTitle}>Recommended Movies</Text>
         <Animated.ScrollView
           ref={scrollRef}
@@ -242,7 +246,7 @@ export default function Index() {
     }
     const tripledAlbums = [...musicRecommended, ...musicRecommended, ...musicRecommended];
     return (
-      <View style={styles.section}>
+      <View style={[styles.section, { marginTop: 15 }]}>
         <Text style={styles.sectionTitle}>Recommended Albums</Text>
         <Animated.ScrollView
           ref={musicScrollRef}
@@ -324,11 +328,18 @@ export default function Index() {
     <View style={styles.container}>
       {renderRecommendedSection()}
       {renderMusicSection()}
-      {/* Placeholder for Sport Section */}
+      {/* Sports Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Sport (Coming Soon)</Text>
-        <View style={styles.placeholderContent}>
-          <Text style={styles.placeholderText}>Sport recommendations will appear here.</Text>
+        <Text style={styles.sectionTitle}>Sports</Text>
+        <FootballMatchCarousel 
+          cardWidth={cardWidth} 
+          cardMargin={cardMargin}
+        />
+        <View style={{ marginTop: -15 }}>
+          <CricketMatchCarousel 
+            cardWidth={cardWidth} 
+            cardMargin={cardMargin}
+          />
         </View>
       </View>
       <DetailsViewer
@@ -356,8 +367,9 @@ const styles = StyleSheet.create({
     paddingTop: 70, // Increased from 4 to 32 for more space below the top bar
   },
   section: {
-    height: height * 0.235,
+    height: height * 0.22,
     marginBottom: 1,
+    overflow: 'visible',
   },
   sectionTitle: {
     color: "#fff",
@@ -397,7 +409,6 @@ const styles = StyleSheet.create({
     marginRight: 8,
     width: 110,
     alignItems: "center",
-    backgroundColor: "#222b36",
     borderRadius: 10,
     padding: 8,
   },
