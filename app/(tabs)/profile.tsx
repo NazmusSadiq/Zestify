@@ -31,13 +31,12 @@ export default function Profile() {
   const [menuVisible, setMenuVisible] = useState(false);
   const [editMode, setEditMode] = useState(false);
 
-  // Fetch user profile and liked stats from Firestore
+  // Fetch user profile
   useEffect(() => {
-    const fetchProfileAndStats = async () => {
+    const fetchProfile = async () => {
       if (!emailAddress) return;
       setLoading(true);
       try {
-        // Profile
         const docRef = doc(db, emailAddress, 'profile');
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
@@ -48,7 +47,19 @@ export default function Profile() {
         } else {
           setProfileData(null);
         }
-        // Stats
+      } catch (e) {
+        setProfileData(null);
+      }
+      setLoading(false);
+    };
+    fetchProfile();
+  }, [emailAddress]);
+
+  // Fetch liked stats (existing)
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (!emailAddress) return;
+      try {
         const statResults: { [key: string]: number } = {};
         await Promise.all(
           statConfigs.map(async ({ key }) => {
@@ -64,12 +75,40 @@ export default function Profile() {
         );
         setStats(statResults);
       } catch (e) {
-        setProfileData(null);
         setStats({});
       }
-      setLoading(false);
     };
-    fetchProfileAndStats();
+    fetchStats();
+  }, [emailAddress]);
+
+  // Fetch favorite player and teams
+  const [favoritePlayer, setFavoritePlayer] = useState<string | null>(null);
+  const [favoriteTeams, setFavoriteTeams] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      if (!emailAddress) return;
+      try {
+        const userDocRef = doc(db, "users", emailAddress);
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+          const data = userDocSnap.data();
+          setFavoritePlayer(data.favoritePlayerName || null);
+          if (Array.isArray(data.favoriteTeams)) {
+            setFavoriteTeams(data.favoriteTeams.map((team: any) => team.name));
+          } else {
+            setFavoriteTeams([]);
+          }
+        } else {
+          setFavoritePlayer(null);
+          setFavoriteTeams([]);
+        }
+      } catch {
+        setFavoritePlayer(null);
+        setFavoriteTeams([]);
+      }
+    };
+    fetchFavorites();
   }, [emailAddress]);
 
   // Pick image and upload as base64
@@ -217,6 +256,8 @@ export default function Profile() {
             <Text style={styles.value}>{profileData.bio}</Text>
           </>
         )}
+
+        {/* Stats cards with favorite player and teams as last two cards */}
         <View style={styles.statsGrid}>
           {statConfigs.map(({ key, label, icon }) => (
             <View key={key} style={styles.statCard}>
@@ -225,6 +266,24 @@ export default function Profile() {
               <Text style={styles.statLabel}>{label}</Text>
             </View>
           ))}
+          {/* Favorite Player Card (second last) */}
+          <View style={styles.statCard}>
+            <Ionicons name="person" size={28} color="#FF0000" style={{ marginBottom: 6 }} />
+            <Text style={styles.statLabel}>Favorite Player</Text>
+            <Text style={[styles.value, { textAlign: 'center', marginTop: 4 }]}>{favoritePlayer || 'No favorite player set'}</Text>
+          </View>
+          {/* Favorite Teams Card (last) */}
+          <View style={styles.statCard}>
+            <Ionicons name="football" size={28} color="#FF0000" style={{ marginBottom: 6 }} />
+            <Text style={styles.statLabel}>Favorite Teams</Text>
+            {favoriteTeams.length > 0 ? (
+              favoriteTeams.map((team, idx) => (
+                <Text key={idx} style={[styles.value, { textAlign: 'center', marginTop: 4 }]}>{team}</Text>
+              ))
+            ) : (
+              <Text style={[styles.value, { textAlign: 'center', marginTop: 4 }]}>No favorite teams set</Text>
+            )}
+          </View>
         </View>
         {/* Hide logout button, now in menu */}
       </View>
