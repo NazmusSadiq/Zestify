@@ -16,11 +16,8 @@ export default function BookDetails({ book, visible, onClose }: BookDetailsProps
   const { user } = useUser();
   const [isLiked, setIsLiked] = useState(false);
   const [loadingLike, setLoadingLike] = useState(false);
-
-  // Use Google Books ID as unique identifier
   const itemId = book?.id;
 
-  // Fetch like state from Firestore when itemId changes
   useEffect(() => {
     const fetchLike = async () => {
       if (!user?.primaryEmailAddress?.emailAddress || !itemId) {
@@ -28,8 +25,8 @@ export default function BookDetails({ book, visible, onClose }: BookDetailsProps
         return;
       }
       try {
-        const booksDocRef = doc(db, user.primaryEmailAddress.emailAddress, "books");
-        const docSnap = await getDoc(booksDocRef);
+        const docRef = doc(db, user.primaryEmailAddress.emailAddress, "books");
+        const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const data = docSnap.data();
           setIsLiked(!!data[itemId]);
@@ -47,12 +44,10 @@ export default function BookDetails({ book, visible, onClose }: BookDetailsProps
     if (!user?.primaryEmailAddress?.emailAddress || !itemId) return;
     setLoadingLike(true);
     try {
-      const booksDocRef = doc(db, user.primaryEmailAddress.emailAddress, "books");
-      await setDoc(booksDocRef, { [itemId]: true }, { merge: true });
+      const docRef = doc(db, user.primaryEmailAddress.emailAddress, "books");
+      await setDoc(docRef, { [itemId]: true }, { merge: true });
       setIsLiked(true);
-    } catch (e) {
-      // Optionally show error
-    }
+    } catch (e) {}
     setLoadingLike(false);
   };
 
@@ -60,12 +55,10 @@ export default function BookDetails({ book, visible, onClose }: BookDetailsProps
     if (!user?.primaryEmailAddress?.emailAddress || !itemId) return;
     setLoadingLike(true);
     try {
-      const booksDocRef = doc(db, user.primaryEmailAddress.emailAddress, "books");
-      await setDoc(booksDocRef, { [itemId]: false }, { merge: true });
+      const docRef = doc(db, user.primaryEmailAddress.emailAddress, "books");
+      await setDoc(docRef, { [itemId]: false }, { merge: true });
       setIsLiked(false);
-    } catch (e) {
-      // Optionally show error
-    }
+    } catch (e) {}
     setLoadingLike(false);
   };
 
@@ -73,27 +66,27 @@ export default function BookDetails({ book, visible, onClose }: BookDetailsProps
 
   return (
     <Modal
-      visible={visible}
       animationType="slide"
       transparent={true}
+      visible={visible}
       onRequestClose={onClose}
     >
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
-          <TouchableOpacity style={styles.backButton} onPress={onClose}>
-            <Ionicons name="arrow-back" size={24} color="#FF0000" />
-            <Text style={styles.backButtonText}>Back</Text>
-          </TouchableOpacity>
-          <ScrollView style={styles.scrollView}>
-            {/* Image at top, heart button at top right of image, then title below image */}
-            <View style={{ position: 'relative', alignItems: 'center', marginBottom: 16 }}>
+          <ScrollView>
+            <TouchableOpacity style={styles.backButton} onPress={onClose}>
+              <Ionicons name="arrow-back" size={24} color="#FF0000" />
+              <Text style={styles.backButtonText}>Back</Text>
+            </TouchableOpacity>
+
+            <View style={{ position: 'relative' }}>
               {book.volumeInfo.imageLinks?.thumbnail && (
                 <Image
                   source={{ uri: book.volumeInfo.imageLinks.thumbnail }}
-                  style={styles.coverImage}
+                  style={styles.image}
+                  resizeMode="cover"
                 />
               )}
-              {/* Heart button at top right of image */}
               <TouchableOpacity
                 style={styles.posterHeartButton}
                 onPress={isLiked ? handleUnlike : handleLike}
@@ -105,43 +98,47 @@ export default function BookDetails({ book, visible, onClose }: BookDetailsProps
                 </Text>
               </TouchableOpacity>
             </View>
-            <Text style={styles.title}>{book.volumeInfo.title}</Text>
-            {book.volumeInfo.authors && (
-              <Text style={styles.author}>
-                by {book.volumeInfo.authors.join(', ')}
-              </Text>
-            )}
 
             <View style={styles.detailsContainer}>
+              <Text style={styles.title}>{book.volumeInfo.title}</Text>
+              {book.volumeInfo.authors && (
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Authors:</Text>
+                  <Text style={styles.value}>{book.volumeInfo.authors.join(', ')}</Text>
+                </View>
+              )}
               {book.volumeInfo.publishedDate && (
-                <Text style={styles.detailText}>
-                  Published: {book.volumeInfo.publishedDate}
-                </Text>
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Published:</Text>
+                  <Text style={styles.value}>{book.volumeInfo.publishedDate}</Text>
+                </View>
               )}
               {book.volumeInfo.publisher && (
-                <Text style={styles.detailText}>
-                  Publisher: {book.volumeInfo.publisher}
-                </Text>
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Publisher:</Text>
+                  <Text style={styles.value}>{book.volumeInfo.publisher}</Text>
+                </View>
               )}
               {book.volumeInfo.categories && (
-                <Text style={styles.detailText}>
-                  Categories: {book.volumeInfo.categories.join(', ')}
-                </Text>
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Categories</Text>
+                  <Text style={styles.value}>{book.volumeInfo.categories.join(', ')}</Text>
+                </View>
               )}
               {book.volumeInfo.averageRating && (
-                <Text style={styles.detailText}>
-                  Rating: {book.volumeInfo.averageRating}/5
-                  {book.volumeInfo.ratingsCount && ` (${book.volumeInfo.ratingsCount} ratings)`}
-                </Text>
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Rating:</Text>
+                  <Text style={styles.value}>{book.volumeInfo.averageRating}/5{book.volumeInfo.ratingsCount && ` (${book.volumeInfo.ratingsCount} ratings)`}</Text>
+                </View>
+              )}
+
+              {book.volumeInfo.description && (
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Description</Text>
+                  <Text style={styles.description}>{book.volumeInfo.description.replace(/<[^>]+>/g, "")}</Text>
+                </View>
               )}
             </View>
-
-            {book.volumeInfo.description && (
-              <View style={styles.descriptionContainer}>
-                <Text style={styles.descriptionTitle}>Description</Text>
-                <Text style={styles.description}>{book.volumeInfo.description.replace(/<[^>]+>/g, "")}</Text>
-              </View>
-            )}
           </ScrollView>
         </View>
       </View>
@@ -152,16 +149,74 @@ export default function BookDetails({ book, visible, onClose }: BookDetailsProps
 const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: '#1B2631',
+    backgroundColor: '#1E1E1E',
     borderRadius: 20,
-    // width: '90%',
-    // maxHeight: '80%',
     padding: 20,
+    borderWidth: 1,
+    borderColor: '#333333',
+  },
+  image: {
+    width: '100%',
+    height: 220,
+    borderRadius: 15,
+  },
+  posterHeartButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 10,
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    borderRadius: 20,
+    padding: 2,
+  },
+  detailsContainer: {
+    padding: 15,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    marginBottom: 12,
+    backgroundColor: '#252525',
+    padding: 10,
+    borderRadius: 8,
+  },
+  label: {
+    fontWeight: 'bold',
+    width: 100,
+    color: '#3B82F6',
+  },
+  value: {
+    flex: 1,
+    color: '#FFFFFF',
+  },
+  section: {
+    marginTop: 20,
+    backgroundColor: '#252525',
+    padding: 15,
+    borderRadius: 12,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    color: '#3B82F6',
+  },
+  description: {
+    color: '#CCCCCC',
+    lineHeight: 22,
   },
   backButton: {
     flexDirection: 'row',
@@ -173,66 +228,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 8,
   },
-  scrollView: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    marginBottom: 20,
-  },
-  coverImage: {
-    width: 120,
-    height: 180,
-    borderRadius: 10,
-    backgroundColor: '#1a1a1a',
-  },
-  titleContainer: {
-    flex: 1,
-    marginLeft: 15,
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 5,
-  },
-  author: {
-    fontSize: 16,
-    color: '#FF0000',
-  },
-  detailsContainer: {
-    marginBottom: 20,
-    backgroundColor: '#1a1a1a',
-    padding: 15,
-    borderRadius: 10,
-  },
-  detailText: {
-    fontSize: 14,
-    color: '#fff',
-    marginBottom: 8,
-  },
-  descriptionContainer: {
-    marginTop: 10,
-    backgroundColor: '#1a1a1a',
-    padding: 15,
-    borderRadius: 10,
-  },
-  descriptionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FF0000',
-    marginBottom: 10,
-  },
-  description: {
-    fontSize: 14,
-    color: '#fff',
-    lineHeight: 20,
-  },
-  posterHeartButton: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    zIndex: 2,
-  },
-}); 
+});
