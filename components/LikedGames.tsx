@@ -104,13 +104,13 @@ const LikedGames = ({ visible, onClose }: LikedGamesProps) => {
     <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Liked Games</Text>
+          <Text style={styles.headerTitle}>Sort By: </Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Text style={styles.closeButtonText}>Close ✕</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.sortSection}>
-          <Text style={styles.sortLabel}>Sort By:</Text>
+          {/* <Text style={styles.sortLabel}>Sort By:</Text> */}
           <View style={styles.dropdown}>
             {sortOptions.map(({ option, key }) => (
               <TouchableOpacity
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#485460',
+    borderBottomColor: '#030303ff',
   },
   headerTitle: {
     color: '#f1f2f6',
