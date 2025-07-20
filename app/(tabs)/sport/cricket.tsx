@@ -2,17 +2,17 @@ import { useUser } from "@clerk/clerk-expo";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import React, { useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Animated,
-    Image,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View
+  ActivityIndicator,
+  Animated,
+  Image,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View
 } from "react-native";
 import { db } from "../../../firebase";
 import SPORTS_DATA from "../../../sportsdata.json";
@@ -1358,9 +1358,7 @@ const styles = StyleSheet.create({
   modalContent: {
     backgroundColor: '#1e293b',
     borderRadius: 15,
-    padding: 20,
-    width: '90%',
-    maxHeight: '80%',
+    padding: 0,
   },
   closeButtonText: {
     color: '#f8fafc',
