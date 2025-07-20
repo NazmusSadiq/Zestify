@@ -191,12 +191,12 @@ const MusicDetailsViewer = ({
                   <Text style={styles.value}>{selectedItem.stats?.listeners}</Text>
                 </View>
               )}
-              {itemType === 'album' && 'artist' in selectedItem && (
+              {/* {itemType === 'album' && 'artist' in selectedItem && (
                 <View style={styles.infoRow}>
                   <Text style={styles.label}>Artist:</Text>
                   <Text style={styles.value}>{selectedItem.artist.name}</Text>
                 </View>
-              )}
+              )} */}
               {itemType === 'track' && 'artist' in selectedItem && (
                 <View style={styles.infoRow}>
                   <Text style={styles.label}>Artist:</Text>

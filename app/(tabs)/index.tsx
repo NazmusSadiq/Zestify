@@ -30,6 +30,7 @@ export default function Index() {
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [musicRecommended, setMusicRecommended] = useState<any[]>([]);
   const [musicLoading, setMusicLoading] = useState(true);
+  const [albumDetailsLoading, setAlbumDetailsLoading] = useState(false);
   const [musicError, setMusicError] = useState<Error | null>(null);
   const [selectedAlbum, setSelectedAlbum] = useState<any | null>(null);
 
@@ -238,14 +239,14 @@ export default function Index() {
 
   // Fetch full details for an album using local API wrapper
   const handleAlbumPress = async (album: any) => {
-    setMusicLoading(true);
+    setAlbumDetailsLoading(true);
     try {
       const fullDetails = await getAlbumDetails(album.name, album.artist?.name);
       setSelectedAlbum({ ...album, ...fullDetails });
     } catch (err) {
       setSelectedAlbum(album);
     }
-    setMusicLoading(false);
+    setAlbumDetailsLoading(false);
   };
 
   const renderMusicSection = () => {
