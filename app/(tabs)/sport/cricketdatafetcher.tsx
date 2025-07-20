@@ -72,8 +72,7 @@ export function useCricketData() {
   const [homeMatches, setHomeMatches] = useState<any[]>([]);
   const [loadingHome, setLoadingHome] = useState(false);
 
-  // Helper to fetch multiple pages
-  const fetchAllPages = async (endpoint: string, maxPages: number = 20) => {
+  const fetchAllPages = async (endpoint: string, maxPages: number = 10) => {
     let results: any[] = [];
     let offset = 0;
     for (let i = 0; i < maxPages; i++) {
@@ -81,7 +80,7 @@ export function useCricketData() {
       if (Array.isArray(page) && page.length > 0) {
         results = results.concat(page);
         offset += page.length;
-        if (page.length < 20) break; // API returns less than 20, likely last page
+        if (page.length < 20) break; 
       } else {
         break;
       }
@@ -99,7 +98,7 @@ export function useCricketData() {
     
     globalMatchesFetchPromise = (async () => {
       try {
-        const all = await fetchAllPages("matches", 20);
+        const all = await fetchAllPages("matches", 10);
         const matchesArray = Array.isArray(all) ? all : [];
         globalAllMatches = matchesArray;
         hasGloballyFetchedMatches = true;
