@@ -1,11 +1,43 @@
 import { useClerk, useUser } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
+import { ActivityIndicator, Alert, Image, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { db } from "../../firebase";
+import { fetchFromApi } from "../../services/fotball_API";
+
+// Helper function for team crest
+const getTeamWithCrest = (team: any) => {
+  let name = typeof team === "string" ? team : team?.shortName ?? team?.name ?? "N/A";
+  if (name && name.toLowerCase().includes("wolverhampton")) {
+    name = "Wolves";
+  }
+  const crest = team?.crest ?? team?.logo ?? team?.crestUrl ?? null;
+  return { name, crest };
+};
+
+// Wikipedia image fetcher
+async function getWikipediaImageUrl(playerName: string): Promise<string | null> {
+  try {
+    const url = `https://en.wikipedia.org/w/api.php?action=query&format=json&titles=${encodeURIComponent(playerName)}&prop=pageimages&pithumbsize=500&origin=*`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const pages = data?.query?.pages;
+    if (pages) {
+      for (const pageId in pages) {
+        const page = pages[pageId];
+        if (page.thumbnail && page.thumbnail.source) {
+          return page.thumbnail.source;
+        }
+      }
+    }
+    return null;
+  } catch (e) {
+    return null;
+  }
+}
 
 const statConfigs = [
   { key: 'musicTracks', label: 'Tracks', icon: 'musical-notes' },
@@ -30,6 +62,79 @@ export default function Profile() {
   const [stats, setStats] = useState<{ [key: string]: number }>({});
   const [menuVisible, setMenuVisible] = useState(false);
   const [editMode, setEditMode] = useState(false);
+
+  // Direct favorite player handling - no cache, just direct API calls
+  const [favoritePlayerId, setFavoritePlayerId] = useState<number | null>(null);
+  const [favoritePlayerData, setFavoritePlayerData] = useState<any>(null);
+  const [loadingFavoritePlayer, setLoadingFavoritePlayer] = useState(false);
+
+  const hasValidPlayerData = favoritePlayerData && !favoritePlayerData.error && favoritePlayerData.name;
+
+  // Fetch favorite player data directly from API
+  const fetchFavoritePlayerData = async (playerId: number) => {
+    setLoadingFavoritePlayer(true);
+    try {
+      const data = await fetchFromApi(`persons/${playerId}`, "", true);
+      
+      if (data?.error || !data?.name) {
+        setFavoritePlayerData({ error: data?.error || 'Player not found' });
+      } else {
+        // Try to fetch Wikipedia image
+        let wikiImage = null;
+        if (data?.name) {
+          try {
+            wikiImage = await getWikipediaImageUrl(data.name);
+          } catch (imgError) {
+            console.warn("Failed to fetch Wikipedia image for", data.name);
+          }
+        }
+        
+        const playerDataWithImage = { ...data, wikiImage };
+        setFavoritePlayerData(playerDataWithImage);
+      }
+    } catch (error) {
+      console.error("Error fetching favorite player data:", error);
+      setFavoritePlayerData({ error: 'Failed to fetch player data' });
+    } finally {
+      setLoadingFavoritePlayer(false);
+    }
+  };
+
+  // Fetch favorite player ID and data when profile loads or tab is focused
+  useFocusEffect(
+    useCallback(() => {
+      
+      const loadFavoritePlayer = async () => {
+        if (!emailAddress) return;
+        
+        try {
+          const userDocRef = doc(db, "users", emailAddress);
+          const docSnap = await getDoc(userDocRef);
+          
+          if (docSnap.exists()) {
+            const userData = docSnap.data();
+            const playerId = userData.favoritePlayerId;
+            
+            setFavoritePlayerId(playerId);
+            
+            if (playerId) {
+              await fetchFavoritePlayerData(playerId);
+            } else {
+              setFavoritePlayerData(null);
+            }
+          } else {
+            setFavoritePlayerId(null);
+            setFavoritePlayerData(null);
+          }
+        } catch (error) {
+          console.error("Error loading favorite player:", error);
+          setFavoritePlayerData({ error: 'Failed to load favorite player' });
+        }
+      };
+      
+      loadFavoritePlayer();
+    }, [emailAddress])
+  );
 
   // Fetch user profile
   useEffect(() => {
@@ -81,81 +186,178 @@ export default function Profile() {
     fetchStats();
   }, [emailAddress]);
 
-  // Fetch favorite player and teams
-  const [favoritePlayer, setFavoritePlayer] = useState<string | null>(null);
-  const [favoriteTeams, setFavoriteTeams] = useState<string[]>([]);
+  // Fetch favorite teams - using the same structure as football.tsx
+  const [favoriteTeams, setFavoriteTeams] = useState<{ id: number; name: string }[]>([]);
+  const [favoriteTeamData, setFavoriteTeamData] = useState<any>(null);
+  const [loadingFavoriteTeam, setLoadingFavoriteTeam] = useState(false);
 
-  useEffect(() => {
-    const fetchFavorites = async () => {
-      if (!emailAddress) return;
-      try {
-        const userDocRef = doc(db, "users", emailAddress);
-        const userDocSnap = await getDoc(userDocRef);
-        if (userDocSnap.exists()) {
-          const data = userDocSnap.data();
-          setFavoritePlayer(data.favoritePlayerName || null);
-          if (Array.isArray(data.favoriteTeams)) {
-            setFavoriteTeams(data.favoriteTeams.map((team: any) => team.name));
+  const hasValidTeamData = favoriteTeamData && !favoriteTeamData.error && favoriteTeamData.name;
+
+  // Fetch favorite team data directly from API
+  const fetchFavoriteTeamData = async (teamId: number) => {
+    setLoadingFavoriteTeam(true);
+    try {
+      const data = await fetchFromApi(`teams/${teamId}`, "", true);
+      
+      if (data?.error || !data?.name) {
+        setFavoriteTeamData({ error: data?.error || 'Team not found' });
+      } else {
+        setFavoriteTeamData(data);
+      }
+    } catch (error) {
+      console.error("Error fetching favorite team data:", error);
+      setFavoriteTeamData({ error: 'Failed to fetch team data' });
+    } finally {
+      setLoadingFavoriteTeam(false);
+    }
+  };
+
+  // Fetch favorite teams and data when profile loads or tab is focused
+  useFocusEffect(
+    useCallback(() => {
+      const loadFavoriteTeam = async () => {
+        if (!emailAddress) return;
+        
+        try {
+          const userDocRef = doc(db, "users", emailAddress);
+          const docSnap = await getDoc(userDocRef);
+          
+          if (docSnap.exists()) {
+            const userData = docSnap.data();
+            const teams = userData.favoriteTeams;
+            
+            setFavoriteTeams(teams || []);
+            
+            if (teams && teams.length > 0 && teams[0].id) {
+              await fetchFavoriteTeamData(teams[0].id);
+            } else {
+              setFavoriteTeamData(null);
+            }
           } else {
             setFavoriteTeams([]);
+            setFavoriteTeamData(null);
           }
-        } else {
-          setFavoritePlayer(null);
-          setFavoriteTeams([]);
+        } catch (error) {
+          console.error("Error loading favorite team:", error);
+          setFavoriteTeamData({ error: 'Failed to load favorite team' });
         }
-      } catch {
-        setFavoritePlayer(null);
-        setFavoriteTeams([]);
-      }
-    };
-    fetchFavorites();
-  }, [emailAddress]);
+      };
+      
+      loadFavoriteTeam();
+    }, [emailAddress])
+  );
 
-  // Pick image and upload as base64
   const handlePickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.7,
-      base64: true,
-    });
-    if (!result.canceled && result.assets && result.assets[0].base64) {
+    try {
       setUploading(true);
-      const base64Img = `data:image/jpeg;base64,${result.assets[0].base64}`;
-      setProfilePic(base64Img);
-      // Save to Firestore
-      try {
-        if (emailAddress) {
-          const docRef = doc(db, emailAddress, "profile");
-          await setDoc(docRef, { profilePic: base64Img }, { merge: true });
-          Alert.alert("Profile Picture Updated");
-        } else {
-          Alert.alert("No valid email found for user");
-        }
-      } catch {
-        Alert.alert("Error updating profile picture");
+      
+      // Request permissions
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Required', 'Sorry, we need camera roll permissions to change your profile picture.');
+        return;
       }
+
+      // Show options to user
+      Alert.alert(
+        'Change Profile Picture',
+        'Choose an option',
+        [
+          { text: 'Camera', onPress: () => openCamera() },
+          { text: 'Gallery', onPress: () => openGallery() },
+          { text: 'Cancel', style: 'cancel' }
+        ]
+      );
+    } catch (error) {
+      console.error('Error in handlePickImage:', error);
+      Alert.alert("Error", "Failed to pick image");
+    } finally {
       setUploading(false);
     }
   };
 
-  // Save name to Firestore
+  const openCamera = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Required', 'Sorry, we need camera permissions to take a photo.');
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.7,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        await saveProfilePicture(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error opening camera:', error);
+      Alert.alert("Error", "Failed to open camera");
+    }
+  };
+
+  const openGallery = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.7,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        await saveProfilePicture(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error opening gallery:', error);
+      Alert.alert("Error", "Failed to open gallery");
+    }
+  };
+
+  const saveProfilePicture = async (uri: string) => {
+    if (!emailAddress) return;
+    
+    try {
+      setUploading(true);
+      
+      // Update local state immediately for better UX
+      setProfilePic(uri);
+      
+      // Save to Firestore
+      const docRef = doc(db, emailAddress, 'profile');
+      await setDoc(docRef, { profilePic: uri }, { merge: true });
+      
+      // Update profile data state
+      setProfileData((prev: any) => ({ ...prev, profilePic: uri }));
+      
+      Alert.alert("Success", "Profile picture updated successfully!");
+    } catch (error) {
+      console.error("Error saving profile picture:", error);
+      // Revert local state on error
+      setProfilePic(profileData?.profilePic || null);
+      Alert.alert("Error", "Failed to save profile picture");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSaveName = async () => {
     if (!emailAddress) return;
-    setUploading(true);
     try {
-      if (emailAddress) {
-        const docRef = doc(db, emailAddress, "profile");
-        await setDoc(docRef, { name }, { merge: true });
-        Alert.alert("Name Updated");
-      } else {
-        Alert.alert("No valid email found for user");
-      }
-    } catch {
-      Alert.alert("Error updating name");
+      setUploading(true);
+      const docRef = doc(db, emailAddress, 'profile');
+      await setDoc(docRef, { name }, { merge: true });
+      setProfileData((prev: any) => ({ ...prev, name }));
+    } catch (error) {
+      console.error("Error saving name:", error);
+      Alert.alert("Error", "Failed to save name");
+    } finally {
+      setUploading(false);
     }
-    setUploading(false);
   };
 
   const handleLogout = async () => {
@@ -174,7 +376,7 @@ export default function Profile() {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <View style={styles.container}>
       <View style={styles.profileCard}>
         {/* 3-dot menu button */}
         <TouchableOpacity style={styles.menuButton} onPress={() => setMenuVisible(true)}>
@@ -268,41 +470,115 @@ export default function Profile() {
           ))}
           {/* Favorite Player Card (second last) */}
           <View style={styles.statCard}>
-            <Ionicons name="person" size={28} color="#FF0000" style={{ marginBottom: 6 }} />
-            <Text style={styles.statLabel}>Favorite Player</Text>
-            <Text style={[styles.value, { textAlign: 'center', marginTop: 4 }]}>{favoritePlayer || 'No favorite player set'}</Text>
+            {(() => {
+              if (loadingFavoritePlayer) {
+                return (
+                  <>
+                    <ActivityIndicator size="small" color="#FF0000" style={{ marginBottom: 6 }} />
+                    <Text style={[styles.value, { textAlign: 'center', marginTop: 4 }]}>
+                      Loading...
+                    </Text>
+                  </>
+                );
+              }
+              
+              // Show favorite player data if available
+              if (hasValidPlayerData) {
+                return (
+                  <>
+                    {favoritePlayerData?.wikiImage ? (
+                      <Image
+                        source={{ uri: favoritePlayerData.wikiImage }}
+                        style={{ width: 60, height:60, borderRadius: 30, marginBottom: 6 }}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <Ionicons name="person" size={50} color="#FF0000" style={{ marginBottom: 6 }} />
+                    )}
+                    <Text style={[styles.value, { textAlign: 'center', marginTop: 0, marginBottom: -2, fontSize: 13 }]}>
+                      {favoritePlayerData?.name}
+                    </Text>
+                              
+                  </>
+                );
+              }
+              
+              // No favorite player set
+              return (
+                <>
+                  <Ionicons name="person" size={40} color="#FF0000" style={{ marginBottom: 6 }} />
+                  <Text style={[styles.value, { textAlign: 'center', marginTop: 0, fontSize: 12 }]}>
+                    No favorite player
+                  </Text>
+                </>
+              );
+            })()}
           </View>
           {/* Favorite Teams Card (last) */}
           <View style={styles.statCard}>
-            <Ionicons name="football" size={28} color="#FF0000" style={{ marginBottom: 6 }} />
-            <Text style={styles.statLabel}>Favorite Teams</Text>
-            {favoriteTeams.length > 0 ? (
-              favoriteTeams.map((team, idx) => (
-                <Text key={idx} style={[styles.value, { textAlign: 'center', marginTop: 4 }]}>{team}</Text>
-              ))
-            ) : (
-              <Text style={[styles.value, { textAlign: 'center', marginTop: 4 }]}>No favorite teams set</Text>
-            )}
+            {(() => {
+              if (loadingFavoriteTeam) {
+                return (
+                  <>
+                    <ActivityIndicator size="small" color="#FF0000" style={{ marginBottom: 6 }} />
+                    <Text style={[styles.value, { textAlign: 'center', marginTop: 0, alignSelf: 'center' }]}>
+                      Loading...
+                    </Text>
+                  </>
+                );
+              }
+              
+              // Show favorite team data if available
+              if (hasValidTeamData) {
+                return (
+                  <>
+                    {favoriteTeamData?.crest ? (
+                      <Image
+                        source={{ uri: favoriteTeamData.crest }}
+                        style={{ width: 70, height: 70, borderRadius: 35, marginBottom: 6 }}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <Ionicons name="shield" size={60} color="#FF0000" style={{ marginBottom: 6 }} />
+                    )}
+                    <Text style={[styles.value, { textAlign: 'center', marginTop: 0, marginBottom: -2, fontSize: 13, alignSelf: 'center' }]}>
+                      {favoriteTeamData?.shortName || favoriteTeamData?.name}
+                    </Text>
+                  </>
+                );
+              }
+              
+              // No favorite team set
+              return (
+                <>
+                  <Ionicons name="shield" size={40} color="#FF0000" style={{ marginBottom: 6 }} />
+                  <Text style={[styles.value, { textAlign: 'center', marginTop: 0, fontSize: 12, alignSelf: 'center' }]}>
+                    No favorite team
+                  </Text>
+                </>
+              );
+            })()}
           </View>
         </View>
         {/* Hide logout button, now in menu */}
       </View>
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
-    justifyContent: 'center',
+    flex: 1,
+    justifyContent: 'flex-start',
     alignItems: 'center',
     backgroundColor: '#181A20',
-    paddingVertical: 40,
+    paddingTop: 20,
+    paddingBottom: 20,
   },
   profileCard: {
     backgroundColor: '#23262F',
     borderRadius: 24,
-    padding: 28,
+    padding: 20,
     width: '94%',
     alignItems: 'center',
     shadowColor: '#000',
@@ -310,17 +586,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-    marginBottom: 30,
+    marginBottom: 10,
   },
   profilePicContainer: {
     alignItems: 'center',
-    marginBottom: 18,
+    marginBottom: 12,
   },
   profilePic: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    marginBottom: 10,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 8,
     borderWidth: 3,
     borderColor: '#FF0000',
   },
@@ -346,7 +622,7 @@ const styles = StyleSheet.create({
   profileEmail: {
     color: '#aaa',
     fontSize: 15,
-    marginBottom: 10,
+    marginBottom: 8,
     textAlign: 'center',
   },
   input: {
@@ -390,8 +666,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginTop: 18,
-    marginBottom: 18,
+    marginTop: 12,
+    marginBottom: 12,
     width: '100%',
   },
   statCard: {
@@ -400,8 +676,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width: '30%',
-    marginVertical: 8,
-    paddingVertical: 16,
+    marginVertical: 6,
+    paddingVertical: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.15,

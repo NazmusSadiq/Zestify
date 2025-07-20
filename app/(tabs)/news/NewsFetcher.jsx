@@ -27,8 +27,8 @@ const fetchNewsByTag = async (query, tag) => {
   while (attempts < MAX_RETRIES) {
     attempts++;
     const url = query
-      ? `https://gnews.io/api/v4/search?q=${encodeURIComponent(query)}&lang=en&max=50&token=${API_KEY}`
-      : `https://gnews.io/api/v4/top-headlines?category=general&token=${API_KEY}`;
+      ? `https://gnews.io/api/v4/search?q=${encodeURIComponent(query)}&lang=en&max=100&token=${API_KEY}`
+      : `https://gnews.io/api/v4/top-headlines?category=general&max=100&token=${API_KEY}`;
 
     const response = await fetch(url);
 
@@ -95,8 +95,45 @@ export const fetchTopNewsAndSave = async () => {
 
 export const fetchGamesNewsAndSave = async () => {
   try {
-    const articles = await fetchNewsByTag('game or games OR "video game" OR "game trailer" or PlayStation or Xbox or gaming', 'games');
-    await saveNews(articles);
+    // Multiple targeted searches to get more diverse gaming news
+    const queries = [
+      // Core gaming terms
+      'gaming OR "video games" OR "video game" OR esports OR "game industry"',
+      // Popular games and franchises
+      '"Call of Duty" OR "Grand Theft Auto" OR "Assassin\'s Creed" OR "FIFA" OR "Fortnite" OR "Minecraft" OR "League of Legends"',
+      // Gaming platforms and companies
+      'PlayStation OR Xbox OR Nintendo OR Steam OR "Epic Games" OR "Game Pass" OR "Nintendo Switch"',
+      // Game development and releases
+      '"game release" OR "game launch" OR "game trailer" OR "beta test" OR "early access" OR "game update"',
+      // Gaming hardware and tech
+      '"RTX 4090" OR "PS5" OR "Xbox Series" OR "Steam Deck" OR "VR gaming" OR "gaming laptop"'
+    ];
+
+    const allArticles = [];
+    
+    // Fetch articles for each query with small delays
+    for (let i = 0; i < queries.length; i++) {
+      try {
+        const articles = await fetchNewsByTag(queries[i], 'games');
+        allArticles.push(...articles);
+        
+        // Add delay between queries to avoid rate limiting
+        if (i < queries.length - 1) {
+          await delay(300);
+        }
+      } catch (queryError) {
+        console.log(`Failed to fetch games news for query ${i + 1}:`, queryError);
+        // Continue with other queries even if one fails
+      }
+    }
+    
+    // Remove duplicates based on URL
+    const uniqueArticles = allArticles.filter((article, index, self) => 
+      index === self.findIndex(a => a.url === article.url)
+    );
+    
+    await saveNews(uniqueArticles);
+    console.log(`Fetched ${uniqueArticles.length} unique gaming articles from ${queries.length} queries`);
   } catch (e) {
     console.log("Failed to fetch games news:", e);
   }

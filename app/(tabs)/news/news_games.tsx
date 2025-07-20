@@ -42,7 +42,7 @@ export default function News_Games() {
       const jsonStr = await FileSystem.readAsStringAsync(NEWS_FILE_PATH);
       let allNews: Article[] = JSON.parse(jsonStr);
 
-      let filtered = allNews.filter(article => article.tags?.includes("games"));
+      let filtered = allNews.filter(article => article.tags?.includes("games")|| article.tags?.includes("game") || article.tags?.includes("gaimng")|| article.tags?.includes("Play Station") || article.tags?.includes("Xbox") || article.tags?.includes("Gameplay") || article.tags?.includes("Game Trailer"));
 
       filtered = filtered.filter((article, index, self) =>
         index === self.findIndex(a => a.title.toLowerCase() === article.title.toLowerCase())

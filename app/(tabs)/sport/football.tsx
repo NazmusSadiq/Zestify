@@ -83,10 +83,10 @@ const TransferCard = ({ transfer }: { transfer: any }) => {
   );
 };
 
-const tabs = ["Home", "Matches", "Stats", "Favorite"];
+const tabs = ["Main", "Matches", "Stats", "Favorite"];
 
 export default function Football() {
-  const [activeTab, setActiveTab] = useState<"Home" | "Matches" | "Stats" | "Favorite">("Home");
+  const [activeTab, setActiveTab] = useState<"Main" | "Matches" | "Stats" | "Favorite">("Main");
   const [statsLeftTrayOpen, setStatsLeftTrayOpen] = useState(false);
   const [matchesLeftTrayOpen, setMatchesLeftTrayOpen] = useState(false);
   const statsTrayAnim = useRef(new Animated.Value(-220)).current;
@@ -317,7 +317,7 @@ export default function Football() {
 
   useEffect(() => {
     try {
-      const playerNames = require("../../../assets/player_names/player_names.json");
+      const playerNames = require("../../../player_names.json");
       setAllPlayerNames(playerNames);
     } catch (e) {
       setAllPlayerNames([]);
@@ -353,7 +353,7 @@ export default function Football() {
   } = useFootballData();
 
   useEffect(() => {
-    if (activeTab === "Home") fetchFootballHomeMatches(); // Use football-specific function
+    if (activeTab === "Main") fetchFootballHomeMatches(); // Use football-specific function
     if (activeTab === "Stats") fetchStatsData();
     if (activeTab === "Matches") {
       if (matchesCompetition.id === "SUBSCRIBED") {
@@ -1222,7 +1222,7 @@ export default function Football() {
       </View>
 
       <View style={styles.content}>
-        {activeTab === "Home" && renderHome()}
+        {activeTab === "Main" && renderHome()}
         {activeTab === "Stats" && renderStats()}
         {activeTab === "Matches" && renderMatches()}
         {activeTab === "Favorite" && renderFavorite()}
@@ -1587,7 +1587,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 10,
     maxWidth: 150,
-    textAlign: 'center',
+    textAlign: 'left',
     flexWrap: 'wrap',
   },
   teamStats: {

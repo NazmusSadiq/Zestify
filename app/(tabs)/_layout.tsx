@@ -39,9 +39,6 @@ function AnimatedHeader() {
                 <Image source={appIcon} style={styles.icon} resizeMode="contain" />
                 <Text style={styles.brandText}>Zestify</Text>
             </View>
-            <View style={styles.searchButton}>
-                <Text style={{ color: "#FFD700", fontSize: 16 }}>🔍</Text>
-            </View>
         </Animated.View>
     );
 }
@@ -143,6 +140,7 @@ const styles = StyleSheet.create({
         marginLeft: 8,
         fontFamily: "sans-serif-light",
         fontWeight: "300",
+        transform: [{ translateY: -2.5 }],
     },
     searchButton: {
         width: 36,

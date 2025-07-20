@@ -69,9 +69,15 @@ let cachedTeamDetails: { [teamId: number]: any } = {};
 let teamDetailsCacheTimestamp: number | null = null;
 const TEAM_DETAILS_CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
 
-// Note: Subscribed matches will NOT use caching to avoid issues
+// Cache for favorite player data - GLOBAL CACHE
+let cachedFavoritePlayerData: any = null;
+let favoritePlayerCacheTimestamp: number | null = null;
+const FAVORITE_PLAYER_CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
 
-// Function to clear all caches
+// Cache version to track updates - increment when cache is updated
+let favoritePlayerCacheVersion: number = 0;
+
+
 export const clearAllFootballCaches = () => {
   cachedTeams = [];
   cachedHomeMatches = [];
@@ -85,6 +91,54 @@ export const clearAllFootballCaches = () => {
   leagueMatchesInitPromise = null;
   cachedTeamDetails = {};
   teamDetailsCacheTimestamp = null;
+  cachedFavoritePlayerData = null;
+  favoritePlayerCacheTimestamp = null;
+  favoritePlayerCacheVersion = 0;
+};
+
+// Function to clear only favorite player cache - useful for debugging
+export const clearFavoritePlayerCache = () => {
+  cachedFavoritePlayerData = null;
+  favoritePlayerCacheTimestamp = null;
+  favoritePlayerCacheVersion++;
+};
+
+// Function to manually set a valid player in cache (for debugging/fixing bad data)
+export const setValidPlayerInCache = async (playerId: number, playerName: string) => {
+  const playerData = { 
+    id: playerId, 
+    name: playerName,
+    currentTeam: { name: "Unknown Team" }
+  };
+  
+  cachedFavoritePlayerData = playerData;
+  favoritePlayerCacheTimestamp = Date.now();
+  favoritePlayerCacheVersion++;
+  
+  return playerData;
+};
+
+// Function to force refresh profile data from cache - for profile use
+export const refreshProfileDataFromCache = () => {
+  favoritePlayerCacheVersion++;
+  return {
+    data: cachedFavoritePlayerData,
+    timestamp: favoritePlayerCacheTimestamp,
+    version: favoritePlayerCacheVersion,
+    isValid: favoritePlayerCacheTimestamp ? 
+      (Date.now() - favoritePlayerCacheTimestamp) < FAVORITE_PLAYER_CACHE_DURATION : false
+  };
+};
+
+// Function to get current cached favorite player data
+export const getCachedFavoritePlayerData = () => {
+  return {
+    data: cachedFavoritePlayerData,
+    timestamp: favoritePlayerCacheTimestamp,
+    version: favoritePlayerCacheVersion,
+    isValid: favoritePlayerCacheTimestamp ? 
+      (Date.now() - favoritePlayerCacheTimestamp) < FAVORITE_PLAYER_CACHE_DURATION : false
+  };
 };
 
 // Function to clean expired cache entries
@@ -111,6 +165,12 @@ export const cleanExpiredCaches = () => {
     teamDetailsCacheTimestamp = null;
   }
 
+  // Clean expired favorite player cache
+  if (favoritePlayerCacheTimestamp && (now - favoritePlayerCacheTimestamp) > FAVORITE_PLAYER_CACHE_DURATION) {
+    cachedFavoritePlayerData = null;
+    favoritePlayerCacheTimestamp = null;
+  }
+
 
 };
 
@@ -119,7 +179,7 @@ setInterval(() => {
   cleanExpiredCaches();
 }, 10 * 60 * 1000);
 
-export function useFootballData() {
+export function useFootballData(profileMode = false) {
   const { user } = useUser();
   const [statsCompetition, setStatsCompetition] = useState(COMPETITIONS[0]);
   const [statsOption, setStatsOption] = useState("Standings");
@@ -137,10 +197,12 @@ export function useFootballData() {
   const [favoriteTeamsStats, setFavoriteTeamsStats] = useState<any>(null);
   const [loadingFavStats, setLoadingFavStats] = useState(false);
 
-  // Favorite player logic
+  // Favorite player logic - using global cache
   const [favoritePlayerId, setFavoritePlayerId] = useState<number | null>(null);
   const [favoritePlayerData, setFavoritePlayerData] = useState<any>(null);
   const [loadingFavoritePlayer, setLoadingFavoritePlayer] = useState(false);
+  // Track cache version to detect changes
+  const [watchedCacheVersion, setWatchedCacheVersion] = useState<number>(favoritePlayerCacheVersion);
 
   // Load favorite teams and player from Firebase when component mounts
   useEffect(() => {
@@ -179,26 +241,208 @@ export function useFootballData() {
     }
   }, [favoriteTeams, favoritePlayerId, user?.primaryEmailAddress?.emailAddress]);
 
-  // Fetch favorite player data when favoritePlayerId changes
+  // Watch for cache version changes - this allows profile to react to cache updates
   useEffect(() => {
+    if (profileMode && favoritePlayerCacheVersion !== watchedCacheVersion) {
+      
+      setWatchedCacheVersion(favoritePlayerCacheVersion);
+      
+      // Update player data if we have valid cached data for current player ID
+      if (cachedFavoritePlayerData && favoritePlayerId) {
+        const now = Date.now();
+        const isValidCache = favoritePlayerCacheTimestamp && 
+          (now - favoritePlayerCacheTimestamp) < FAVORITE_PLAYER_CACHE_DURATION;
+        
+        
+        if (isValidCache && 
+            (cachedFavoritePlayerData.id === favoritePlayerId || 
+             (cachedFavoritePlayerData.playerId === favoritePlayerId && cachedFavoritePlayerData.error))) {
+          
+          // In profile mode, only set valid player data (not error data)
+          if (!cachedFavoritePlayerData.error && cachedFavoritePlayerData.name) {
+            setFavoritePlayerData(cachedFavoritePlayerData);
+          } else if (cachedFavoritePlayerData.error) {
+            setFavoritePlayerData(null);
+          }
+        } else {
+        }
+      } else {
+      }
+    }
+  }, [profileMode, watchedCacheVersion, favoritePlayerId]);
+
+  // Periodically check for cache version changes (for profile mode)
+  useEffect(() => {
+    if (profileMode) {
+      const interval = setInterval(() => {
+        if (favoritePlayerCacheVersion !== watchedCacheVersion) {
+          setWatchedCacheVersion(favoritePlayerCacheVersion);
+        }
+      }, 1000); // Check every second
+      
+      return () => clearInterval(interval);
+    }
+  }, [profileMode, watchedCacheVersion]);
+
+  // Load cached favorite player data on mount
+  useEffect(() => {
+    const now = Date.now();
+    
+    // Clear cache if player ID changed
+    if (favoritePlayerId && cachedFavoritePlayerData && 
+        cachedFavoritePlayerData.id !== favoritePlayerId && 
+        cachedFavoritePlayerData.playerId !== favoritePlayerId) {
+      cachedFavoritePlayerData = null;
+      favoritePlayerCacheTimestamp = null;
+      setFavoritePlayerData(null);
+      return;
+    }
+    
+    if (profileMode && cachedFavoritePlayerData?.error) {
+      setFavoritePlayerData(null);
+      return;
+    }
+    
+    if (cachedFavoritePlayerData &&
+        favoritePlayerCacheTimestamp &&
+        (now - favoritePlayerCacheTimestamp) < FAVORITE_PLAYER_CACHE_DURATION &&
+        favoritePlayerId &&
+        (cachedFavoritePlayerData.id === favoritePlayerId || 
+         (!profileMode && cachedFavoritePlayerData.error && cachedFavoritePlayerData.playerId === favoritePlayerId))) {
+      // In profile mode, only load valid player data (not error data)
+      if (profileMode && (!cachedFavoritePlayerData.name || cachedFavoritePlayerData.error)) {
+        setFavoritePlayerData(null);
+        return;
+      }
+      
+      setFavoritePlayerData(cachedFavoritePlayerData);
+    }
+  }, [favoritePlayerId, profileMode]); // Only depend on favoritePlayerId to avoid loops
+
+  // Fetch favorite player data when favoritePlayerId changes - ONLY for non-profile mode
+  useEffect(() => {
+    // Skip fetching if in profile mode - profile should only read from cache
+    if (profileMode) {
+      return;
+    }
+    
     const fetchFavoritePlayerData = async () => {
       if (!favoritePlayerId) {
         setFavoritePlayerData(null);
         return;
       }
+
+      // Check if we have cached data that's still valid
+      const now = Date.now();
+      console.log("Fetch effect cache check:", {
+        hasCachedData: !!cachedFavoritePlayerData,
+        hasTimestamp: !!favoritePlayerCacheTimestamp,
+        favoritePlayerId,
+        cachedId: cachedFavoritePlayerData?.id,
+        cachedPlayerId: cachedFavoritePlayerData?.playerId,
+        cacheAge: favoritePlayerCacheTimestamp ? now - favoritePlayerCacheTimestamp : null,
+        isValid: favoritePlayerCacheTimestamp ? (now - favoritePlayerCacheTimestamp) < FAVORITE_PLAYER_CACHE_DURATION : false
+      });
+      
+      if (cachedFavoritePlayerData &&
+          favoritePlayerCacheTimestamp &&
+          (now - favoritePlayerCacheTimestamp) < FAVORITE_PLAYER_CACHE_DURATION &&
+          (cachedFavoritePlayerData.id === favoritePlayerId || 
+           (cachedFavoritePlayerData.error && cachedFavoritePlayerData.playerId === favoritePlayerId))) {
+        setFavoritePlayerData(cachedFavoritePlayerData);
+        return;
+      }
+
       setLoadingFavoritePlayer(true);
       try {
         // Bypass rate limiting for critical favorite player data fetch
-        const data = await fetchFromApi(`players/${favoritePlayerId}`, "", true);
-        setFavoritePlayerData(data);
+        const data = await fetchFromApi(`persons/${favoritePlayerId}`, "", true);
+        
+        // Check if the data is an error response
+        if (data?.error || !data?.name) {
+          console.warn(`Player data fetch failed for ID ${favoritePlayerId}:`, data?.error || 'No player name found');
+          
+          // Try to find player in local player names as fallback
+          let fallbackData = null;
+          try {
+            const knownPlayers: { [key: number]: any } = {
+              1556: { id: 1556, name: "Vinicius Junior", currentTeam: { name: "Real Madrid" } },
+              371: { id: 371, name: "Robert Lewandowski", currentTeam: { name: "Barcelona" } },
+            };
+            
+            if (knownPlayers[favoritePlayerId]) {
+              fallbackData = knownPlayers[favoritePlayerId];
+            }
+          } catch (fallbackError) {
+            console.warn("Fallback player lookup failed:", fallbackError);
+          }
+          
+          if (fallbackData) {
+            // Try to fetch Wikipedia image for fallback data
+            let wikiImage = null;
+            if (fallbackData.name) {
+              try {
+                wikiImage = await getWikipediaImageUrl(fallbackData.name);
+              } catch (imgError) {
+                console.warn("Failed to fetch Wikipedia image for", fallbackData.name);
+              }
+            }
+            
+            const playerDataWithImage = { ...fallbackData, wikiImage };
+            
+            // Cache the fallback data globally
+            cachedFavoritePlayerData = playerDataWithImage;
+            favoritePlayerCacheTimestamp = now;
+            favoritePlayerCacheVersion++;
+            
+            setFavoritePlayerData(playerDataWithImage);
+          } else {
+            // Set error data so profile can handle fallback - include playerId for cache validation
+            const errorData = { error: data?.error || 'Player not found', playerId: favoritePlayerId };
+            
+            // Cache the error data globally with playerId
+            cachedFavoritePlayerData = errorData;
+            favoritePlayerCacheTimestamp = now;
+            favoritePlayerCacheVersion++;
+            
+            setFavoritePlayerData(errorData);
+          }
+        } else {
+          // Try to fetch Wikipedia image for valid player data
+          let wikiImage = null;
+          if (data?.name) {
+            try {
+              wikiImage = await getWikipediaImageUrl(data.name);
+            } catch (imgError) {
+              console.warn("Failed to fetch Wikipedia image for", data.name);
+            }
+          }
+          
+          const playerDataWithImage = { ...data, wikiImage };
+          
+          // Cache the data globally
+          cachedFavoritePlayerData = playerDataWithImage;
+          favoritePlayerCacheTimestamp = now;
+          favoritePlayerCacheVersion++;
+          
+          setFavoritePlayerData(playerDataWithImage);
+        }
       } catch (error) {
-        setFavoritePlayerData(null);
+        console.error("Error fetching favorite player data:", error);
+        const errorData = { error: 'Failed to fetch player data', playerId: favoritePlayerId };
+        
+        // Cache the error data globally with playerId
+        cachedFavoritePlayerData = errorData;
+        favoritePlayerCacheTimestamp = now;
+        favoritePlayerCacheVersion++;
+        
+        setFavoritePlayerData(errorData);
       } finally {
         setLoadingFavoritePlayer(false);
       }
     };
     fetchFavoritePlayerData();
-  }, [favoritePlayerId]);
+  }, [favoritePlayerId, profileMode]);
 
   // Initialize league matches cache on first use
   useEffect(() => {
@@ -213,13 +457,13 @@ export function useFootballData() {
     if (!playerName) return null;
     try {
       // Bypass rate limiting for critical favorite player search
-      const data = await fetchFromApi("players", `?name=${encodeURIComponent(playerName)}`, true);
-      if (data?.error || !data.players || data.players.length === 0) {
+      const data = await fetchFromApi("persons", `?name=${encodeURIComponent(playerName)}`, true);
+      if (data?.error || !data.persons || data.persons.length === 0) {
         Alert.alert("Player Error", "Player not found");
         return null;
       }
       // Only allow one favorite player
-      return data.players[0].id;
+      return data.persons[0].id;
     } catch (error) {
       Alert.alert("Search Error", "Failed to search for player");
       return null;
@@ -693,11 +937,9 @@ export function useFootballData() {
       return;
     }
 
-    // Create cache key based on favorite teams
     const cacheKey = favoriteTeams.map(t => t.id).sort().join(',');
     const now = Date.now();
 
-    // Check if we have cached data that's still valid
     if (cachedStatsData[`fav_${cacheKey}`] &&
       statsCacheTimestamps[`fav_${cacheKey}`] &&
       (now - statsCacheTimestamps[`fav_${cacheKey}`]) < STATS_CACHE_DURATION) {
@@ -879,6 +1121,10 @@ export function useFootballData() {
     fetchFootballHomeMatches,
     initializeAllLeagueMatches,
     clearAllFootballCaches,
+    clearFavoritePlayerCache,
+    setValidPlayerInCache,
+    getCachedFavoritePlayerData,
+    refreshProfileDataFromCache,
     cleanExpiredCaches,
 
     favoriteTeams,

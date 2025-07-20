@@ -166,7 +166,6 @@ export default function Index() {
   const getPosterUrl = (path?: string | null) =>
     path ? `https://image.tmdb.org/t/p/w500${path}` : undefined;
 
-  // Fetch full details for a movie by ID using local API wrapper
   const handleMoviePress = async (movie: MovieItem) => {
     setDetailsLoading(true);
     try {
