@@ -101,7 +101,7 @@ export default function Dropdown({ activeTab }: DropdownProps) {
         setSelectedGenre(null);
         setSelectedItem(null);
         setItemType(null);
-        setExpandedFilter(null);
+        setExpandedFilter(activeTab === 'Book' ? 'Genre' : null);
     }, [activeTab]);
     
     
