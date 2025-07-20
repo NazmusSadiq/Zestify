@@ -80,6 +80,29 @@ export default function Dropdown({ activeTab }: DropdownProps) {
     const [showLikedMusicTracks, setShowLikedMusicTracks] = useState(false);
     const [showLikedMusicAlbums, setShowLikedMusicAlbums] = useState(false);
     const [showLikedMusicArtists, setShowLikedMusicArtists] = useState(false);
+
+    // Reset all modal/viewer states and their data when activeTab changes
+    React.useEffect(() => {
+        setFilteredData(null);
+        setShowFilteredViewer(false);
+        setCaseType('');
+        setGameFilteredData(null);
+        setShowGameFilteredViewer(false);
+        setShowCategoryBooks(false);
+        setSelectedBookCategory('');
+        setSelectedBookSubcategory('');
+        setShowLikedShows(false);
+        setShowLikedGames(false);
+        setShowLikedBooks(false);
+        setShowLikedMusicTracks(false);
+        setShowLikedMusicAlbums(false);
+        setShowLikedMusicArtists(false);
+        setGenreContent(null);
+        setSelectedGenre(null);
+        setSelectedItem(null);
+        setItemType(null);
+        setExpandedFilter(null);
+    }, [activeTab]);
     
     
     
