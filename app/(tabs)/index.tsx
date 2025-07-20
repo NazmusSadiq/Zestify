@@ -8,7 +8,8 @@ import MovieCard from "../../components/MovieCard";
 import MusicDetailsViewer from "../../components/MusicDetailsViewer";
 import { fetchPersonalizedMusicRecommendations } from "../../components/musicRecommender";
 import { fetchPersonalizedRecommendations } from "../../components/tmdbRecommender";
-import { getImageUrl } from "../../services/music_API";
+import { getAlbumDetails, getImageUrl } from "../../services/music_API";
+import { fetchMovieDetails } from "../../services/tmdb_API";
 import { onGlobalScrollBeginDrag, onGlobalScrollEndDrag, registerCarousel, startGlobalAutoScroll, stopGlobalAutoScroll, unregisterCarousel } from "../../utils/carouselSync";
 
 const { height, width } = Dimensions.get("window");
@@ -164,9 +165,15 @@ export default function Index() {
   const getPosterUrl = (path?: string | null) =>
     path ? `https://image.tmdb.org/t/p/w500${path}` : undefined;
 
-  const handleMoviePress = (movie: MovieItem) => {
+  // Fetch full details for a movie by ID using local API wrapper
+  const handleMoviePress = async (movie: MovieItem) => {
     setDetailsLoading(true);
-    setSelectedMovie(movie);
+    try {
+      const fullDetails = await fetchMovieDetails(String(movie.id));
+      setSelectedMovie({ ...movie, ...fullDetails });
+    } catch (err) {
+      setSelectedMovie(movie);
+    }
     setDetailsLoading(false);
   };
 
@@ -229,6 +236,18 @@ export default function Index() {
     );
   };
 
+  // Fetch full details for an album using local API wrapper
+  const handleAlbumPress = async (album: any) => {
+    setMusicLoading(true);
+    try {
+      const fullDetails = await getAlbumDetails(album.name, album.artist?.name);
+      setSelectedAlbum({ ...album, ...fullDetails });
+    } catch (err) {
+      setSelectedAlbum(album);
+    }
+    setMusicLoading(false);
+  };
+
   const renderMusicSection = () => {
     if (musicLoading) {
       return (
@@ -246,7 +265,7 @@ export default function Index() {
     }
     const tripledAlbums = [...musicRecommended, ...musicRecommended, ...musicRecommended];
     return (
-      <View style={[styles.section, { marginTop: 15 }]}>
+      <View style={[styles.section, { marginTop: 15 }]}> 
         <Text style={styles.sectionTitle}>Recommended Albums</Text>
         <Animated.ScrollView
           ref={musicScrollRef}
@@ -289,7 +308,7 @@ export default function Index() {
                   },
                 ]}
               >
-                <TouchableOpacity onPress={() => setSelectedAlbum(album)}>
+                <TouchableOpacity onPress={() => handleAlbumPress(album)}>
                   <View style={styles.musicCardImageWrapper}>
                     <Image
                       source={{ uri: getImageUrl(album.image) }}
