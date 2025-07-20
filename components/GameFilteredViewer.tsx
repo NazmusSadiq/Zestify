@@ -111,9 +111,13 @@ const GameFilteredViewer = ({ data, visible, onClose }: GameFilteredViewerProps)
     <Modal visible={visible} animationType="slide" transparent={false}>
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>close</Text>
-          </TouchableOpacity>
+          {/* Row for Sort By and Close button */}
+          <View style={styles.headerRow}>
+            <Text style={styles.sortLabel}>Sort By:</Text>
+            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+              <Text style={styles.closeButtonText}>close</Text>
+            </TouchableOpacity>
+          </View>
           <View style={styles.filterSection}>
             {/* Sorting pills row */}
             <View style={styles.sortPillsRow}>
@@ -204,6 +208,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#485460',
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
   filterSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -226,6 +236,11 @@ const styles = StyleSheet.create({
     marginRight: 10,
     marginBottom: 8,
     backgroundColor: '#2f3640',
+  },
+  sortLabel: {
+    color: "#f1f2f6",
+    fontWeight: "bold",
+    fontSize: 16,
   },
   pillSelected: {
     backgroundColor: '#ffffff',
