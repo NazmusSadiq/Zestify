@@ -22,23 +22,16 @@ const ORDER_OPTIONS = [
   { label: 'Name', value: 'name' },
   { label: 'Release Date', value: '-released' },
   { label: 'Popularity', value: '-metacritic' },
-  { label: 'Average Rating', value: '-rating' },
 ];
 
 const PLATFORM_OPTIONS = [
   { label: 'PC', value: '4' },
-  { label: 'PlayStation', value: '187' },
+  { label: 'PS', value: '187' },
   { label: 'Xbox', value: '1' },
   { label: 'iOS', value: '3' },
-  { label: 'Android', value: '21' },
-  { label: 'Apple Macintosh', value: '5' },
+
   { label: 'Linux', value: '6' },
-  { label: 'Nintendo', value: '7' },
-  { label: 'Atari', value: '8' },
-  { label: 'SEGA', value: '11' },
-  { label: '3DO', value: '13' },
-  { label: 'Neo Geo', value: '12' },
-  { label: 'Web', value: '171' },
+
 ];
 
 const GameFilteredViewer = ({ data, visible, onClose }: GameFilteredViewerProps) => {
@@ -47,7 +40,7 @@ const GameFilteredViewer = ({ data, visible, onClose }: GameFilteredViewerProps)
   const [filteredGames, setFilteredGames] = useState<Game[]>([]);
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [showOrderDropdown, setShowOrderDropdown] = useState(false);
+  // Removed showOrderDropdown and related logic
   const [showPlatformDropdown, setShowPlatformDropdown] = useState(false);
 
   useEffect(() => {
@@ -58,7 +51,6 @@ const GameFilteredViewer = ({ data, visible, onClose }: GameFilteredViewerProps)
 
   const handleOrderChange = async (order: typeof ORDER_OPTIONS[0]) => {
     setSelectedOrder(order);
-    setShowOrderDropdown(false);
     setIsLoading(true);
     try {
       const response = await fetchFilteredGames({
@@ -119,49 +111,41 @@ const GameFilteredViewer = ({ data, visible, onClose }: GameFilteredViewerProps)
     <Modal visible={visible} animationType="slide" transparent={false}>
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>✕</Text>
+          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+            <Text style={styles.closeButtonText}>close</Text>
           </TouchableOpacity>
           <View style={styles.filterSection}>
-            
-            <View style={styles.dropdown}>
-              <TouchableOpacity 
-                style={styles.dropdownButton}
-                onPress={() => setShowOrderDropdown(!showOrderDropdown)}
-              >
-                <Text style={styles.dropdownLabel}>{selectedOrder.label}</Text>
-              </TouchableOpacity>
-              {showOrderDropdown && (
-                <View style={styles.dropdownOptions}>
-                  {ORDER_OPTIONS.map((option) => (
-                    <TouchableOpacity
-                      key={option.value}
-                      style={[
-                        styles.dropdownItem,
-                        selectedOrder.value === option.value && styles.selectedItem,
-                      ]}
-                      onPress={() => handleOrderChange(option)}
-                    >
-                      <Text
-                        style={[
-                          styles.dropdownItemText,
-                          selectedOrder.value === option.value && styles.selectedItemText,
-                        ]}
-                      >
-                        {option.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
+            {/* Sorting pills row */}
+            <View style={styles.sortPillsRow}>
+              {ORDER_OPTIONS.map((option) => (
+                <TouchableOpacity
+                  key={option.value}
+                  onPress={() => handleOrderChange(option)}
+                  style={[
+                    styles.pill,
+                    selectedOrder.value === option.value && styles.pillSelected,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.pillText,
+                      selectedOrder.value === option.value && styles.pillTextSelected,
+                    ]}
+                  >
+                    {option.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
-
+            {/* Platform dropdown remains unchanged */}
             <View style={styles.dropdown}>
               <TouchableOpacity 
                 style={styles.dropdownButton}
                 onPress={() => setShowPlatformDropdown(!showPlatformDropdown)}
               >
-                <Text style={styles.dropdownLabel}>{selectedPlatform.label}</Text>
+                <Text style={styles.dropdownLabel}>
+                  {selectedPlatform.label} <Text style={styles.dropdownArrow}>▼</Text>
+                </Text>
               </TouchableOpacity>
               {showPlatformDropdown && (
                 <View style={styles.dropdownOptions}>
@@ -188,8 +172,6 @@ const GameFilteredViewer = ({ data, visible, onClose }: GameFilteredViewerProps)
               )}
             </View>
           </View>
-
-
         </View>
 
         <FlatList
@@ -226,10 +208,39 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 0,
+    alignItems: 'center',
+  },
+  sortPillsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    flex: 2,
+    marginRight: 8,
+  },
+  pill: {
+    paddingVertical: 4,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#f1f2f6',
+    marginRight: 10,
+    marginBottom: 8,
+    backgroundColor: '#2f3640',
+  },
+  pillSelected: {
+    backgroundColor: '#ffffff',
+    borderColor: '#ffffff',
+  },
+  pillText: {
+    color: '#f1f2f6',
+  },
+  pillTextSelected: {
+    color: '#000000',
+    fontWeight: '700',
   },
   dropdown: {
     flex: 1,
-    marginHorizontal: 8,
+    marginHorizontal: 0,
   },
   dropdownButton: {
     backgroundColor: '#2f3640',
@@ -241,6 +252,11 @@ const styles = StyleSheet.create({
     color: '#f1f2f6',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  dropdownArrow: {
+    fontSize: 14,
+    color: '#f1f2f6',
+    marginLeft: 4,
   },
   dropdownOptions: {
     position: 'absolute',
