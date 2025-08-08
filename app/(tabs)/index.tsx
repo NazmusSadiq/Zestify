@@ -438,6 +438,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     marginBottom: 6,
     backgroundColor: "#444",
+    alignSelf: "center",
   },
   musicCardImage: {
     width: 80,

@@ -264,10 +264,6 @@
     "name": "Kiko Casilla"
   },
   {
-    "id": 68,
-    "name": "Dani Ceballos"
-  },
-  {
     "id": 69,
     "name": "Borja Mayoral"
   },
@@ -374,10 +370,6 @@
   {
     "id": 95,
     "name": "Juanfran"
-  },
-  {
-    "id": 96,
-    "name": "Federico Valverde"
   },
   {
     "id": 97,
@@ -871,10 +863,7 @@
     "id": 210,
     "name": "Simon Zoller"
   },
-  {
-    "id": 211,
-    "name": "Sehrou Guirassy"
-  },
+
   {
     "id": 212,
     "name": "Jhon Córdoba"
@@ -1422,10 +1411,6 @@
   {
     "id": 348,
     "name": "Rafinha"
-  },
-  {
-    "id": 349,
-    "name": "David Alaba"
   },
   {
     "id": 350,
@@ -2156,16 +2141,8 @@
     "name": "Sehrou Guirassy"
   },
   {
-    "id": 37428,
-    "name": "Raphinha"
-  },
-  {
     "id": 8004,
     "name": "Harry Kane"
-  },
-  {
-    "id": 371,
-    "name": "Robert Lewandowski"
   },
   {
     "id": 3220,
@@ -2176,20 +2153,12 @@
     "name": "Erling Haaland"
   },
   {
-    "id": 1556,
-    "name": "Vinicius Junior"
-  },
-  {
     "id": 3373,
     "name": "Ousmane Dembélé"
   },
   {
     "id": 8924,
     "name": "Jonathan David"
-  },
-  {
-    "id": 8004,
-    "name": "Harry Kane"
   },
   {
     "id": 98571,
@@ -2204,14 +2173,6 @@
     "name": "Viktor Gyökeres"
   },
   {
-    "id": 19334,
-    "name": "Florian Wirtz"
-  },
-  {
-    "id": 114,
-    "name": "Antoine Griezmann"
-  },
-  {
     "id": 99813,
     "name": "Bukayo Saka"
   },
@@ -2224,10 +2185,6 @@
     "name": "Michael Olise"
   },
   {
-    "id": 202283,
-    "name": "Lamine Yamal"
-  },
-  {
     "id": 82515,
     "name": "Karim Adeyemi"
   },
@@ -2238,14 +2195,6 @@
   {
     "id": 177522,
     "name": "Desire Doue"
-  },
-  {
-    "id": 1324,
-    "name": "Rodrygo"
-  },
-  {
-    "id": 145,
-    "name": "Christian Pulisic"
   },
   {
     "id": 179460,
@@ -2354,10 +2303,6 @@
   {
     "id": 1324,
     "name": "Rodrygo"
-  },
-  {
-    "id": 349,
-    "name": "David Alaba"
   },
   {
     "id": 96,
@@ -2634,10 +2579,6 @@
   {
     "id": 3455,
     "name": "Andreas Christensen"
-  },
-  {
-    "id": 371,
-    "name": "Robert Lewandowski"
   },
   {
     "id": 3218,

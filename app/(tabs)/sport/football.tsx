@@ -1,6 +1,7 @@
 // --- Render Stats Tab ---
 import { API_KEY, COMPETITIONS, MATCHES_COMPETITIONS, STATS_OPTIONS } from "@/services/fotball_API";
 import { useUser } from "@clerk/clerk-expo";
+import { useLocalSearchParams } from "expo-router";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import React, { useEffect, useRef, useState } from "react";
 import { db } from "../../../firebase";
@@ -86,6 +87,9 @@ const TransferCard = ({ transfer }: { transfer: any }) => {
 const tabs = ["Main", "Matches", "Stats", "Favorite"];
 
 export default function Football() {
+  // Handle URL parameters for navigation
+  const { tab, favoriteTab: urlFavoriteTab } = useLocalSearchParams<{ tab?: string; favoriteTab?: string }>();
+
   const [activeTab, setActiveTab] = useState<"Main" | "Matches" | "Stats" | "Favorite">("Main");
   const [statsLeftTrayOpen, setStatsLeftTrayOpen] = useState(false);
   const [matchesLeftTrayOpen, setMatchesLeftTrayOpen] = useState(false);
@@ -113,6 +117,16 @@ export default function Football() {
 
   // --- Favorite Section Tabs ---
   const [favoriteTab, setFavoriteTab] = useState<'team' | 'player'>('team');
+
+  // Handle URL parameters on component mount
+  useEffect(() => {
+    if (tab) {
+      setActiveTab(tab as "Main" | "Matches" | "Stats" | "Favorite");
+    }
+    if (urlFavoriteTab) {
+      setFavoriteTab(urlFavoriteTab as 'team' | 'player');
+    }
+  }, [tab, urlFavoriteTab]);
   // --- Favorite Player State ---
   const [favoritePlayer, setFavoritePlayer] = useState<any>(null);
   const [favoritePlayerId, setFavoritePlayerId] = useState<number | null>(null);

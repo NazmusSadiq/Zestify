@@ -5,6 +5,12 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import React, { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Image, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import LikedBooks from "../../components/LikedBooks";
+import LikedGames from "../../components/LikedGames";
+import LikedMusicAlbums from "../../components/LikedMusicAlbums";
+import LikedMusicArtists from "../../components/LikedMusicArtists";
+import LikedMusicTracks from "../../components/LikedMusicTracks";
+import LikedShows from "../../components/LikedShows";
 import { db } from "../../firebase";
 import { fetchFromApi } from "../../services/fotball_API";
 
@@ -62,6 +68,17 @@ export default function Profile() {
   const [stats, setStats] = useState<{ [key: string]: number }>({});
   const [menuVisible, setMenuVisible] = useState(false);
   const [editMode, setEditMode] = useState(false);
+
+  // LikedShows modal state
+  const [likedShowsVisible, setLikedShowsVisible] = useState(false);
+  const [likedShowsTab, setLikedShowsTab] = useState<"Movie" | "TV Series">("Movie");
+  
+  // Other liked content modals
+  const [likedBooksVisible, setLikedBooksVisible] = useState(false);
+  const [likedGamesVisible, setLikedGamesVisible] = useState(false);
+  const [likedMusicTracksVisible, setLikedMusicTracksVisible] = useState(false);
+  const [likedMusicAlbumsVisible, setLikedMusicAlbumsVisible] = useState(false);
+  const [likedMusicArtistsVisible, setLikedMusicArtistsVisible] = useState(false);
 
   // Direct favorite player handling - no cache, just direct API calls
   const [favoritePlayerId, setFavoritePlayerId] = useState<number | null>(null);
@@ -369,6 +386,36 @@ export default function Profile() {
     }
   };
 
+  const handleStatCardPress = (key: string) => {
+    if (key === 'movies') {
+      setLikedShowsTab("Movie");
+      setLikedShowsVisible(true);
+    } else if (key === 'tvseries') {
+      setLikedShowsTab("TV Series");
+      setLikedShowsVisible(true);
+    } else if (key === 'books') {
+      setLikedBooksVisible(true);
+    } else if (key === 'games') {
+      setLikedGamesVisible(true);
+    } else if (key === 'musicTracks') {
+      setLikedMusicTracksVisible(true);
+    } else if (key === 'musicAlbums') {
+      setLikedMusicAlbumsVisible(true);
+    } else if (key === 'musicArtists') {
+      setLikedMusicArtistsVisible(true);
+    }
+  };
+
+  const handleFavoritePlayerPress = () => {
+    // Navigate to sport -> football -> favorite with player tab active
+    router.push('/sport/football?tab=Favorite&favoriteTab=player');
+  };
+
+  const handleFavoriteTeamPress = () => {
+    // Navigate to sport -> football -> favorite with team tab active
+    router.push('/sport/football?tab=Favorite&favoriteTab=team');
+  };
+
   if (loading) {
     return (
       <View style={styles.container}><ActivityIndicator size="large" color="#FF0000" /></View>
@@ -462,14 +509,14 @@ export default function Profile() {
         {/* Stats cards with favorite player and teams as last two cards */}
         <View style={styles.statsGrid}>
           {statConfigs.map(({ key, label, icon }) => (
-            <View key={key} style={styles.statCard}>
+            <TouchableOpacity key={key} style={styles.statCard} onPress={() => handleStatCardPress(key)}>
               <Ionicons name={icon as any} size={28} color="#FF0000" style={{ marginBottom: 6 }} />
               <Text style={styles.statCount}>{stats[key] ?? 0}</Text>
               <Text style={styles.statLabel}>{label}</Text>
-            </View>
+            </TouchableOpacity>
           ))}
           {/* Favorite Player Card (second last) */}
-          <View style={styles.statCard}>
+          <TouchableOpacity style={styles.statCard} onPress={handleFavoritePlayerPress}>
             {(() => {
               if (loadingFavoritePlayer) {
                 return (
@@ -513,9 +560,9 @@ export default function Profile() {
                 </>
               );
             })()}
-          </View>
+          </TouchableOpacity>
           {/* Favorite Teams Card (last) */}
-          <View style={styles.statCard}>
+          <TouchableOpacity style={styles.statCard} onPress={handleFavoriteTeamPress}>
             {(() => {
               if (loadingFavoriteTeam) {
                 return (
@@ -558,10 +605,43 @@ export default function Profile() {
                 </>
               );
             })()}
-          </View>
+          </TouchableOpacity>
         </View>
         {/* Hide logout button, now in menu */}
       </View>
+      
+      {/* LikedShows Modal */}
+      <LikedShows
+        visible={likedShowsVisible}
+        onClose={() => setLikedShowsVisible(false)}
+        activeTab={likedShowsTab}
+      />
+      
+      {/* Other Liked Content Modals */}
+      <LikedBooks
+        visible={likedBooksVisible}
+        onClose={() => setLikedBooksVisible(false)}
+      />
+      
+      <LikedGames
+        visible={likedGamesVisible}
+        onClose={() => setLikedGamesVisible(false)}
+      />
+      
+      <LikedMusicTracks
+        visible={likedMusicTracksVisible}
+        onClose={() => setLikedMusicTracksVisible(false)}
+      />
+      
+      <LikedMusicAlbums
+        visible={likedMusicAlbumsVisible}
+        onClose={() => setLikedMusicAlbumsVisible(false)}
+      />
+      
+      <LikedMusicArtists
+        visible={likedMusicArtistsVisible}
+        onClose={() => setLikedMusicArtistsVisible(false)}
+      />
     </View>
   );
 }
