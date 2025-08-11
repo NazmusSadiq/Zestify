@@ -496,16 +496,14 @@ export default function Cricket() {
         test: teamStats.test,
         t20: teamStats.t20,
 
+        // Coach and main captain
+        coach: teamStats.coach,
         captain: teamStats.odi.captain, // Use ODI captain as main captain
-        viceCaptain: teamStats.odi.viceCaptain,
 
         // Format-specific captains
         odiCaptain: teamStats.odi.captain,
-        odiViceCaptain: teamStats.odi.viceCaptain,
         testCaptain: teamStats.test.captain,
-        testViceCaptain: teamStats.test.viceCaptain,
         t20Captain: teamStats.t20.captain,
-        t20ViceCaptain: teamStats.t20.viceCaptain,
       };
 
       setSelectedStatsTeam(realTeamData);
@@ -1001,15 +999,20 @@ export default function Cricket() {
               </TouchableOpacity>
             </View>
 
+            {/* Coach Information */}
+            {selectedStatsTeam.coach && (
+              <Text style={[styles.compactStatLine, { marginBottom: 12, marginLeft: 1 }]}>Coach: {selectedStatsTeam.coach}</Text>
+            )}
+
             {/* Format-specific Statistics */}
             {selectedStatsTeam.odi && (
               <View style={styles.compactFormatCard}>
                 <Text style={styles.compactCardTitle}>ODI Statistics</Text>
                 <Text style={styles.compactStatLine}>Ranking: #{selectedStatsTeam.odi.position}</Text>
                 <Text style={styles.compactStatLine}>Played: {selectedStatsTeam.odi.played}  Won: {selectedStatsTeam.odi.won}  Lost: {selectedStatsTeam.odi.lost}  No Result: {selectedStatsTeam.odi.noResult}</Text>
-                <Text style={styles.compactStatLine}>Runs Scored: {selectedStatsTeam.odi.totalRuns}  Wickets Taken: {selectedStatsTeam.odi.wicketsTaken}</Text>
+                <Text style={styles.compactStatLine}>Top Run Scorer: {selectedStatsTeam.odi.topRunScorer}</Text>
+                <Text style={styles.compactStatLine}>Top Wicket Taker: {selectedStatsTeam.odi.topWicketTaker}</Text>
                 <Text style={styles.compactStatLine}>Captain: {selectedStatsTeam.odi.captain}</Text>
-                <Text style={styles.compactStatLine}>Vice Captain: {selectedStatsTeam.odi.viceCaptain}</Text>
               </View>
             )}
 
@@ -1018,9 +1021,9 @@ export default function Cricket() {
                 <Text style={styles.compactCardTitle}>Test Statistics</Text>
                 <Text style={styles.compactStatLine}>Ranking: #{selectedStatsTeam.test.position}</Text>
                 <Text style={styles.compactStatLine}>Played: {selectedStatsTeam.test.played}  Won: {selectedStatsTeam.test.won}  Lost: {selectedStatsTeam.test.lost}  Draw: {selectedStatsTeam.test.draw}</Text>
-                <Text style={styles.compactStatLine}>Runs Scored: {selectedStatsTeam.test.totalRuns}  Wickets Taken: {selectedStatsTeam.test.wicketsTaken}</Text>
+                <Text style={styles.compactStatLine}>Top Run Scorer: {selectedStatsTeam.test.topRunScorer}</Text>
+                <Text style={styles.compactStatLine}>Top Wicket Taker: {selectedStatsTeam.test.topWicketTaker}</Text>
                 <Text style={styles.compactStatLine}>Captain: {selectedStatsTeam.test.captain}</Text>
-                <Text style={styles.compactStatLine}>Vice Captain: {selectedStatsTeam.test.viceCaptain}</Text>
               </View>
             )}
 
@@ -1029,9 +1032,9 @@ export default function Cricket() {
                 <Text style={styles.compactCardTitle}>T20 Statistics</Text>
                 <Text style={styles.compactStatLine}>Ranking: #{selectedStatsTeam.t20.position}</Text>
                 <Text style={styles.compactStatLine}>Played: {selectedStatsTeam.t20.played}  Won: {selectedStatsTeam.t20.won}  Lost: {selectedStatsTeam.t20.lost}  No Result: {selectedStatsTeam.t20.noResult}</Text>
-                <Text style={styles.compactStatLine}>Runs Scored: {selectedStatsTeam.t20.totalRuns}  Wickets Taken: {selectedStatsTeam.t20.wicketsTaken}</Text>
+                <Text style={styles.compactStatLine}>Top Run Scorer: {selectedStatsTeam.t20.topRunScorer}</Text>
+                <Text style={styles.compactStatLine}>Top Wicket Taker: {selectedStatsTeam.t20.topWicketTaker}</Text>
                 <Text style={styles.compactStatLine}>Captain: {selectedStatsTeam.t20.captain}</Text>
-                <Text style={styles.compactStatLine}>Vice Captain: {selectedStatsTeam.t20.viceCaptain}</Text>
               </View>
             )}
           </View>
@@ -1773,7 +1776,7 @@ const styles = StyleSheet.create({
   compactFormatCard: {
     backgroundColor: '#1e293b',
     borderRadius: 8,
-    padding: 10,
+    padding: 5,
     marginBottom: 8,
     borderWidth: 1,
     borderColor: '#334155',

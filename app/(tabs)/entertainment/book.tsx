@@ -63,7 +63,7 @@ export default function Books() {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
         {books.map((book, index) => (
           <TouchableOpacity
-            key={index}
+            key={`${title}-${book.id}-${index}`}
             style={styles.bookCard}
             onPress={() => handleBookPress(book)}
           >

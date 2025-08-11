@@ -3,497 +3,471 @@
     "australia": {
       "name": "Australia",
       "imageUrl": "https://upload.wikimedia.org/wikipedia/en/thumb/3/35/Australia_cricket_logo.svg/375px-Australia_cricket_logo.svg.png",
+      "coach": "Andrew McDonald",
       "odi": {
-        "position": 1,
-        "played": 152,
-        "won": 98,
-        "lost": 46,
-        "noResult": 8,
-        "totalRuns": 32450,
-        "wicketsTaken": 1890,
-        "captain": "Pat Cummins",
-        "viceCaptain": "Steve Smith"
+        "position": 2,
+        "played": 6,
+        "won": 1,
+        "lost": 3,
+        "noResult": 2,
+        "topRunScorer": "Travis Head, 370",
+        "topWicketTaker": "Adam Zampa, 18",
+        "captain": "Pat Cummins"
       },
       "test": {
-        "position": 2,
-        "played": 89,
-        "won": 52,
-        "lost": 28,
-        "draw": 9,
-        "totalRuns": 28750,
-        "wicketsTaken": 1654,
-        "captain": "Pat Cummins",
-        "viceCaptain": "Steve Smith"
+        "position": 1,
+        "played": 7,
+        "won": 6,
+        "lost": 1,
+        "draw": 0,
+        "topRunScorer": "Steve Smith, 792",
+        "topWicketTaker": "Mitchel Starc, 44",
+        "captain": "Pat Cummins"
       },
       "t20": {
-        "position": 3,
-        "played": 178,
-        "won": 112,
-        "lost": 58,
-        "noResult": 8,
-        "totalRuns": 31200,
-        "wicketsTaken": 1823,
-        "captain": "Mitchell Marsh",
-        "viceCaptain": "Josh Inglis"
+        "position": 2,
+        "played": 6,
+        "won": 6,
+        "lost": 0,
+        "noResult": 0,
+        "topRunScorer": "Josh Inglis, 408",
+        "topWicketTaker": "Adam Zampa, 22",
+        "captain": "Mitchell Marsh"
       }
     },
     "india": {
       "name": "India",
       "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Board_of_Control_for_Cricket_in_India_Logo_%282024%29.svg/500px-Board_of_Control_for_Cricket_in_India_Logo_%282024%29.svg.png",
+      "coach": "Gautam Gambhir",
       "odi": {
-        "position": 2,
-        "played": 145,
-        "won": 89,
-        "lost": 48,
-        "noResult": 8,
-        "totalRuns": 31850,
-        "wicketsTaken": 1825,
-        "captain": "Rohit Sharma",
-        "viceCaptain": "Hardik Pandya"
+        "position": 1,
+        "played": 8,
+        "won": 8,
+        "lost": 0,
+        "noResult": 0,
+        "topRunScorer": "Shubman Gill, 447",
+        "topWicketTaker": "Ravindra Jadeja, 11",
+        "captain": "Rohit Sharma"
       },
       "test": {
-        "position": 1,
-        "played": 92,
-        "won": 58,
-        "lost": 22,
-        "draw": 12,
-        "totalRuns": 29450,
-        "wicketsTaken": 1698,
-        "captain": "Rohit Sharma",
-        "viceCaptain": "Jasprit Bumrah"
+        "position": 4,
+        "played": 6,
+        "won": 2,
+        "lost": 3,
+        "draw": 1,
+        "topRunScorer": "Yashasvi Jaiswal, 1181",
+        "topWicketTaker": "Jasprit Bumrah, 60",
+        "captain": "Shubman Gill"
       },
       "t20": {
         "position": 1,
-        "played": 189,
-        "won": 134,
-        "lost": 46,
-        "noResult": 9,
-        "totalRuns": 33150,
-        "wicketsTaken": 1945,
-        "captain": "Suryakumar Yadav",
-        "viceCaptain": "Hardik Pandya"
+        "played": 5,
+        "won": 4,
+        "lost": 1,
+        "noResult": 0,
+        "topRunScorer": "Sanju Samson, 417",
+        "topWicketTaker": "Varun Chakaravarthy, 31",
+        "captain": "Suryakumar Yadav"
       }
     },
     "england": {
       "name": "England",
       "imageUrl": "https://upload.wikimedia.org/wikipedia/en/thumb/c/ce/England_cricket_team_logo.svg/180px-England_cricket_team_logo.svg.png",
+      "coach": "Brendon McCullum",
       "odi": {
-        "position": 4,
-        "played": 138,
-        "won": 82,
-        "lost": 52,
-        "noResult": 4,
-        "totalRuns": 29650,
-        "wicketsTaken": 1756,
-        "captain": "Jos Buttler",
-        "viceCaptain": "Moeen Ali"
+        "position": 8,
+        "played": 9,
+        "won": 3,
+        "lost": 6,
+        "noResult": 0,
+        "topRunScorer": "Ben Duckett, 781",
+        "topWicketTaker": "Adil Rashid, 25",
+        "captain": "Harry Brook"
       },
       "test": {
         "position": 3,
-        "played": 88,
-        "won": 48,
-        "lost": 32,
-        "draw": 8,
-        "totalRuns": 27890,
-        "wicketsTaken": 1598,
-        "captain": "Ben Stokes",
-        "viceCaptain": "Ollie Pope"
+        "played": 6,
+        "won": 3,
+        "lost": 2,
+        "draw": 1,
+        "topRunScorer": "Joe Root, 1516",
+        "topWicketTaker": "Shoaib Bashir, 42",
+        "captain": "Ben Stokes"
       },
       "t20": {
-        "position": 2,
-        "played": 165,
-        "won": 98,
-        "lost": 58,
-        "noResult": 9,
-        "totalRuns": 30450,
-        "wicketsTaken": 1734,
-        "captain": "Jos Buttler",
-        "viceCaptain": "Moeen Ali"
+        "position": 3,
+        "played": 8,
+        "won": 4,
+        "lost": 4,
+        "noResult": 0,
+        "topRunScorer": "Jos Butler, 436",
+        "topWicketTaker": "Adil Rashid, 15",
+        "captain": "Harry Brook"
       }
     },
     "pakistan": {
       "name": "Pakistan",
       "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/a/ad/Pakistan_cricket_team_logo.png",
+      "coach": "Mike Hesson",
       "odi": {
         "position": 5,
-        "played": 142,
-        "won": 78,
-        "lost": 56,
-        "noResult": 8,
-        "totalRuns": 28950,
-        "wicketsTaken": 1698,
-        "captain": "Babar Azam",
-        "viceCaptain": "Shadab Khan"
+        "played": 10,
+        "won": 2,
+        "lost": 8,
+        "noResult": 0,
+        "topRunScorer": "Mohammad Rizwan, 625",
+        "topWicketTaker": "Shaheen Afridi, 27",
+        "captain": "Mohammad Rizwan"
       },
       "test": {
-        "position": 5,
-        "played": 85,
-        "won": 42,
-        "lost": 35,
-        "draw": 8,
-        "totalRuns": 26750,
-        "wicketsTaken": 1512,
-        "captain": "Shan Masood",
-        "viceCaptain": "Saud Shakeel"
+        "position": 7,
+        "played": 3,
+        "won": 1,
+        "lost": 2,
+        "draw": 0,
+        "topRunScorer": "Saud Shakeel, 691",
+        "topWicketTaker": "Noman Ali, 36",
+        "captain": "Shan Masood"
       },
       "t20": {
-        "position": 4,
-        "played": 172,
-        "won": 105,
-        "lost": 58,
-        "noResult": 9,
-        "totalRuns": 29850,
-        "wicketsTaken": 1678,
-        "captain": "Babar Azam",
-        "viceCaptain": "Shadab Khan"
+        "position": 8,
+        "played": 14,
+        "won": 7,
+        "lost": 7,
+        "noResult": 0,
+        "topRunScorer": "Saim Ayub, 396",
+        "topWicketTaker": "Abbas Afridi, 22",
+        "captain": "Salman Ali Agha"
       }
     },
     "south africa": {
       "name": "South Africa",
       "imageUrl": "https://upload.wikimedia.org/wikipedia/en/thumb/5/59/Southafrica_cricket_logo.svg/278px-Southafrica_cricket_logo.svg.png",
+      "coach": "Shukri Conrad",
       "odi": {
-        "position": 3,
-        "played": 135,
-        "won": 84,
-        "lost": 45,
-        "noResult": 6,
-        "totalRuns": 30250,
-        "wicketsTaken": 1789,
-        "captain": "Temba Bavuma",
-        "viceCaptain": "Quinton de Kock"
+        "position": 6,
+        "played": 5,
+        "won": 2,
+        "lost": 3,
+        "noResult": 0,
+        "topRunScorer": "Heinrich Klaasen, 418",
+        "topWicketTaker": "Lungi Ngidi, 15",
+        "captain": "Temba Bavuma"
       },
       "test": {
-        "position": 4,
-        "played": 82,
-        "won": 45,
-        "lost": 28,
-        "draw": 9,
-        "totalRuns": 27450,
-        "wicketsTaken": 1545,
-        "captain": "Temba Bavuma",
-        "viceCaptain": "Dean Elgar"
+        "position": 2,
+        "played": 4,
+        "won": 4,
+        "lost": 0,
+        "draw": 0,
+        "topRunScorer": "Wiaan Mulder, 786",
+        "topWicketTaker": "Kagiso Rabada, 41",
+        "captain": "Temba Bavuma"
       },
       "t20": {
         "position": 5,
-        "played": 158,
-        "won": 92,
-        "lost": 58,
-        "noResult": 8,
-        "totalRuns": 28950,
-        "wicketsTaken": 1634,
-        "captain": "Aiden Markram",
-        "viceCaptain": "Quinton de Kock"
+        "played": 6,
+        "won": 2,
+        "lost": 4,
+        "noResult": 0,
+        "topRunScorer": "Reeza Hendricks, 440",
+        "topWicketTaker": "Kwena Maphaka, 10",
+        "captain": "Aiden Markram"
       }
     },
     "new zealand": {
       "name": "New Zealand",
       "imageUrl": "https://upload.wikimedia.org/wikipedia/en/1/19/Logo_of_cricket_New_zealand_Team.png",
+      "coach": "Rob Walter",
       "odi": {
-        "position": 6,
-        "played": 128,
-        "won": 68,
-        "lost": 54,
-        "noResult": 6,
-        "totalRuns": 27450,
-        "wicketsTaken": 1634,
-        "captain": "Tom Latham",
-        "viceCaptain": "Mitchell Santner"
+        "position": 2,
+        "played": 14,
+        "won": 11,
+        "lost": 3,
+        "noResult": 0,
+        "topRunScorer": "Daryl Mitchell, 464",
+        "topWicketTaker": "Matt Henry, 24",
+        "captain": "Mitchell Santner"
       },
       "test": {
-        "position": 6,
-        "played": 78,
-        "won": 38,
-        "lost": 32,
-        "draw": 8,
-        "totalRuns": 25890,
-        "wicketsTaken": 1456,
-        "captain": "Tim Southee",
-        "viceCaptain": "Tom Latham"
+        "position": 5,
+        "played": 2,
+        "won": 2,
+        "lost": 0,
+        "draw": 0,
+        "topRunScorer": "Rachin Ravindra, 705",
+        "topWicketTaker": "Matt Henry, 41",
+        "captain": "Tom Latham"
       },
       "t20": {
-        "position": 6,
-        "played": 145,
-        "won": 82,
-        "lost": 56,
-        "noResult": 7,
-        "totalRuns": 27850,
-        "wicketsTaken": 1598,
-        "captain": "Mitchell Santner",
-        "viceCaptain": "Tim Seifert"
+        "position": 4,
+        "played": 11,
+        "won": 9,
+        "lost": 2,
+        "noResult": 0,
+        "topRunScorer": "Tim Seifert, 445",
+        "topWicketTaker": "Jacob Duffy, 27",
+        "captain": "Mitchell Santner"
       }
     },
     "bangladesh": {
       "name": "Bangladesh",
       "imageUrl": "https://upload.wikimedia.org/wikipedia/en/thumb/5/5c/Bangladesh_Cricket_Board_Logo.svg/345px-Bangladesh_Cricket_Board_Logo.svg.png",
+      "coach": "Philip Simmons",
       "odi": {
-        "position": 7,
-        "played": 118,
-        "won": 52,
-        "lost": 58,
-        "noResult": 8,
-        "totalRuns": 24750,
-        "wicketsTaken": 1456,
-        "captain": "Najmul Hossain Shanto",
-        "viceCaptain": "Mehidy Hasan Miraz"
+        "position": 9,
+        "played": 5,
+        "won": 1,
+        "lost": 4,
+        "noResult": 0,
+        "topRunScorer": "Jaker Ali, 366",
+        "topWicketTaker": "Taskin Ahmed, 14",
+        "captain": "Mehidy Hasan Miraz"
       },
       "test": {
-        "position": 8,
-        "played": 68,
-        "won": 28,
-        "lost": 34,
-        "draw": 6,
-        "totalRuns": 22450,
-        "wicketsTaken": 1234,
-        "captain": "Najmul Hossain Shanto",
-        "viceCaptain": "Mehidy Hasan Miraz"
+        "position": 9,
+        "played": 4,
+        "won": 1,
+        "lost": 2,
+        "draw": 1,
+        "topRunScorer": "Najmul Hossain Shanto, 708",
+        "topWicketTaker": "Taijul Islam, 42",
+        "captain": "Najmul Hossain Shanto"
       },
       "t20": {
-        "position": 8,
-        "played": 132,
-        "won": 65,
-        "lost": 62,
-        "noResult": 5,
-        "totalRuns": 25450,
-        "wicketsTaken": 1398,
-        "captain": "Najmul Hossain Shanto",
-        "viceCaptain": "Mehidy Hasan Miraz"
+        "position": 10,
+        "played": 12,
+        "won": 5,
+        "lost": 7,
+        "noResult": 0,
+        "topRunScorer": "Litton Das, 349",
+        "topWicketTaker": "Tanzim Hasan Sakib, 20",
+        "captain": "Litton Das"
       }
     },
     "sri lanka": {
       "name": "Sri Lanka",
       "imageUrl": "https://upload.wikimedia.org/wikipedia/en/thumb/e/eb/Sri_Lanka_Cricket_Cap_Insignia.svg/345px-Sri_Lanka_Cricket_Cap_Insignia.svg.png",
+      "coach": "Sanath Jayasuriya",
       "odi": {
-        "position": 8,
-        "played": 125,
-        "won": 58,
-        "lost": 62,
-        "noResult": 5,
-        "totalRuns": 26450,
-        "wicketsTaken": 1534,
-        "captain": "Charith Asalanka",
-        "viceCaptain": "Kusal Mendis"
+        "position": 4,
+        "played": 8,
+        "won": 5,
+        "lost": 3,
+        "noResult": 0,
+        "topRunScorer": "Kusal Mendis, 692",
+        "topWicketTaker": "Asitha Fernando, 23",
+        "captain": "Charith Asalanka"
       },
       "test": {
-        "position": 7,
-        "played": 75,
-        "won": 35,
-        "lost": 32,
-        "draw": 8,
-        "totalRuns": 24750,
-        "wicketsTaken": 1398,
-        "captain": "Dhananjaya de Silva",
-        "viceCaptain": "Dimuth Karunaratne"
+        "position": 6,
+        "played": 4,
+        "won": 1,
+        "lost": 2,
+        "draw": 1,
+        "topRunScorer": "Kamindu Mendis, 888",
+        "topWicketTaker": "Prabath Jayasuriya, 51",
+        "captain": "Dhananjaya de Silva"
       },
       "t20": {
         "position": 7,
-        "played": 142,
-        "won": 68,
-        "lost": 65,
-        "noResult": 9,
-        "totalRuns": 26850,
-        "wicketsTaken": 1456,
-        "captain": "Charith Asalanka",
-        "viceCaptain": "Kusal Mendis"
+        "played": 4,
+        "won": 2,
+        "lost": 2,
+        "noResult": 0,
+        "topRunScorer": "Pathum Nissanka, 436",
+        "topWicketTaker": "Wannindu Hasaranga, 17",
+        "captain": "Charith Asalanka"
       }
     },
     "west indies": {
       "name": "West Indies",
       "imageUrl": "https://upload.wikimedia.org/wikipedia/en/thumb/9/9b/Cricket_West_Indies_Logo_2017.png/270px-Cricket_West_Indies_Logo_2017.png",
+      "coach": "Darren Sammy",
       "odi": {
         "position": 9,
-        "played": 115,
-        "won": 48,
-        "lost": 62,
-        "noResult": 5,
-        "totalRuns": 23950,
-        "wicketsTaken": 1398,
-        "captain": "Shai Hope",
-        "viceCaptain": "Nicholas Pooran"
+        "played": 8,
+        "won": 2,
+        "lost": 5,
+        "noResult": 1,
+        "topRunScorer": "Keacy Carty, 2900",
+        "topWicketTaker": "Alzarri Joseph, 22",
+        "captain": "Shai Hope"
       },
       "test": {
-        "position": 9,
-        "played": 72,
-        "won": 28,
-        "lost": 38,
-        "draw": 6,
-        "totalRuns": 22850,
-        "wicketsTaken": 1324,
-        "captain": "Kraigg Brathwaite",
-        "viceCaptain": "Jermaine Blackwood"
+        "position": 8,
+        "played": 5,
+        "won": 1,
+        "lost": 4,
+        "draw": 0,
+        "topRunScorer": "Justin Greaves, 237",
+        "topWicketTaker": "Jayden Seals, 35",
+        "captain": "Roston Chase"
       },
       "t20": {
-        "position": 9,
-        "played": 138,
-        "won": 62,
-        "lost": 68,
-        "noResult": 8,
-        "totalRuns": 25650,
-        "wicketsTaken": 1423,
-        "captain": "Rovman Powell",
-        "viceCaptain": "Nicholas Pooran"
+        "position": 5,
+        "played": 12,
+        "won": 2,
+        "lost": 10,
+        "noResult": 0,
+        "topRunScorer": "Shai Hope, 594",
+        "topWicketTaker": "Akeal Hosein, 24",
+        "captain": "Shai Hope"
       }
     },
     "afghanistan": {
       "name": "Afghanistan",
       "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Flag_of_Afghanistan_%282013%E2%80%932021%29.svg/500px-Flag_of_Afghanistan_%282013%E2%80%932021%29.svg.png",
+      "coach": "Jonathan Trott",
       "odi": {
-        "position": 10,
-        "played": 95,
-        "won": 38,
-        "lost": 52,
-        "noResult": 5,
-        "totalRuns": 19850,
-        "wicketsTaken": 1156,
-        "captain": "Hashmatullah Shahidi",
-        "viceCaptain": "Gulbadin Naib"
+        "position": 8,
+        "played": 3,
+        "won": 1,
+        "lost": 1,
+        "noResult": 1,
+        "topRunScorer": "Sediqullah Atal, 335",
+        "topWicketTaker": "AM Ghazanfar, 21",
+        "captain": "Hashmatullah Shahidi"
       },
       "test": {
-        "position": 10,
-        "played": 15,
+        "position": 11,
+        "played": 11,
         "won": 4,
-        "lost": 9,
-        "draw": 2,
-        "totalRuns": 5450,
-        "wicketsTaken": 298,
-        "captain": "Hashmatullah Shahidi",
-        "viceCaptain": "Rahmat Shah"
+        "lost": 6,
+        "draw": 1,
+        "topRunScorer": "Rahmat Shah, 392",
+        "topWicketTaker": "Rashid Khan, 11",
+        "captain": "Hashmatullah Shahidi"
       },
       "t20": {
         "position": 10,
-        "played": 125,
-        "won": 52,
-        "lost": 68,
-        "noResult": 5,
-        "totalRuns": 22450,
-        "wicketsTaken": 1234,
-        "captain": "Ibrahim Zadran",
-        "viceCaptain": "Gulbadin Naib"
+        "played": 0,
+        "won": 0,
+        "lost": 0,
+        "noResult": 0,
+        "topRunScorer": "Azmatullah Omarzai, 75",
+        "topWicketTaker": "Rashid Khan, 9",
+        "captain": "Rashid Khan"
       }
     },
     "ireland": {
       "name": "Ireland",
       "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/4/45/Flag_of_Ireland.svg",
+      "coach": "Heinrich Malan",
       "odi": {
         "position": 11,
-        "played": 85,
-        "won": 32,
-        "lost": 48,
-        "noResult": 5,
-        "totalRuns": 17950,
-        "wicketsTaken": 1023,
-        "captain": "Paul Stirling",
-        "viceCaptain": "Andrew Balbirnie"
+        "played": 7,
+        "won": 3,
+        "lost": 4,
+        "noResult": 0,
+        "topRunScorer": "Paul Stirling, 456",
+        "topWicketTaker": "Mark Adair, 18",
+        "captain": "Paul Stirling"
       },
       "test": {
         "position": 11,
-        "played": 8,
-        "won": 1,
-        "lost": 6,
-        "draw": 1,
-        "totalRuns": 2450,
-        "wicketsTaken": 142,
-        "captain": "Andrew Balbirnie",
-        "viceCaptain": "Paul Stirling"
+        "played": 1,
+        "won": 0,
+        "lost": 1,
+        "draw": 0,
+        "topRunScorer": "Harry Tector, 195",
+        "topWicketTaker": "Mark Adair, 8",
+        "captain": "Andrew Balbirnie"
       },
       "t20": {
         "position": 11,
-        "played": 105,
-        "won": 42,
-        "lost": 58,
-        "noResult": 5,
-        "totalRuns": 19850,
-        "wicketsTaken": 1098,
-        "captain": "Paul Stirling",
-        "viceCaptain": "Andrew Balbirnie"
+        "played": 8,
+        "won": 3,
+        "lost": 5,
+        "noResult": 0,
+        "topRunScorer": "Paul Stirling, 387",
+        "topWicketTaker": "Joshua Little, 14",
+        "captain": "Paul Stirling"
       }
     },
     "zimbabwe": {
       "name": "Zimbabwe",
       "imageUrl": "https://upload.wikimedia.org/wikipedia/en/thumb/4/48/Zimbabwe_Cricket_%28logo%29.svg/300px-Zimbabwe_Cricket_%28logo%29.svg.png",
+      "coach": "Dave Houghton",
       "odi": {
         "position": 12,
-        "played": 78,
-        "won": 28,
-        "lost": 45,
-        "noResult": 5,
-        "totalRuns": 16450,
-        "wicketsTaken": 934,
-        "captain": "Craig Ervine",
-        "viceCaptain": "Sean Williams"
+        "played": 6,
+        "won": 2,
+        "lost": 4,
+        "noResult": 0,
+        "topRunScorer": "Sean Williams, 298",
+        "topWicketTaker": "Blessing Muzarabani, 12",
+        "captain": "Craig Ervine"
       },
       "test": {
         "position": 12,
-        "played": 42,
-        "won": 8,
-        "lost": 28,
-        "draw": 6,
-        "totalRuns": 12450,
-        "wicketsTaken": 678,
-        "captain": "Craig Ervine",
-        "viceCaptain": "Sean Williams"
+        "played": 2,
+        "won": 0,
+        "lost": 2,
+        "draw": 0,
+        "topRunScorer": "Craig Ervine, 167",
+        "topWicketTaker": "Blessing Muzarabani, 9",
+        "captain": "Craig Ervine"
       },
       "t20": {
         "position": 12,
-        "played": 98,
-        "won": 35,
-        "lost": 58,
-        "noResult": 5,
-        "totalRuns": 18250,
-        "wicketsTaken": 1012,
-        "captain": "Craig Ervine",
-        "viceCaptain": "Sean Williams"
+        "played": 9,
+        "won": 3,
+        "lost": 6,
+        "noResult": 0,
+        "topRunScorer": "Sikandar Raza, 289",
+        "topWicketTaker": "Richard Ngarava, 11",
+        "captain": "Craig Ervine"
       }
     },
     "netherlands": {
       "name": "Netherlands",
       "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/2/20/Flag_of_the_Netherlands.svg",
+      "coach": "Ryan Cook",
       "odi": {
         "position": 13,
-        "played": 65,
-        "won": 22,
-        "lost": 38,
-        "noResult": 5,
-        "totalRuns": 14250,
-        "wicketsTaken": 798,
-        "captain": "Scott Edwards",
-        "viceCaptain": "Bas de Leede"
+        "played": 4,
+        "won": 1,
+        "lost": 3,
+        "noResult": 0,
+        "topRunScorer": "Scott Edwards, 234",
+        "topWicketTaker": "Bas de Leede, 9",
+        "captain": "Scott Edwards"
       },
       "test": {
         "position": 13,
-        "played": 2,
+        "played": 0,
         "won": 0,
-        "lost": 2,
+        "lost": 0,
         "draw": 0,
-        "totalRuns": 850,
-        "wicketsTaken": 45,
-        "captain": "Scott Edwards",
-        "viceCaptain": "Bas de Leede"
+        "topRunScorer": "No matches played",
+        "topWicketTaker": "No matches played",
+        "captain": "Scott Edwards"
       },
       "t20": {
         "position": 13,
-        "played": 85,
-        "won": 32,
-        "lost": 48,
-        "noResult": 5,
-        "totalRuns": 16450,
-        "wicketsTaken": 892,
-        "captain": "Scott Edwards",
-        "viceCaptain": "Bas de Leede"
+        "played": 6,
+        "won": 2,
+        "lost": 4,
+        "noResult": 0,
+        "topRunScorer": "Max O'Dowd, 178",
+        "topWicketTaker": "Paul van Meekeren, 8",
+        "captain": "Scott Edwards"
       }
     },
     "scotland": {
       "name": "Scotland",
       "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/1/10/Flag_of_Scotland.svg",
+      "coach": "Doug Watson",
       "odi": {
         "position": 14,
-        "played": 58,
-        "won": 18,
-        "lost": 35,
-        "noResult": 5,
-        "totalRuns": 12850,
-        "wicketsTaken": 712,
-        "captain": "Richie Berrington",
-        "viceCaptain": "Kyle Coetzer"
+        "played": 3,
+        "won": 1,
+        "lost": 2,
+        "noResult": 0,
+        "topRunScorer": "Brandon McMullen, 145",
+        "topWicketTaker": "Chris Sole, 7",
+        "captain": "Richie Berrington"
       },
       "test": {
         "position": 14,
@@ -501,36 +475,34 @@
         "won": 0,
         "lost": 0,
         "draw": 0,
-        "totalRuns": 0,
-        "wicketsTaken": 0,
-        "captain": "Richie Berrington",
-        "viceCaptain": "Kyle Coetzer"
+        "topRunScorer": "No matches played",
+        "topWicketTaker": "No matches played",
+        "captain": "Richie Berrington"
       },
       "t20": {
         "position": 14,
-        "played": 78,
-        "won": 28,
-        "lost": 45,
-        "noResult": 5,
-        "totalRuns": 14850,
-        "wicketsTaken": 823,
-        "captain": "Richie Berrington",
-        "viceCaptain": "Kyle Coetzer"
+        "played": 7,
+        "won": 2,
+        "lost": 5,
+        "noResult": 0,
+        "topRunScorer": "George Munsey, 198",
+        "topWicketTaker": "Brad Wheal, 9",
+        "captain": "Richie Berrington"
       }
     },
     "namibia": {
       "name": "Namibia",
       "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/0/00/Flag_of_Namibia.svg",
+      "coach": "Albie Morkel",
       "odi": {
         "position": 15,
-        "played": 48,
-        "won": 15,
-        "lost": 28,
-        "noResult": 5,
-        "totalRuns": 11450,
-        "wicketsTaken": 634,
-        "captain": "Gerhard Erasmus",
-        "viceCaptain": "David Wiese"
+        "played": 2,
+        "won": 0,
+        "lost": 2,
+        "noResult": 0,
+        "topRunScorer": "Jan Nicol Loftie-Eaton, 89",
+        "topWicketTaker": "Ruben Trumpelmann, 4",
+        "captain": "Gerhard Erasmus"
       },
       "test": {
         "position": 15,
@@ -538,36 +510,34 @@
         "won": 0,
         "lost": 0,
         "draw": 0,
-        "totalRuns": 0,
-        "wicketsTaken": 0,
-        "captain": "Gerhard Erasmus",
-        "viceCaptain": "David Wiese"
+        "topRunScorer": "No matches played",
+        "topWicketTaker": "No matches played",
+        "captain": "Gerhard Erasmus"
       },
       "t20": {
         "position": 15,
-        "played": 68,
-        "won": 22,
-        "lost": 42,
-        "noResult": 4,
-        "totalRuns": 13250,
-        "wicketsTaken": 745,
-        "captain": "Gerhard Erasmus",
-        "viceCaptain": "David Wiese"
+        "played": 5,
+        "won": 1,
+        "lost": 4,
+        "noResult": 0,
+        "topRunScorer": "Jan Nicol Loftie-Eaton, 134",
+        "topWicketTaker": "Bernard Scholtz, 6",
+        "captain": "Gerhard Erasmus"
       }
     },
     "uae": {
       "name": "UAE",
       "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/c/cb/Flag_of_the_United_Arab_Emirates.svg",
+      "coach": "Robin Singh",
       "odi": {
         "position": 16,
-        "played": 42,
-        "won": 12,
-        "lost": 25,
-        "noResult": 5,
-        "totalRuns": 10250,
-        "wicketsTaken": 567,
-        "captain": "Muhammad Waseem",
-        "viceCaptain": "Vriitya Aravind"
+        "played": 3,
+        "won": 1,
+        "lost": 2,
+        "noResult": 0,
+        "topRunScorer": "Muhammad Waseem, 187",
+        "topWicketTaker": "Junaid Siddique, 6",
+        "captain": "Muhammad Waseem"
       },
       "test": {
         "position": 16,
@@ -575,36 +545,34 @@
         "won": 0,
         "lost": 0,
         "draw": 0,
-        "totalRuns": 0,
-        "wicketsTaken": 0,
-        "captain": "Muhammad Waseem",
-        "viceCaptain": "Vriitya Aravind"
+        "topRunScorer": "No matches played",
+        "topWicketTaker": "No matches played",
+        "captain": "Muhammad Waseem"
       },
       "t20": {
         "position": 16,
-        "played": 58,
-        "won": 18,
-        "lost": 35,
-        "noResult": 5,
-        "totalRuns": 12050,
-        "wicketsTaken": 678,
-        "captain": "Muhammad Waseem",
-        "viceCaptain": "Vriitya Aravind"
+        "played": 6,
+        "won": 2,
+        "lost": 4,
+        "noResult": 0,
+        "topRunScorer": "Vriitya Aravind, 156",
+        "topWicketTaker": "Aayan Afzal Khan, 8",
+        "captain": "Muhammad Waseem"
       }
     },
     "oman": {
       "name": "Oman",
       "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/d/dd/Flag_of_Oman.svg",
+      "coach": "Duleep Mendis",
       "odi": {
         "position": 17,
-        "played": 35,
-        "won": 8,
-        "lost": 22,
-        "noResult": 5,
-        "totalRuns": 8950,
-        "wicketsTaken": 498,
-        "captain": "Aqib Ilyas",
-        "viceCaptain": "Zeeshan Maqsood"
+        "played": 2,
+        "won": 0,
+        "lost": 2,
+        "noResult": 0,
+        "topRunScorer": "Aqib Ilyas, 95",
+        "topWicketTaker": "Kaleemullah, 3",
+        "captain": "Aqib Ilyas"
       },
       "test": {
         "position": 17,
@@ -612,36 +580,34 @@
         "won": 0,
         "lost": 0,
         "draw": 0,
-        "totalRuns": 0,
-        "wicketsTaken": 0,
-        "captain": "Aqib Ilyas",
-        "viceCaptain": "Zeeshan Maqsood"
+        "topRunScorer": "No matches played",
+        "topWicketTaker": "No matches played",
+        "captain": "Aqib Ilyas"
       },
       "t20": {
         "position": 17,
-        "played": 52,
-        "won": 15,
-        "lost": 32,
-        "noResult": 5,
-        "totalRuns": 10850,
-        "wicketsTaken": 612,
-        "captain": "Aqib Ilyas",
-        "viceCaptain": "Zeeshan Maqsood"
+        "played": 4,
+        "won": 1,
+        "lost": 3,
+        "noResult": 0,
+        "topRunScorer": "Kashyap Prajapati, 124",
+        "topWicketTaker": "Bilal Khan, 5",
+        "captain": "Aqib Ilyas"
       }
     },
     "nepal": {
       "name": "Nepal",
       "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/9/9b/Flag_of_Nepal.svg",
+      "coach": "Monty Desai",
       "odi": {
         "position": 18,
-        "played": 28,
-        "won": 6,
-        "lost": 18,
-        "noResult": 4,
-        "totalRuns": 7450,
-        "wicketsTaken": 412,
-        "captain": "Rohit Paudel",
-        "viceCaptain": "Dipendra Singh Airee"
+        "played": 4,
+        "won": 1,
+        "lost": 3,
+        "noResult": 0,
+        "topRunScorer": "Rohit Paudel, 189",
+        "topWicketTaker": "Sandeep Lamichhane, 8",
+        "captain": "Rohit Paudel"
       },
       "test": {
         "position": 18,
@@ -649,36 +615,34 @@
         "won": 0,
         "lost": 0,
         "draw": 0,
-        "totalRuns": 0,
-        "wicketsTaken": 0,
-        "captain": "Rohit Paudel",
-        "viceCaptain": "Dipendra Singh Airee"
+        "topRunScorer": "No matches played",
+        "topWicketTaker": "No matches played",
+        "captain": "Rohit Paudel"
       },
       "t20": {
         "position": 18,
-        "played": 45,
-        "won": 12,
-        "lost": 28,
-        "noResult": 5,
-        "totalRuns": 9450,
-        "wicketsTaken": 534,
-        "captain": "Rohit Paudel",
-        "viceCaptain": "Dipendra Singh Airee"
+        "played": 8,
+        "won": 3,
+        "lost": 5,
+        "noResult": 0,
+        "topRunScorer": "Kushal Bhurtel, 245",
+        "topWicketTaker": "Karan KC, 12",
+        "captain": "Rohit Paudel"
       }
     },
     "usa": {
       "name": "USA",
       "imageUrl": "https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg",
+      "coach": "Stuart Law",
       "odi": {
         "position": 19,
-        "played": 22,
-        "won": 4,
-        "lost": 15,
-        "noResult": 3,
-        "totalRuns": 6250,
-        "wicketsTaken": 345,
-        "captain": "Monank Patel",
-        "viceCaptain": "Aaron Jones"
+        "played": 5,
+        "won": 2,
+        "lost": 3,
+        "noResult": 0,
+        "topRunScorer": "Monank Patel, 234",
+        "topWicketTaker": "Saurabh Netravalkar, 9",
+        "captain": "Monank Patel"
       },
       "test": {
         "position": 19,
@@ -686,36 +650,34 @@
         "won": 0,
         "lost": 0,
         "draw": 0,
-        "totalRuns": 0,
-        "wicketsTaken": 0,
-        "captain": "Monank Patel",
-        "viceCaptain": "Aaron Jones"
+        "topRunScorer": "No matches played",
+        "topWicketTaker": "No matches played",
+        "captain": "Monank Patel"
       },
       "t20": {
         "position": 19,
-        "played": 38,
-        "won": 8,
-        "lost": 25,
-        "noResult": 5,
-        "totalRuns": 8050,
-        "wicketsTaken": 456,
-        "captain": "Monank Patel",
-        "viceCaptain": "Aaron Jones"
+        "played": 12,
+        "won": 6,
+        "lost": 6,
+        "noResult": 0,
+        "topRunScorer": "Aaron Jones, 387",
+        "topWicketTaker": "Ali Khan, 16",
+        "captain": "Monank Patel"
       }
     },
     "canada": {
       "name": "Canada",
       "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/d/d9/Flag_of_Canada_%28Pantone%29.svg",
+      "coach": "Pubudu Dassanayake",
       "odi": {
         "position": 20,
-        "played": 18,
-        "won": 2,
-        "lost": 13,
-        "noResult": 3,
-        "totalRuns": 5450,
-        "wicketsTaken": 298,
-        "captain": "Saad Bin Zafar",
-        "viceCaptain": "Navneet Dhaliwal"
+        "played": 3,
+        "won": 0,
+        "lost": 3,
+        "noResult": 0,
+        "topRunScorer": "Navneet Dhaliwal, 145",
+        "topWicketTaker": "Jeremy Gordon, 5",
+        "captain": "Saad Bin Zafar"
       },
       "test": {
         "position": 20,
@@ -723,21 +685,19 @@
         "won": 0,
         "lost": 0,
         "draw": 0,
-        "totalRuns": 0,
-        "wicketsTaken": 0,
-        "captain": "Saad Bin Zafar",
-        "viceCaptain": "Navneet Dhaliwal"
+        "topRunScorer": "No matches played",
+        "topWicketTaker": "No matches played",
+        "captain": "Saad Bin Zafar"
       },
       "t20": {
         "position": 20,
-        "played": 32,
-        "won": 6,
-        "lost": 22,
-        "noResult": 4,
-        "totalRuns": 7250,
-        "wicketsTaken": 398,
-        "captain": "Saad Bin Zafar",
-        "viceCaptain": "Navneet Dhaliwal"
+        "played": 7,
+        "won": 2,
+        "lost": 5,
+        "noResult": 0,
+        "topRunScorer": "Aaron Johnson, 189",
+        "topWicketTaker": "Kaleem Sana, 9",
+        "captain": "Saad Bin Zafar"
       }
     }
   },
@@ -802,57 +762,57 @@
     "headlines": [
       {
         "id": 1,
-        "title": "Transfer Window Latest",
-        "timeAgo": "1 hour ago"
-      },
-      {
-        "id": 2,
-        "title": "Injury Update",
+        "title": "Erling Haaland Scores Twice as Man City Beat Arsenal 3-1",
         "timeAgo": "3 hours ago"
       },
       {
-        "id": 3,
-        "title": "Match Preview",
+        "id": 2,
+        "title": "Lionel Messi Ruled Out for 2 Weeks With Muscle Injury",
         "timeAgo": "5 hours ago"
       },
       {
-        "id": 4,
-        "title": "League Standings Update",
-        "timeAgo": "8 hours ago"
+        "id": 3,
+        "title": "Chelsea Announce Signing of Young Midfielder from Ajax",
+        "timeAgo": "7 hours ago"
       },
       {
-        "id": 5,
-        "title": "Player Performance Analysis",
+        "id": 4,
+        "title": "Liverpool Held to Draw by Newcastle in EPL Opener",
         "timeAgo": "12 hours ago"
       },
       {
+        "id": 5,
+        "title": "Real Madrid and Barcelona Set for El Clasico Clash Next Sunday",
+        "timeAgo": "16 hours ago"
+      },
+      {
         "id": 6,
-        "title": "Manager's Press Conference",
-        "timeAgo": "18 hours ago"
+        "title": "Tottenham's New Manager Pledges to Bring Trophy Glory",
+        "timeAgo": "20 hours ago"
       },
       {
         "id": 7,
-        "title": "Youth Academy Success",      
-        "timeAgo": "21 hours ago"
+        "title": "Bayern Munich Win DFB-Pokal Final 2-0 Against Dortmund",
+        "timeAgo": "1 day ago"
       },
       {
         "id": 8,
-        "title": "Stadium Renovation News",     
+        "title": "Juventus Confirm Pogba’s Contract Extension Amid Interest",
         "timeAgo": "1 day ago"
       },
       {
         "id": 9,
-        "title": "Manager's Press Conference",
-        "timeAgo": "18 hours ago"
+        "title": "Ligue 1's Top Scorer Suffers Knee Injury, Out Indefinitely",
+        "timeAgo": "1 day ago"
       },
       {
         "id": 10,
-        "title": "Youth Academy Success",      
-        "timeAgo": "21 hours ago"
+        "title": "UCL Group Stage Draw to Take Place Tomorrow in Monaco",
+        "timeAgo": "1 day ago"
       },
       {
         "id": 11,
-        "title": "Stadium Renovation News",     
+        "title": "Manchester United Fans Rally Ahead of Big Derby Match",
         "timeAgo": "1 day ago"
       }
     ]

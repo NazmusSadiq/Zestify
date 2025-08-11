@@ -177,31 +177,33 @@ export default function Profile() {
     fetchProfile();
   }, [emailAddress]);
 
-  // Fetch liked stats (existing)
-  useEffect(() => {
-    const fetchStats = async () => {
-      if (!emailAddress) return;
-      try {
-        const statResults: { [key: string]: number } = {};
-        await Promise.all(
-          statConfigs.map(async ({ key }) => {
-            const statRef = doc(db, emailAddress, key);
-            const statSnap = await getDoc(statRef);
-            if (statSnap.exists()) {
-              const data = statSnap.data();
-              statResults[key] = Object.values(data).filter((v) => v === true).length;
-            } else {
-              statResults[key] = 0;
-            }
-          })
-        );
-        setStats(statResults);
-      } catch (e) {
-        setStats({});
-      }
-    };
-    fetchStats();
-  }, [emailAddress]);
+  // Fetch liked stats - using useFocusEffect to update when tab is focused
+  useFocusEffect(
+    useCallback(() => {
+      const fetchStats = async () => {
+        if (!emailAddress) return;
+        try {
+          const statResults: { [key: string]: number } = {};
+          await Promise.all(
+            statConfigs.map(async ({ key }) => {
+              const statRef = doc(db, emailAddress, key);
+              const statSnap = await getDoc(statRef);
+              if (statSnap.exists()) {
+                const data = statSnap.data();
+                statResults[key] = Object.values(data).filter((v) => v === true).length;
+              } else {
+                statResults[key] = 0;
+              }
+            })
+          );
+          setStats(statResults);
+        } catch (e) {
+          setStats({});
+        }
+      };
+      fetchStats();
+    }, [emailAddress])
+  );
 
   // Fetch favorite teams - using the same structure as football.tsx
   const [favoriteTeams, setFavoriteTeams] = useState<{ id: number; name: string }[]>([]);
