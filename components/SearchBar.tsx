@@ -53,6 +53,8 @@ interface MediaItem {
 const POSTER_BASE_URL = "https://image.tmdb.org/t/p/w92";
 const DROPDOWN_WIDTH = 220;
 const DEFAULT_IMAGE = "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png";
+const DEFAULT_IMAGE_MUSIC = "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/The_Sounds_of_Earth_-_GPN-2000-001976.jpg/1200px-The_Sounds_of_Earth_-_GPN-2000-001976.jpg";
+
 
 const SearchBar = ({ activeTab }: Props) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -251,7 +253,7 @@ const SearchBar = ({ activeTab }: Props) => {
         <TouchableOpacity onPress={() => handleMusicItemPress(musicItem)} activeOpacity={0.7}>
           <View style={styles.trackItem}>
             <Image
-              source={{ uri: musicItem.image?.[2]?.["#text"] || DEFAULT_IMAGE }}
+              source={{ uri: DEFAULT_IMAGE_MUSIC }}
               style={styles.trackImage}
             />
             <View style={styles.trackInfo}>
