@@ -37,12 +37,20 @@ export default function Books() {
     }
   };
 
+  const shuffleArray = (array: Book[]) => {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  };
+
   useEffect(() => {
     if (data) {
       setBooks({
-        newReleases: (data as BookResponse)?.items || [],
-        bestSellers: (data as BookResponse)?.items || [],
-        trending: (data as BookResponse)?.items || []
+        newReleases: shuffleArray([...((data as BookResponse)?.items || [])]),
+        bestSellers: shuffleArray([...((data as BookResponse)?.items || [])]),
+        trending: shuffleArray([...((data as BookResponse)?.items || [])]),
       });
     }
   }, [data]);
