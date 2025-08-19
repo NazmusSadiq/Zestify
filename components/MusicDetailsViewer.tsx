@@ -248,6 +248,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 20,
   },
   modalContent: {
     backgroundColor: '#1E1E1E',
@@ -255,6 +256,9 @@ const styles = StyleSheet.create({
     padding: 20,
     borderWidth: 1,
     borderColor: '#333333',
+    width: '100%',
+    maxWidth: 500,
+    maxHeight: '90%',
   },
   image: {
     width: '100%',
