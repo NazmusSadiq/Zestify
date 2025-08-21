@@ -23,14 +23,14 @@ export const STATS_OPTIONS = [
 
 // Rate limiting mechanism
 let lastApiCall = 0;
-const API_CALL_INTERVAL = 200; // 200ms between API calls (300 requests per minute max)
+const API_CALL_INTERVAL = 200; 
 let pendingRequests = new Map<string, Promise<any>>();
 
 export async function fetchFromApi(endpoint: string, params = "", bypassRateLimit = false) {
     try {
         const url = `${BASE_URL}/${endpoint}${params}`;
         
-        // Check if there's already a pending request for this exact URL (only if not bypassing rate limit)
+        // Check if there's already a pending request for this exact URL
         if (!bypassRateLimit && pendingRequests.has(url)) {
             console.log(`Reusing pending request for: ${url}`);
             return await pendingRequests.get(url)!;

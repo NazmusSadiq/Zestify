@@ -62,8 +62,8 @@ export default function Movie() {
 
   const sectionKeys = ["Latest", "Upcoming", "TopRated"] as const;
 
-  const scrollRefs = React.useMemo(() => {
-    return Object.fromEntries(
+  const scrollRefs = React.useMemo(() => {  //Memoizes the computation so it only runs once
+    return Object.fromEntries(  //Converts the array of key-value pairs into an object
       sectionKeys.map((key) => [key, React.createRef<ScrollView>()])
     ) as Record<string, React.RefObject<ScrollView>>;
   }, []);
@@ -101,7 +101,7 @@ export default function Movie() {
   useEffect(() => {
     const movieGroups = { Latest: latest, Upcoming: upcoming, TopRated: topRated };
 
-    Object.entries(movieGroups).forEach(([section, data]) => {
+    Object.entries(movieGroups).forEach(([section, data]) => {  //initializes the scroll position for each movie carousel section to create the infinite scrolling
       const scrollRef = scrollRefs[section];
       if (scrollRef?.current && data.length > 0) {
         const offset = data.length * cardWidthWithMargin;

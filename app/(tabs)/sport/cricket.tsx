@@ -29,7 +29,6 @@ const getTeamStatsFromJSON = (teamName: string) => {
   return null;
 };
 
-// Helper function to calculate win percentage
 
 const TABS = ["Series", "Matches", "Teams", "Players"];
 const CRICKET_COUNTRIES = Object.keys((SPORTS_DATA as any).cricket);
@@ -43,7 +42,6 @@ const MATCH_CATEGORIES = [
   "ODI",
   "T20"
 ];
-
 
 
 export default function Cricket() {
