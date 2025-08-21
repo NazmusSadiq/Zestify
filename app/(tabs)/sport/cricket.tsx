@@ -687,7 +687,7 @@ export default function Cricket() {
     <Modal visible={!!selectedMatch} animationType="slide">
       <View style={styles.modalContainer}>
         <TouchableOpacity onPress={() => setSelectedMatch(null)} style={styles.closeButton}>
-          <Text style={styles.closeText}>Close</Text>
+          <Text style={styles.closeButtonText}>✕</Text>
         </TouchableOpacity>
 
         {loadingDetail ? (
@@ -1365,8 +1365,9 @@ const styles = StyleSheet.create({
   },
   closeButtonText: {
     color: '#f8fafc',
-    fontSize: 24,
+    fontSize: 40,
     fontWeight: 'bold',
+    transform: [{ translateY: -6 }],
   },
   teamRow: {
     flexDirection: 'row',

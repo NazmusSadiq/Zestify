@@ -11,23 +11,7 @@ import { ActivityIndicator, Animated, Dimensions, Image, Modal, NativeScrollEven
 import { getTeamWithCrest, getWikipediaImageUrl, useFootballData } from "./footballdatafetcher";
 
 // Transfer Card Component
-const TransferCard = ({ transfer }: { transfer: any }) => {
-  const [playerImage, setPlayerImage] = useState<string | null>(null);
-  
-  React.useEffect(() => {
-    const fetchPlayerImage = async () => {
-      if (transfer.playerName) {
-        try {
-          const imageUrl = await getWikipediaImageUrl(transfer.playerName);
-          setPlayerImage(imageUrl);
-        } catch (error) {
-          setPlayerImage(null);
-        }
-      }
-    };
-    fetchPlayerImage();
-  }, [transfer.playerName]);
-
+const TransferCard = ({ transfer, playerImage }: { transfer: any; playerImage: string | null }) => {
   return (
     <View style={styles.transferCard}>
       <View style={styles.compactTransferHeader}>
@@ -101,6 +85,10 @@ export default function Football() {
   const [allPlayerNames, setAllPlayerNames] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const debounceTimeout = useRef<number | null>(null);
+
+  // Player image cache for transfer carousel
+  const [playerImageCache, setPlayerImageCache] = useState<Record<string, string | null>>({});
+  const [imagesCacheLoaded, setImagesCacheLoaded] = useState(false);
 
   // --- Slideshow State Variables ---
   const { width } = Dimensions.get("window");
@@ -243,6 +231,55 @@ export default function Football() {
     };
     fetchSubscribedMatches();
   }, [user?.primaryEmailAddress?.emailAddress]);
+
+  // Pre-fetch and cache all transfer player images to avoid repeated API calls
+  useEffect(() => {
+    const loadTransferPlayerImages = async () => {
+      const transfers = (SPORTS_DATA as any).football?.transfers || [];
+      if (transfers.length === 0) return;
+
+      console.log('Pre-fetching transfer player images...');
+      const cache: Record<string, string | null> = {};
+      
+      // Create a map of player names to their imageUrl (if provided)
+      const playerImageMap = new Map<string, string>();
+      transfers.forEach((transfer: any) => {
+        if (transfer.playerName && transfer.imageUrl) {
+          playerImageMap.set(transfer.playerName, transfer.imageUrl);
+        }
+      });
+      
+      // Get unique player names that need images
+      const uniquePlayerNames = [...new Set(transfers.map((t: any) => t.playerName).filter(Boolean))] as string[];
+      
+      const imagePromises = uniquePlayerNames.map(async (playerName: string) => {
+        try {
+          // First check if imageUrl is provided in the transfer data
+          if (playerImageMap.has(playerName)) {
+            const directImageUrl = playerImageMap.get(playerName)!;
+            cache[playerName] = directImageUrl;
+            console.log(`Using direct imageUrl for ${playerName}`);
+            return;
+          }
+          
+          // Fallback to Wikipedia if no imageUrl provided
+          console.log(`Fetching Wikipedia image for ${playerName}`);
+          const imageUrl = await getWikipediaImageUrl(playerName);
+          cache[playerName] = imageUrl;
+        } catch (error) {
+          console.log(`Failed to get image for ${playerName}`);
+          cache[playerName] = null;
+        }
+      });
+
+      await Promise.all(imagePromises);
+      setPlayerImageCache(cache);
+      setImagesCacheLoaded(true);
+      console.log(`Cached ${Object.keys(cache).length} transfer player images`);
+    };
+
+    loadTransferPlayerImages();
+  }, []); // Only run once on mount
 
   // Save subscribed matches to Firebase when they change
   const saveSubscribedMatches = async (matchIds: Set<number>) => {
@@ -603,14 +640,17 @@ export default function Football() {
                 const transfers = (SPORTS_DATA as any).football?.transfers || [];
                 const tripledTransfers = [...transfers, ...transfers, ...transfers];
                 
-                return tripledTransfers.map((transfer, index) => (
-                  <View
-                    key={`${transfer.id}_${index}`}
-                    style={[styles.transferCardWrapper, { width: transferCardWidth }]}
-                  >
-                    <TransferCard transfer={transfer} />
-                  </View>
-                ));
+                return tripledTransfers.map((transfer, index) => {
+                  const playerImage = playerImageCache[transfer.playerName] || null;
+                  return (
+                    <View
+                      key={`${transfer.id}_${index}`}
+                      style={[styles.transferCardWrapper, { width: transferCardWidth }]}
+                    >
+                      <TransferCard transfer={transfer} playerImage={playerImage} />
+                    </View>
+                  );
+                });
               })()}
             </Animated.ScrollView>
           </View>

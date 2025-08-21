@@ -70,7 +70,6 @@ const CricketMatchCard = ({ match }: { match: any }) => {
   );
 };
 
-// Global cache for home matches - persists for entire app lifetime
 let globalCricketHomeMatches: any[] = [];
 let hasCricketGloballyFetched = false;
 let globalCricketFetchPromise: Promise<void> | null = null;

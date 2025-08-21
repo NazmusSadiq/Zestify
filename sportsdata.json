@@ -705,115 +705,182 @@
     "transfers": [
       {
         "id": 1,
-        "playerName": "Kylian Mbappé",
-        "fromTeam": "Paris Saint Germain",
-        "fromTeamCrest": "https://crests.football-data.org/524.png",
-        "toTeam": "Real Madrid",
-        "toTeamCrest": "https://crests.football-data.org/86.png",
-        "amount": "Free Transfer",
-        "date": "2 days ago",
-        "timestamp": "2025-07-15T12:00:00Z"
+        "playerName": "Florian Wirtz",
+        "fromTeam": "Bayer 04 Leverkusen",
+        "fromTeamCrest": "https://crests.football-data.org/3.png",
+        "toTeam": "Liverpool",
+        "toTeamCrest": "https://crests.football-data.org/64.png",
+        "amount": "£116M"
       },
       {
         "id": 2,
-        "playerName": "Jude Bellingham",
-        "fromTeam": "Borussia Dortmund",
-        "fromTeamCrest": "https://crests.football-data.org/4.png",
-        "toTeam": "Real Madrid",
-        "toTeamCrest": "https://crests.football-data.org/86.png",
-        "amount": "€103M",
-        "date": "1 week ago",
-        "timestamp": "2025-07-10T14:30:00Z"
+        "playerName": "Bryan Mbeumo",
+        "fromTeam": "Brentford",
+        "fromTeamCrest": "https://crests.football-data.org/402.png",
+        "toTeam": "Manchester United",
+        "toTeamCrest": "https://crests.football-data.org/66.png",
+        "amount": "£71M"
       },
       {
         "id": 3,
-        "playerName": "Declan Rice",
-        "fromTeam": "West Ham United",
-        "fromTeamCrest": "https://crests.football-data.org/563.png",
-        "toTeam": "Arsenal",
-        "toTeamCrest": "https://crests.football-data.org/57.png",
-        "amount": "€116M",
-        "date": "3 weeks ago",
-        "timestamp": "2025-06-26T10:15:00Z"
+        "playerName": "Luis Díaz",
+        "fromTeam": "Liverpool",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/c/c0/Luis_D%C3%ADaz_%28portrait%29.jpg",
+        "fromTeamCrest": "https://crests.football-data.org/64.png",
+        "toTeam": "Bayern Munich",
+        "toTeamCrest": "https://crests.football-data.org/5.png",
+        "amount": "£65.5M"
       },
       {
         "id": 4,
-        "playerName": "Mason Mount",
-        "fromTeam": "Chelsea",
-        "fromTeamCrest": "https://crests.football-data.org/61.png",
+        "playerName": "Matheus Cunha",
+        "fromTeam": "Wolves",
+        "fromTeamCrest": "https://crests.football-data.org/76.png",
         "toTeam": "Manchester United",
         "toTeamCrest": "https://crests.football-data.org/66.png",
-        "amount": "€64M",
-        "date": "1 month ago",
-        "timestamp": "2025-06-17T16:45:00Z"
+        "amount": "£62.5M"
       },
       {
         "id": 5,
-        "playerName": "Kai Havertz",
-        "fromTeam": "Chelsea",
-        "fromTeamCrest": "https://crests.football-data.org/61.png",
+        "playerName": "Viktor Gyökeres",
+        "fromTeam": "Sporting",
+        "fromTeamCrest": "https://crests.football-data.org/498.png",
         "toTeam": "Arsenal",
         "toTeamCrest": "https://crests.football-data.org/57.png",
-        "amount": "€75M",
-        "date": "1 month ago",
-        "timestamp": "2025-06-15T11:20:00Z"
+        "amount": "£57M"
+      },
+      {
+        "id": 6,
+        "playerName": "Mohammed Kudus",
+        "fromTeam": "West Ham",
+        "fromTeamCrest": "https://crests.football-data.org/563.png",
+        "toTeam": "Tottenham",
+        "toTeamCrest": "https://crests.football-data.org/73.png",
+        "amount": "£55M"
+      },
+      {
+        "id": 7,
+        "playerName": "Joao Pedro",
+        "fromTeam": "Brighton",
+        "imageUrl":"https://upload.wikimedia.org/wikipedia/commons/1/1d/Jo%C3%A3o_Pedro%2C_2025_FIFA_Club_World_Cup_final_%2854654843615%29.jpg",
+        "fromTeamCrest": "https://crests.football-data.org/397.png",
+        "toTeam": "Chelsea",
+        "toTeamCrest": "https://crests.football-data.org/61.png",
+        "amount": "£60M"
+      },
+      {
+        "id": 8,
+        "playerName": "Hugo Ekitike",
+        "fromTeam": "Eintracht Frankfurt",
+        "fromTeamCrest": "https://crests.football-data.org/19.png",
+        "toTeam": "Liverpool",
+        "toTeamCrest": "https://crests.football-data.org/64.png",
+        "amount": "£95M"
+      },
+      {
+        "id": 9,
+        "playerName": "Benjamin Šeško",
+        "fromTeam": "RB Leipzig",
+        "fromTeamCrest": "https://crests.football-data.org/721.png",
+        "toTeam": "Manchester United",
+        "toTeamCrest": "https://crests.football-data.org/66.png",
+        "amount": "£76.5M"
+      },
+      {
+        "id": 10,
+        "playerName": "Dean Huijsen",
+        "fromTeam": "Bournemouth",
+        "fromTeamCrest": "https://crests.football-data.org/1044.png",
+        "toTeam": "Real Madrid",
+        "toTeamCrest": "https://crests.football-data.org/86.png",
+        "amount": "£62.5M"
+      },
+      {
+        "id": 11,
+        "playerName": "Trent Alexander-Arnold",
+        "imageUrl":"https://upload.wikimedia.org/wikipedia/commons/8/8a/Trent_Alexander-Arnold_2018.jpg",
+        "fromTeam": "Liverpool",
+        "fromTeamCrest": "https://crests.football-data.org/64.png",
+        "toTeam": "Real Madrid",
+        "toTeamCrest": "https://crests.football-data.org/86.png",
+        "amount": "£10M"
       }
     ],
     "headlines": [
       {
         "id": 1,
-        "title": "Erling Haaland Scores Twice as Man City Beat Arsenal 3-1",
-        "timeAgo": "3 hours ago"
+        "title": "Nkunku edges closer to Chelsea exit; Man Utd target Wharton",
+        "timeAgo": "1 hour ago"
       },
       {
         "id": 2,
-        "title": "Lionel Messi Ruled Out for 2 Weeks With Muscle Injury",
-        "timeAgo": "5 hours ago"
+        "title": "Real Madrid's first game of season - Alexander-Arnold makes league debut",
+        "timeAgo": "2 hours ago"
       },
       {
         "id": 3,
-        "title": "Chelsea Announce Signing of Young Midfielder from Ajax",
-        "timeAgo": "7 hours ago"
+        "title": "Wolves sign 'fastest Serie A player' Tchatchoua",
+        "timeAgo": "3 hours ago"
       },
       {
         "id": 4,
-        "title": "Liverpool Held to Draw by Newcastle in EPL Opener",
-        "timeAgo": "12 hours ago"
+        "title": "Lassana Diarra seeks £56m from FIFA over past transfer rules",
+        "timeAgo": "4 hours ago"
       },
       {
         "id": 5,
-        "title": "Real Madrid and Barcelona Set for El Clasico Clash Next Sunday",
-        "timeAgo": "16 hours ago"
+        "title": "Serhou Guirassy Sends Borussia Dortmund Through Against Local Rivals Rot-Weiss Essen In German Cup",
+        "timeAgo": "5 hours ago"
       },
       {
         "id": 6,
-        "title": "Tottenham's New Manager Pledges to Bring Trophy Glory",
-        "timeAgo": "20 hours ago"
+        "title": "Napoli leads chase for Man Utd's Højlund after Lukaku injury",
+        "timeAgo": "6 hours ago"
       },
       {
         "id": 7,
-        "title": "Bayern Munich Win DFB-Pokal Final 2-0 Against Dortmund",
-        "timeAgo": "1 day ago"
+        "title": "Everton urged to sign free agent Jamie Vardy after loss",
+        "timeAgo": "6 hours ago"
       },
       {
         "id": 8,
-        "title": "Juventus Confirm Pogba’s Contract Extension Amid Interest",
-        "timeAgo": "1 day ago"
+        "title": "Johan Bakayoko belgian prodigy who snubbed premier league for RB Leipzig in bundesliga",
+        "timeAgo": "7 hours ago"
       },
       {
         "id": 9,
-        "title": "Ligue 1's Top Scorer Suffers Knee Injury, Out Indefinitely",
-        "timeAgo": "1 day ago"
+        "title": "Leeds Beat Everton For Perfect Start To Premier League Return",
+        "timeAgo": "8 hours ago"
       },
       {
         "id": 10,
-        "title": "UCL Group Stage Draw to Take Place Tomorrow in Monaco",
-        "timeAgo": "1 day ago"
+        "title": "Olivier Giroud joins Lille; becomes club's oldest Ligue 1 scorer",
+        "timeAgo": "9 hours ago"
       },
       {
         "id": 11,
-        "title": "Manchester United Fans Rally Ahead of Big Derby Match",
-        "timeAgo": "1 day ago"
+        "title": "Man City hit 4-0 opening day win over Wolves; Haaland scores twice",
+        "timeAgo": "10 hours ago"
+      },
+      {
+        "id": 12,
+        "title": "Werder Bremen in goalkeeper talks with Schwolow",
+        "timeAgo": "11 hours ago"
+      },
+      {
+        "id": 13,
+        "title": "Neymar Jr. In Tears After 0-6 Home Loss, Santos Fire Coach Amid Relegation Threat",
+        "timeAgo": "12 hours ago"
+      },
+      {
+        "id": 14,
+        "title": "Italian Cup: Rafael Leao, Christian Pulisic Score As AC Milan Beats Bari 2-0 In Opener",
+        "timeAgo": "14 hours ago"
+      },
+      {
+        "id": 15,
+        "title": "PSG Get Ligue 1 Title Defence Off To Winning Start vs Nantes",
+        "timeAgo": "15 hours ago"
       }
     ]
   }

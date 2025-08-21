@@ -437,16 +437,52 @@ const CRICKET_COUNTRIES = [
         return false;
       });
 
-      // Sort by date ascending
-      next3DaysMatches.sort((a: any, b: any) => {
-        const dateA = new Date(a.dateTimeGMT || a.date || 0).getTime();
-        const dateB = new Date(b.dateTimeGMT || b.date || 0).getTime();
-        return dateA - dateB;
-      });
+      let homeMatchesData: any[] = [];
+      
+      if (next3DaysMatches.length > 0) {
+        // Sort by date ascending and take up to 15 matches
+        next3DaysMatches.sort((a: any, b: any) => {
+          const dateA = new Date(a.dateTimeGMT || a.date || 0).getTime();
+          const dateB = new Date(b.dateTimeGMT || b.date || 0).getTime();
+          return dateA - dateB;
+        });
+        homeMatchesData = next3DaysMatches.slice(0, 15);
+        console.log(`🏏 Found ${homeMatchesData.length} international matches in next 3 days for home carousel`);
+      } else {
+        // Fallback: Get next 3 upcoming international matches regardless of date
+        console.log("🏏 No matches in next 3 days, falling back to next upcoming international matches");
+        
+        const upcomingInternationalMatches = internationalMatches.filter((match: any) => {
+          // Check if match is not started/finished
+          const status = (match.status || "").toString().toLowerCase();
+          if (typeof match.matchStarted === 'boolean' && match.matchStarted === true) {
+            return false; // Skip started matches
+          }
+          if (status.includes('finished') || status.includes('completed')) {
+            return false; // Skip finished matches
+          }
 
-      const homeMatchesData = next3DaysMatches.slice(0, 15); // Take up to 15 matches
+          // Check if match is in the future
+          if (match.dateTimeGMT) {
+            const matchTime = new Date(match.dateTimeGMT).getTime();
+            return matchTime >= now;
+          }
+          return false;
+        });
+
+        // Sort by date ascending and take first 3 matches
+        upcomingInternationalMatches.sort((a: any, b: any) => {
+          const dateA = new Date(a.dateTimeGMT || a.date || 0).getTime();
+          const dateB = new Date(b.dateTimeGMT || b.date || 0).getTime();
+          return dateA - dateB;
+        });
+        
+        homeMatchesData = upcomingInternationalMatches.slice(0, 3);
+        console.log(`🏏 Fallback: Found ${homeMatchesData.length} upcoming international matches for home carousel`);
+      }
+
       setHomeMatches(homeMatchesData);
-      console.log(`🏏 Extracted ${homeMatchesData.length} international matches (next 3 days) for home carousel from cache`);
+      console.log(`🏏 Extracted ${homeMatchesData.length} international matches for home carousel from cache`);
     } catch (error) {
       console.error("🏏 Error extracting home matches from cache:", error);
       setHomeMatches([]);
