@@ -16,7 +16,8 @@
         "foregroundImage": "./assets/icons/logo.png",
         "backgroundColor": "#000000"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.nazmussadiq.Zestify"
     },
     "web": {
       "bundler": "metro",
@@ -38,6 +39,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "1be428ba-2e98-4b57-8ce4-d813bc13d3c4"
+      }
     }
   }
 }

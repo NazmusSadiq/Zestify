@@ -188,7 +188,7 @@ export async function getMusicImageFromWiki(name: string): Promise<string | null
     }
     return null;
   } catch (e) {
-    console.error("Error fetching image from Wikipedia:", e);
+  // Suppressed Wikipedia image fetch error
     return null;
   }
 }
